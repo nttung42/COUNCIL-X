@@ -14,12 +14,12 @@ export function WorkflowNav() {
         </span>
       </button>
       <nav className="workflow-nav-scroll" aria-label="Luồng xử lý hồ sơ">
-        {workflowSteps.map((step) => {
+        {workflowSteps.map((step, index) => {
           const params = step.caseId ? { caseId: step.caseId } : undefined;
           const isActive = active === step.routeId;
           return (
             <a key={step.routeId} className={'workflow-nav-item' + (isActive ? ' active' : '')} href={href(step.routeId, params)}>
-              <span className="workflow-nav-icon">{step.icon}</span>
+              <span className="workflow-nav-icon">{String(index + 1).padStart(2, '0')}</span>
               <span className="workflow-nav-text">
                 {step.shortLabel}
                 <small>{step.role}</small>

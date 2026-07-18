@@ -54,9 +54,8 @@ export function AppraisalWorkspace() {
 
       {!isLastStage && (
         <div className="review-banner">
-          <span className="ic">💬</span>
-          Chưa đúng? Sửa trực tiếp trên form (nếu có) hoặc chat với PAA — thay đổi sẽ hiện màu xanh lá sau khi bạn
-          bấm Xác nhận.
+          <span className="ic">•</span>
+          Rà soát dữ liệu trên form hoặc trao đổi với PAA. Thay đổi chỉ áp dụng sau khi bấm Xác nhận.
         </div>
       )}
 

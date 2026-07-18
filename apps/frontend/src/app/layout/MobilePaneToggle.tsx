@@ -4,10 +4,10 @@ export function MobilePaneToggle({ pane, onChange }: { pane: MobilePane; onChang
   return (
     <div className="mobile-toggle">
       <button type="button" className={pane === 'chat' ? 'active' : ''} onClick={() => onChange('chat')}>
-        💬 Chat
+        Assistant
       </button>
       <button type="button" className={pane === 'info' ? 'active' : ''} onClick={() => onChange('info')}>
-        📋 Thông tin
+        Hồ sơ
       </button>
     </div>
   );

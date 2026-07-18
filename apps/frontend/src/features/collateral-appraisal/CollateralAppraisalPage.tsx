@@ -22,10 +22,10 @@ export function CollateralAppraisalPage({ params: _params }: { params: Record<st
         <div className="main-col">
           <div className="mobile-toggle">
             <button type="button" className={mobilePane === 'chat' ? 'active' : ''} onClick={() => setMobilePane('chat')}>
-              💬 Chat
+              Assistant
             </button>
             <button type="button" className={mobilePane === 'info' ? 'active' : ''} onClick={() => setMobilePane('info')}>
-              📋 Thông tin
+              Hồ sơ
             </button>
           </div>
           <div className="main-split">

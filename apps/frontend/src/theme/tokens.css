@@ -1,32 +1,57 @@
 :root {
-  /* ---- SHB brand tokens (validated: white-on-navy ≥9.8:1, white-on-orange600 4.78:1, ink-on-white 17.2:1) ---- */
-  --navy-900: #101B42;   /* sidebar / dark chrome */
-  --navy-800: #182658;   /* hover on dark chrome */
-  --navy-700: #1E2F66;   /* strong headings/accents on light surfaces */
-  --navy-600: #2A3F82;   /* links, secondary accent, chart hue */
-  --navy-300: #8C9BC7;   /* muted label on dark chrome */
-  --navy-100: #E4E8F4;   /* light tint — agent chat bubble, highlight bg */
-  --navy-050: #F1F3FA;
+  /* SHB poster-derived brand tokens */
+  --shb-orange: #F37021;
+  --shb-orange-dark: #E85D04;
+  --shb-orange-soft: #FFF0E6;
+  --shb-navy: #292B7C;
+  --shb-navy-dark: #171B4F;
+  --shb-navy-soft: #EEF0FF;
 
-  --orange-600: #C24E0E; /* CTA buttons w/ white text (4.78:1) */
-  --orange-500: #F2701C; /* vivid accent — icons/badges on dark bg only */
-  --orange-100: #FBDCC4; /* light tint — user chat bubble bg */
-  --orange-050: #FEF1E7;
+  --surface-page: #F8F5F2;
+  --surface-card: #FFFFFF;
+  --surface-warm: #FFF5ED;
+  --surface-agent: #FFF7F0;
 
-  --white: #FFFFFF;
-  --page-bg: #F7F5F2;
-  --ink: #151A2E;
-  --text-secondary: #5B6478;
-  --text-muted: #8A93A8;
-  --border: rgba(16,27,66,0.10);
-  --gridline: #ECE9E3;
+  --text-primary: #111827;
+  --text-secondary: #475467;
+  --text-muted: #667085;
+  --border-subtle: #E7E2DD;
+  --border-strong: #D6C8BD;
 
-  --good: #0ca30c;
-  --warning: #fab219;
-  --serious: #ec835a;
-  --critical: #d03b3b;
-  --good-tint: rgba(12,163,12,0.12);
-  --warning-tint: rgba(250,178,25,0.18);
-  --serious-tint: rgba(236,131,90,0.16);
-  --critical-tint: rgba(208,59,59,0.12);
+  --success: #067647;
+  --success-bg: #ECFDF3;
+  --warning: #B54708;
+  --warning-bg: #FFFAEB;
+  --danger: #B42318;
+  --danger-bg: #FEF3F2;
+  --info: #3538CD;
+  --info-bg: #EEF4FF;
+
+  /* Backward-compatible aliases used across existing screens. */
+  --navy-900: var(--shb-navy-dark);
+  --navy-800: #202464;
+  --navy-700: var(--shb-navy);
+  --navy-600: #3538CD;
+  --navy-300: #A8B0D8;
+  --navy-100: #E4E7FF;
+  --navy-050: var(--shb-navy-soft);
+
+  --orange-600: var(--shb-orange);
+  --orange-500: var(--shb-orange);
+  --orange-100: #FFD8BF;
+  --orange-050: var(--shb-orange-soft);
+
+  --white: var(--surface-card);
+  --page-bg: var(--surface-page);
+  --ink: var(--text-primary);
+  --border: var(--border-subtle);
+  --gridline: #ECE7E1;
+
+  --good: var(--success);
+  --serious: #C2410C;
+  --critical: var(--danger);
+  --good-tint: var(--success-bg);
+  --warning-tint: var(--warning-bg);
+  --serious-tint: #FFF7ED;
+  --critical-tint: var(--danger-bg);
 }

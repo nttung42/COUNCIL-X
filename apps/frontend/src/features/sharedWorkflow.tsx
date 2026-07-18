@@ -9,6 +9,10 @@ export interface WorkflowCard {
   title: string;
   description: string;
   meta?: string;
+  evidence?: string;
+  rule?: string;
+  action?: string;
+  confidence?: string;
 }
 
 export interface WorkflowMetric {
@@ -16,6 +20,12 @@ export interface WorkflowMetric {
   value: string;
   sub: string;
   tone?: string;
+}
+
+export interface WorkflowTable {
+  title: string;
+  columns: string[];
+  rows: string[][];
 }
 
 export interface WorkflowPageConfig {
@@ -30,11 +40,13 @@ export interface WorkflowPageConfig {
   progress: string[];
   summaryTitle: string;
   metrics?: WorkflowMetric[];
+  table?: WorkflowTable;
   cards: WorkflowCard[];
   footerHint: string;
   primaryLabel: string;
   nextRoute?: RouteId;
   secondaryLabel?: string;
+  blocker?: string;
 }
 
 function SimpleChat({ config }: { config: WorkflowPageConfig }) {
@@ -62,14 +74,19 @@ function SimpleChat({ config }: { config: WorkflowPageConfig }) {
       </div>
       {!started ? (
         <div className="chat-welcome">
-          <div className="welcome-avatar">{config.agentIcon}</div>
-          <div className="welcome-title">{config.welcomeTitle}</div>
-          <div className="welcome-text">{config.welcomeText}</div>
-          <div className="suggest-label">Câu hỏi gợi ý</div>
+          <div className="agent-summary-card">
+            <div className="agent-summary-top">
+              <span className="welcome-avatar">{config.agentIcon}</span>
+              <div>
+                <div className="welcome-title">{config.welcomeTitle}</div>
+                <div className="welcome-text">{config.welcomeText}</div>
+              </div>
+            </div>
+          </div>
+          <div className="suggest-label">Suggested actions</div>
           <div className="suggest-chips">
             {config.chips.map((chip) => (
               <button key={chip} type="button" className="chip" onClick={() => send(chip)}>
-                <span className="ic">💬</span>
                 {chip}
               </button>
             ))}
@@ -101,6 +118,8 @@ function SimpleChat({ config }: { config: WorkflowPageConfig }) {
 }
 
 export function WorkflowAgentPage({ config, caseId = DEMO_CASE_ID }: { config: WorkflowPageConfig; caseId?: string }) {
+  const [selectedCard, setSelectedCard] = useState<WorkflowCard | null>(null);
+
   return (
     <WorkflowPageLayout chat={<SimpleChat config={config} />}>
       <div className="info-pane demo-workspace">
@@ -112,13 +131,22 @@ export function WorkflowAgentPage({ config, caseId = DEMO_CASE_ID }: { config: W
             <span>Mã hồ sơ: <b>{caseId}</b></span>
           </div>
 
-          <div className="flow-progress">
-            {config.progress.map((step, index) => (
-              <div key={step} className="flow-step done">
-                <span className="flow-ic">{index + 1}</span>
-                {step}
+          <div className="process-summary">
+            <div>
+              <b>Processing complete</b>
+              <span>{config.progress.length} checks completed · {config.cards.length} findings</span>
+            </div>
+            <details>
+              <summary>View checks</summary>
+              <div className="flow-progress">
+                {config.progress.map((step) => (
+                  <div key={step} className="flow-step done">
+                    <span className="flow-ic">✓</span>
+                    {step}
+                  </div>
+                ))}
               </div>
-            ))}
+            </details>
           </div>
 
           <Card>
@@ -126,7 +154,7 @@ export function WorkflowAgentPage({ config, caseId = DEMO_CASE_ID }: { config: W
               {config.summaryTitle} <Qmark text={config.loadingText} />
             </SectionHeading>
             {config.metrics && (
-              <div className="grid c4">
+              <div className="grid c4 workflow-metrics">
                 {config.metrics.map((metric) => (
                   <StatTile
                     key={metric.label}
@@ -137,13 +165,49 @@ export function WorkflowAgentPage({ config, caseId = DEMO_CASE_ID }: { config: W
                 ))}
               </div>
             )}
+            {config.table && (
+              <div className="workflow-table-wrap">
+                <div className="section-h">{config.table.title}</div>
+                <table>
+                  <thead>
+                    <tr>
+                      {config.table.columns.map((column) => <th key={column}>{column}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {config.table.rows.map((row) => (
+                      <tr key={row.join('|')}>
+                        {row.map((cell, index) => <td key={`${cell}-${index}`} className={index === 0 ? 'strong' : undefined}>{cell}</td>)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <div className="workflow-card-list">
               {config.cards.map((card) => (
-                <div key={card.title} className="flag-row">
+                <div
+                  key={card.title}
+                  role="button"
+                  tabIndex={0}
+                  className="flag-row flag-row-button"
+                  onClick={() => setSelectedCard(card)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') setSelectedCard(card);
+                  }}
+                >
                   <Badge tone={card.tone ?? 'good'} />
                   <div>
                     <b>{card.title}</b>
                     <p>{card.description}</p>
+                    {(card.evidence || card.rule || card.action || card.confidence) && (
+                      <div className="evidence-grid">
+                        {card.evidence && <span><b>Evidence</b>{card.evidence}</span>}
+                        {card.rule && <span><b>Rule</b>{card.rule}</span>}
+                        {card.action && <span><b>Action</b>{card.action}</span>}
+                        {card.confidence && <span><b>Confidence</b>{card.confidence}</span>}
+                      </div>
+                    )}
                     {card.meta && <div className="meta">{card.meta}</div>}
                   </div>
                 </div>
@@ -151,11 +215,41 @@ export function WorkflowAgentPage({ config, caseId = DEMO_CASE_ID }: { config: W
             </div>
           </Card>
         </div>
+        {selectedCard && (
+          <div className="drawer-backdrop" onClick={() => setSelectedCard(null)}>
+            <aside className="evidence-drawer" onClick={(event) => event.stopPropagation()}>
+              <button type="button" className="drawer-close" onClick={() => setSelectedCard(null)}>×</button>
+              <Badge tone={selectedCard.tone ?? 'good'} />
+              <h2>{selectedCard.title}</h2>
+              <p>{selectedCard.description}</p>
+              <div className="drawer-section">
+                <b>Evidence</b>
+                <span>{selectedCard.evidence ?? 'Không có nguồn bổ sung.'}</span>
+              </div>
+              <div className="drawer-section">
+                <b>Rule</b>
+                <span>{selectedCard.rule ?? 'Không có rule bổ sung.'}</span>
+              </div>
+              <div className="drawer-section">
+                <b>Recommended action</b>
+                <span>{selectedCard.action ?? 'Không cần xử lý thêm.'}</span>
+              </div>
+              <div className="drawer-section">
+                <b>Confidence</b>
+                <span>{selectedCard.confidence ?? 'Not specified'}</span>
+              </div>
+              {selectedCard.meta && <div className="drawer-meta">{selectedCard.meta}</div>}
+            </aside>
+          </div>
+        )}
         <div className="info-footer">
-          <div className="footer-hint">{config.footerHint}</div>
+          <div className="footer-hint">
+            {config.footerHint}
+            {config.blocker && <span className="footer-blocker">Blocked: {config.blocker}</span>}
+          </div>
           <div className="footer-btns">
             {config.secondaryLabel && <button type="button" className="footer-back-btn">{config.secondaryLabel}</button>}
-            <button type="button" className="primary-btn" onClick={() => config.nextRoute && navigate(config.nextRoute, { caseId })}>
+            <button type="button" className="primary-btn" disabled={Boolean(config.blocker)} onClick={() => config.nextRoute && navigate(config.nextRoute, { caseId })}>
               {config.primaryLabel} →
             </button>
           </div>
