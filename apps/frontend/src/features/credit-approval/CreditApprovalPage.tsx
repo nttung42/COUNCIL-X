@@ -13,7 +13,7 @@ const config: WorkflowPageConfig = {
   summaryTitle: 'Đề xuất phê duyệt có điều kiện',
   metrics: [
     { label: 'Khoản vay đề nghị', value: '5 tỷ', sub: '24 tháng · VLĐ' },
-    { label: 'Định giá TSBĐ', value: '4.85 tỷ', sub: 'PAA đề xuất' },
+    { label: 'Định giá TSBĐ', value: '4.85 tỷ', sub: 'Giá trị đề xuất' },
     { label: 'LTV', value: '103%', sub: 'Vượt ngưỡng 80%', tone: 'var(--danger)' },
     { label: 'Điểm tín dụng', value: '64/100', sub: 'Rủi ro trung bình', tone: 'var(--warning)' },
   ],

@@ -36,7 +36,7 @@ const config: WorkflowPageConfig = {
       tone: 'warning',
       title: 'Tài sản bảo đảm',
       description: 'Khu vực tài sản có lịch sử ngập cục bộ; cần xác minh thực địa trước khi chốt định giá.',
-      evidence: 'PAA appraisal / environment risk; local flood history',
+      evidence: 'Collateral appraisal / environment risk; local flood history',
       rule: 'Require field check if environment risk affects collateral liquidity.',
       action: 'Bổ sung biên bản thực địa trước phê duyệt cuối.',
       confidence: 'Medium · field confirmation pending',

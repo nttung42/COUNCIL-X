@@ -235,7 +235,7 @@ const tab1Fields: Tab1Field[] = [
     status: 'mau_thuan',
     sourceDocKey: 'so-hong',
     sourceSnippet:
-      '⚠ 2 tài liệu ghi khác nhau: Sổ hồng = 62 m², Tờ khai LPTB = 65 m². Kiểm tra chéo sơ đồ (4.2 × 14.8 = 62.2 m²) ủng hộ 62 m². Cần thẩm định viên chốt.',
+      '2 tài liệu ghi khác nhau: Sổ hồng = 62 m², Tờ khai LPTB = 65 m². Kiểm tra chéo sơ đồ (4.2 × 14.8 = 62.2 m²) ủng hộ 62 m². Cần thẩm định viên chốt.',
     bbox: { top: 42, left: 8, w: 38, h: 5 },
   },
   {
@@ -503,7 +503,7 @@ export const fixtureCase: AppraisalCaseFull = {
       ],
       inferenceText:
         'Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh. Với 5 giao dịch cùng loại hình hẻm, diện tích 58–70m², độ tương đồng khá cao nên độ tin cậy phương pháp này ở mức cao.',
-      sourceLabel: 'market_price_lookup (Research Agent)',
+      sourceLabel: 'market_price_lookup (market data)'
     },
     {
       id: 'lc-method-hedonic',
@@ -520,7 +520,7 @@ export const fixtureCase: AppraisalCaseFull = {
       ],
       inferenceText:
         'Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc (vd. tổ hợp hướng nhà + chiều rộng hẻm). Sai số trung bình 4.2% trên tập dữ liệu khu vực tương tự cho thấy mô hình khá ổn định.',
-      sourceLabel: 'calculate_valuation — nhánh hedonic-ML (Valuation Agent)',
+      sourceLabel: 'calculate_valuation — nhánh hedonic-ML'
     },
     {
       id: 'lc-method-cost',
@@ -537,7 +537,7 @@ export const fixtureCase: AppraisalCaseFull = {
       ],
       inferenceText:
         'Cho giá trị thấp nhất trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá — phù hợp dùng làm giá sàn tham chiếu, hạn chế định giá vượt quá xa chi phí thay thế thực tế.',
-      sourceLabel: 'calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)',
+      sourceLabel: 'calculate_valuation — nhánh chi phí xây dựng'
     },
   ],
   valuationWeightedInferenceText:
@@ -680,10 +680,10 @@ export const fixtureCase: AppraisalCaseFull = {
   ],
 
   agentTrace: [
-    { id: 'te-1', secondsOffsetLabel: 't+0.0s', actor: 'Planner Agent', title: 'Hệ thống tiếp nhận yêu cầu', description: 'Từ hệ thống điều phối chung (Planner Agent)' },
-    { id: 'te-2', secondsOffsetLabel: 't+0.1–1.2s', actor: 'Research Agent', title: '7 nguồn tra cứu chạy song song', description: 'Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...' },
-    { id: 'te-3', secondsOffsetLabel: 't+1.4s', actor: 'Valuation Agent', title: 'Bộ máy định giá hoàn tất', description: 'Giá trị ước tính: 4.85 tỷ' },
-    { id: 'te-4', secondsOffsetLabel: 't+1.6s', actor: 'Risk Assessment Agent', title: 'Bộ máy chấm điểm rủi ro hoàn tất', description: 'Điểm rủi ro tài sản: 34/100 · Trung bình' },
-    { id: 'te-5', secondsOffsetLabel: 't+2.3s', actor: 'Advisory/Copilot Agent', title: 'Copilot tổng hợp báo cáo', description: 'Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận' },
+    { id: 'te-1', secondsOffsetLabel: 't+0.0s', actor: 'System', title: 'Hệ thống tiếp nhận yêu cầu', description: 'Từ hệ thống điều phối hồ sơ.' },
+    { id: 'te-2', secondsOffsetLabel: 't+0.1–1.2s', actor: 'Market data', title: '7 nguồn tra cứu chạy song song', description: 'Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...' },
+    { id: 'te-3', secondsOffsetLabel: 't+1.4s', actor: 'Valuation', title: 'Định giá hoàn tất', description: 'Giá trị ước tính: 4.85 tỷ' },
+    { id: 'te-4', secondsOffsetLabel: 't+1.6s', actor: 'Risk', title: 'Chấm điểm rủi ro hoàn tất', description: 'Điểm rủi ro tài sản: 34/100 · Trung bình' },
+    { id: 'te-5', secondsOffsetLabel: 't+2.3s', actor: 'Summary', title: 'Tổng hợp báo cáo', description: 'Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận' },
   ],
 };

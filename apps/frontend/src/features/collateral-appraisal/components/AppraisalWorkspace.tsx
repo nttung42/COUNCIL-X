@@ -1,6 +1,8 @@
 import type { StepNumber } from '../../../types';
 import { APPRAISAL_STAGE_LABELS } from '../../../mocks/chatScripts';
 import { useCaseStore } from '../../../state/caseStore';
+import { getFieldValue } from '../../../utils/tab1Field';
+import { SEVERITY_LABEL } from '../../../utils/severity';
 import { AppraisalIntakePanel } from './AppraisalIntakePanel';
 import { MarketAndLegalLookupPanel } from './MarketAndLegalLookupPanel';
 import { CollateralValuationPanel } from './CollateralValuationPanel';
@@ -18,7 +20,13 @@ export function AppraisalWorkspace() {
   const switchStage = useCaseStore((s) => s.switchTab);
   const goBack = useCaseStore((s) => s.goBack);
   const confirmAndNext = useCaseStore((s) => s.confirmAndNext);
+  const tab1Fields = useCaseStore((s) => s.caseData.tab1Fields);
+  const valuation = useCaseStore((s) => s.caseData.valuation);
+  const risk = useCaseStore((s) => s.caseData.risk);
 
+  const address = getFieldValue(tab1Fields, 'address') || 'Chưa có địa chỉ';
+  const landArea = getFieldValue(tab1Fields, 'land_area_sqm') || 'Chưa có diện tích';
+  const propertyType = getFieldValue(tab1Fields, 'property_type') || 'Tài sản bảo đảm';
   const isLastStage = activeStage === 5;
   const nextLabel = isLastStage ? (isCaseFinalized ? 'Đã hoàn tất' : 'Hoàn tất hồ sơ') : 'Xác nhận & tiếp theo →';
   const hint = isLoadingStage
@@ -52,6 +60,28 @@ export function AppraisalWorkspace() {
         })}
       </div>
 
+      <div className="collateral-case-strip card">
+        <div>
+          <span>Hồ sơ TSBĐ</span>
+          <b>{address}</b>
+        </div>
+        <div>
+          <span>Loại tài sản</span>
+          <b>{propertyType}</b>
+        </div>
+        <div>
+          <span>Diện tích đất</span>
+          <b>{landArea}</b>
+        </div>
+        <div>
+          <span>Định giá đề xuất</span>
+          <b>{valuation.proposedValueLabel}</b>
+        </div>
+        <div>
+          <span>Rủi ro / LTV</span>
+          <b>{SEVERITY_LABEL[risk.riskLabel]} · {risk.ltvProposedPct}%</b>
+        </div>
+      </div>
 
       <div className="info-content">
         {isLoadingStage ? (

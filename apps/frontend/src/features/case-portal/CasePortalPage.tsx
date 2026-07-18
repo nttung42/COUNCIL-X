@@ -40,8 +40,8 @@ export function CasePortalPage() {
           </div>
           <div className="case-card">
             <div className="cc-head"><span className="cc-name">Nguyễn Văn A</span><span className="cc-code">{APPRAISAL_CASE_ID}</span></div>
-            <div className="cc-desc">Thế chấp vay vốn 3.2 tỷ · nhà phố Q.C. Hồ sơ demo cho Định giá tài sản bảo đảm (PAA Workspace) MVP.</div>
-            <div className="cc-stage"><span className="dot-mark good" />Đã hoàn tất định giá · <a href={href('collateralAppraisal', { caseId: APPRAISAL_CASE_ID })}>Mở PAA Workspace →</a></div>
+            <div className="cc-desc">Thế chấp vay vốn 3.2 tỷ · nhà phố Q.C. Hồ sơ demo cho Định giá tài sản bảo đảm.</div>
+            <div className="cc-stage"><span className="dot-mark good" />Đã hoàn tất định giá · <a href={href('collateralAppraisal', { caseId: APPRAISAL_CASE_ID })}>Mở hồ sơ TSBĐ →</a></div>
           </div>
         </div>
 
@@ -57,7 +57,7 @@ export function CasePortalPage() {
                 </div>
               </div>
               <div className="rc-desc">Vào màn hình {step.label.toLowerCase()} cho hồ sơ demo.</div>
-              <div className="rc-foot"><span className="rc-ai">AI hỗ trợ</span><span className="rc-go">Vào màn hình →</span></div>
+              <div className="rc-foot"><span className="rc-ai">Assistant</span><span className="rc-go">Vào màn hình →</span></div>
             </a>
           ))}
         </div>

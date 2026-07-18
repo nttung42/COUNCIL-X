@@ -79,7 +79,7 @@ export function buildReportHtml(caseData: AppraisalCaseFull): string {
     '<h2>V. Khuyến nghị</h2>' +
     '<div class="note">Cần thẩm định viên xác minh thực địa tin đồn dân cư (2019) trước khi hoàn tất hồ sơ chính thức. Khuyến nghị khách hàng mua bảo hiểm tài sản do khu vực từng ghi nhận ngập nhẹ cục bộ 2022–2023.</div>' +
     '<div class="sig">☐ Chữ ký thẩm định viên &nbsp;&nbsp;&nbsp;&nbsp; ☐ Xác nhận chuyên viên tín dụng</div>' +
-    '<div class="ft">Báo cáo được PAA (Property Appraisal Agent) tạo tự động từ dữ liệu đã tra cứu, định giá và đánh giá rủi ro trong phiên làm việc — thẩm định viên rà soát và xác nhận trước khi sử dụng chính thức.</div>' +
+    '<div class="ft">Báo cáo được tạo từ dữ liệu đã tra cứu, định giá và đánh giá rủi ro trong phiên làm việc — thẩm định viên rà soát và xác nhận trước khi sử dụng chính thức.</div>' +
     '</body></html>'
   );
 }

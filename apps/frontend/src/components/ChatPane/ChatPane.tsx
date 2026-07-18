@@ -60,7 +60,7 @@ export function ChatPane() {
         <div className="chat-thread" ref={threadRef}>
           {chatMessages.map((m) => (
             <div key={m.id} className={'msg ' + m.role}>
-              {m.role !== 'status' && <div className="who">{m.role === 'user' ? 'Bạn' : 'PAA'}</div>}
+              {m.role !== 'status' && <div className="who">{m.role === 'user' ? 'Bạn' : 'Assistant'}</div>}
               {/* eslint-disable-next-line react/no-danger */}
               <div dangerouslySetInnerHTML={{ __html: m.html }} />
             </div>
@@ -78,7 +78,7 @@ export function ChatPane() {
       <div className="chat-input-bar">
         <input
           className="chat-input"
-          placeholder="Nhập câu hỏi hoặc yêu cầu chỉnh sửa cho PAA…"
+          placeholder="Nhập câu hỏi hoặc yêu cầu chỉnh sửa…"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {

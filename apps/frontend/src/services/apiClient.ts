@@ -93,7 +93,7 @@ function toAttachedDocument(file: ApiFileResponse): AttachedDocument {
   return {
     id: file.id,
     fileName: file.original_name,
-    icon: isPdf ? '📜' : isImage ? '📷' : '📄',
+    icon: isPdf ? 'PDF' : isImage ? 'IMG' : 'DOC',
     docCategory: 'khac',
     uploadedAtLabel: 'vừa xong',
   };
