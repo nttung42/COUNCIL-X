@@ -19,6 +19,10 @@ import type {
 const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim();
 const API_BASE_URL = RAW_BASE_URL ? RAW_BASE_URL.replace(/\/+$/, '') : '';
 
+export function apiFileUrl(fileId: string): string {
+  return `${API_BASE_URL}/api/v1/files/${encodeURIComponent(fileId)}/download`;
+}
+
 export function isApiConfigured(): boolean {
   return Boolean(API_BASE_URL);
 }
@@ -58,6 +62,8 @@ function toAttachedDocument(file: ApiFileResponse): AttachedDocument {
     icon: isPdf ? 'PDF' : isImage ? 'IMG' : 'DOC',
     docCategory: 'khac',
     uploadedAtLabel: 'vừa xong',
+    contentType: file.content_type,
+    previewUrl: apiFileUrl(file.id),
   };
 }
 
@@ -145,6 +151,6 @@ export async function uploadAndExtract(files: File[], caseId: string): Promise<{
   const uploaded = await Promise.all(files.map((f) => uploadFile(f)));
   const documents = uploaded.map(toAttachedDocument);
   const output = await runPropertyIntake(uploaded.map((f) => f.id), caseId);
-  const { tab1Fields, docPages } = mapPropertyIntakeOutput(output);
+  const { tab1Fields, docPages } = mapPropertyIntakeOutput(output, documents);
   return { documents, tab1Fields, docPages, warnings: output.warnings ?? [] };
 }

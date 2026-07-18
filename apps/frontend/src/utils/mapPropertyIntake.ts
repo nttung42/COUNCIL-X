@@ -1,4 +1,4 @@
-import type { DocPage, Tab1Field } from '../types';
+import type { AttachedDocument, DocPage, Tab1Field } from '../types';
 import type { ApiDocType, ApiPropertyIntakeOutput } from '../services/apiTypes';
 
 const DOC_TYPE_LABEL: Record<ApiDocType, string> = {
@@ -18,34 +18,56 @@ export function docTypeLabel(docType: ApiDocType): string {
  * Giả định: FormField.source_doc chứa file_id của DocumentInfo tương ứng (liên kết duy nhất có sẵn
  * giữa 2 danh sách trong schema hiện tại) — nếu backend đổi quy ước này, chỉ cần sửa ở đây.
  */
-export function mapPropertyIntakeOutput(output: ApiPropertyIntakeOutput): {
+export function mapPropertyIntakeOutput(output: ApiPropertyIntakeOutput, attachedDocuments: AttachedDocument[] = []): {
   tab1Fields: Tab1Field[];
   docPages: DocPage[];
 } {
-  const docPages: DocPage[] = output.documents.map((doc) => ({
-    key: doc.file_id,
-    label: docTypeLabel(doc.doc_type),
-    scan: doc.is_scanned,
-  }));
+  const attachments = new Map(attachedDocuments.map((doc) => [doc.id, doc]));
+  const pageCounts = new Map(output.documents.map((doc) => [doc.file_id, Math.max(1, doc.page_count || 1)]));
+  const docPages: DocPage[] = output.documents.flatMap((doc) => {
+    const attached = attachments.get(doc.file_id);
+    const pageCount = pageCounts.get(doc.file_id) ?? 1;
+    return Array.from({ length: pageCount }, (_, i) => {
+      const pageNumber = i + 1;
+      return {
+        key: pageCount > 1 ? `${doc.file_id}:p${pageNumber}` : doc.file_id,
+        label: `${docTypeLabel(doc.doc_type)}${pageCount > 1 ? ` · tr.${pageNumber}` : ''}`,
+        scan: doc.is_scanned,
+        fileName: attached?.fileName ?? doc.file_name,
+        contentType: attached?.contentType,
+        previewUrl: attached?.previewUrl,
+        pageNumber,
+      };
+    });
+  });
 
-  const tab1Fields: Tab1Field[] = output.fields.map((f) => ({
-    key: f.key,
-    section: f.section,
-    label: f.label,
-    value: f.value ?? '',
-    confidencePct: typeof f.confidence === 'number' ? Math.round(f.confidence * 100) : null,
-    status: f.status,
-    sourceDocKey: f.source_doc ?? null,
-    sourceSnippet: f.source_snippet ?? null,
-    bbox: f.bbox
-      ? {
-          top: Math.round(f.bbox.y * 1000) / 10,
-          left: Math.round(f.bbox.x * 1000) / 10,
-          w: Math.round(f.bbox.w * 1000) / 10,
-          h: Math.round(f.bbox.h * 1000) / 10,
-        }
-      : null,
-  }));
+  const docPageKey = (fileId: string | null | undefined, page: number | null | undefined) => {
+    if (!fileId) return null;
+    const pageCount = pageCounts.get(fileId) ?? 1;
+    return pageCount > 1 ? `${fileId}:p${page ?? 1}` : fileId;
+  };
+
+  const tab1Fields: Tab1Field[] = output.fields.map((f) => {
+    const sourcePage = f.source_page ?? f.bbox?.page ?? null;
+    return {
+      key: f.key,
+      section: f.section,
+      label: f.label,
+      value: f.value ?? '',
+      confidencePct: typeof f.confidence === 'number' ? Math.round(f.confidence * 100) : null,
+      status: f.status,
+      sourceDocKey: docPageKey(f.source_doc, sourcePage),
+      sourceSnippet: f.source_snippet ?? null,
+      bbox: f.bbox
+        ? {
+            top: Math.round(f.bbox.y * 1000) / 10,
+            left: Math.round(f.bbox.x * 1000) / 10,
+            w: Math.round(f.bbox.w * 1000) / 10,
+            h: Math.round(f.bbox.h * 1000) / 10,
+          }
+        : null,
+    };
+  });
 
   return { tab1Fields, docPages };
 }

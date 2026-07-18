@@ -81,6 +81,8 @@ export interface AttachedDocument {
   icon: string;
   docCategory: DocumentCategory;
   uploadedAtLabel: string;
+  contentType?: string;
+  previewUrl?: string;
 }
 
 /** 1 tài liệu đã xử lý, hiển thị trong khung "Tài liệu & vùng trích xuất" — khớp DocumentInfo của API. */
@@ -88,6 +90,10 @@ export interface DocPage {
   key: string;
   label: string;
   scan?: boolean;
+  fileName?: string;
+  contentType?: string;
+  previewUrl?: string;
+  pageNumber?: number | null;
 }
 
 export interface MarketComparable {
