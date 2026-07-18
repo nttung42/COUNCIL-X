@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { DEMO_CASE_ID } from './workflowSteps';
-import { LandingPage } from '../features/landing/LandingPage';
+import { AppraisalCaseDetailPage } from '../features/collateral-platform/AppraisalCaseDetailPage';
+import { AppraisalCaseListPage } from '../features/collateral-platform/AppraisalCaseListPage';
+import { AssetDomainHubPage } from '../features/collateral-platform/AssetDomainHubPage';
+import { CollateralHomePage } from '../features/collateral-platform/CollateralHomePage';
+import { EvidenceCenterPage } from '../features/collateral-platform/EvidenceCenterPage';
+import { ReportCenterPage } from '../features/collateral-platform/ReportCenterPage';
+import { GenericAssetDomainWorkspace } from '../features/asset-domains/GenericAssetDomainWorkspace';
 import { CaseIntakePage } from '../features/case-intake/CaseIntakePage';
 import { EligibilityScreeningPage } from '../features/eligibility-screening/EligibilityScreeningPage';
 import { FinancialReviewPage } from '../features/financial-review/FinancialReviewPage';
@@ -13,9 +19,19 @@ import { PortfolioMonitoringPage } from '../features/portfolio-monitoring/Portfo
 import { matchRoute, type RouteId } from './routes';
 
 const PAGES: Record<RouteId, (params: Record<string, string>) => JSX.Element> = {
-  casePortal: () => <LandingPage />,
-  caseList: () => <CaseIntakePage params={{ caseId: DEMO_CASE_ID }} />,
-  caseIntake: (params) => <CaseIntakePage params={params} />,
+  casePortal: () => <CollateralHomePage />,
+  appraisalList: () => <AppraisalCaseListPage />,
+  appraisalDetail: (params) => <AppraisalCaseDetailPage params={params} />,
+  assetDomainHub: () => <AssetDomainHubPage />,
+  realEstateAppraisal: (params) => <CollateralAppraisalPage params={params} />,
+  movableAssetsAppraisal: () => <GenericAssetDomainWorkspace routeId="movableAssetsAppraisal" />,
+  valuablePapersAppraisal: () => <GenericAssetDomainWorkspace routeId="valuablePapersAppraisal" />,
+  propertyRightsAppraisal: () => <GenericAssetDomainWorkspace routeId="propertyRightsAppraisal" />,
+  evidenceCenter: () => <EvidenceCenterPage />,
+  reportCenter: () => <ReportCenterPage />,
+
+  caseList: () => <AppraisalCaseListPage />,
+  caseIntake: (params) => <CaseIntakePage params={params.caseId ? params : { caseId: DEMO_CASE_ID }} />,
   eligibilityScreening: (params) => <EligibilityScreeningPage params={params} />,
   financialReview: (params) => <FinancialReviewPage params={params} />,
   legalReview: (params) => <LegalReviewPage params={params} />,

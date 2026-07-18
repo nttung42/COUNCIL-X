@@ -453,6 +453,87 @@ td.cell-status.critical { color: var(--danger); }
 .ews-actions button { font-size: 11px; padding: 7px 10px; }
 .portfolio-summary { margin-top: 12px; }
 
+/* ================= Collateral Appraisal Platform ================= */
+.platform-shell { width: 100vw; height: 100vh; zoom: 1; }
+.platform-page { flex: 1; min-width: 0; min-height: 0; overflow-y: auto; padding: 24px; background: var(--page-bg); }
+.platform-topnav .workflow-nav-item { min-width: 118px; }
+.platform-hero, .platform-header, .case-detail-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
+.platform-hero h1, .platform-header h1, .case-detail-header h1 { margin: 0; color: var(--shb-navy-dark); font-size: 30px; line-height: 1.08; letter-spacing: -.035em; }
+.platform-hero p, .platform-header p, .case-detail-header p, .domain-intro { margin: 7px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.platform-kpi-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.platform-two-col { display: grid; grid-template-columns: 1.12fr .88fr; gap: 12px; margin-bottom: 12px; }
+.case-card-list { display: grid; gap: 10px; }
+.case-card-list.compact { max-height: 430px; overflow-y: auto; padding-right: 4px; }
+.appraisal-case-card { width: 100%; text-align: left; background: var(--white); border: 1px solid var(--border); border-left: 4px solid var(--shb-orange); border-radius: 14px; padding: 14px 16px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 6px; cursor: pointer; font-family: inherit; box-shadow: 0 10px 22px rgba(23,27,79,.04); }
+.appraisal-case-card:hover { background: var(--surface-warm); transform: translateY(-1px); }
+.appraisal-case-card strong { color: var(--shb-navy-dark); font-size: 15px; }
+.appraisal-case-card .case-id, .case-id { color: var(--shb-orange-dark); font-weight: 900; font-size: 11px; letter-spacing: .04em; }
+.case-card-meta, .case-card-foot, .case-metrics-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.case-card-meta em, .case-card-foot span, .case-next { color: var(--text-muted); font-size: 11px; font-style: normal; }
+.case-card-grid, .report-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.appraisal-case-card.large { min-height: 260px; }
+.case-detail-btn { align-self: flex-start; margin-top: auto; }
+.filter-card { margin-bottom: 14px; }
+.filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.domain-mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.domain-mini-card, .asset-domain-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: left; cursor: pointer; font-family: inherit; color: var(--text-secondary); }
+.domain-mini-card:hover, .asset-domain-card:hover { border-color: var(--shb-orange); background: var(--surface-warm); }
+.domain-mini-card strong, .asset-domain-card strong { display: block; color: var(--shb-navy-dark); font-size: 14px; margin-bottom: 4px; }
+.domain-mini-card span, .asset-domain-card p { display: block; font-size: 11.5px; line-height: 1.5; margin: 0; }
+.domain-mini-card em, .asset-domain-card em { display: block; margin-top: 8px; color: var(--shb-orange-dark); font-style: normal; font-weight: 800; font-size: 11px; }
+.asset-domain-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.asset-domain-card { min-height: 270px; display: flex; flex-direction: column; }
+.domain-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.domain-capabilities { display: grid; gap: 6px; margin-top: 14px; }
+.domain-capabilities span { color: var(--text-secondary); font-size: 11.5px; }
+.domain-card-foot { margin-top: auto; padding-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--text-muted); font-size: 11px; }
+.domain-card-foot em { margin: 0; flex: none; }
+.case-detail-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr) 340px; gap: 12px; align-items: start; }
+.case-detail-left, .case-detail-main, .case-detail-right { display: grid; gap: 12px; min-width: 0; }
+.case-header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--text-secondary); font-size: 12px; }
+.case-side-card { padding: 14px; }
+.compact-docs .upload-row { padding: 9px 0; }
+.side-actions, .review-actions, .report-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.evidence-source-row, .module-status-row, .evidence-center-row { border-bottom: 1px solid var(--gridline); padding: 10px 0; }
+.evidence-source-row:last-child, .module-status-row:last-child, .evidence-center-row:last-child { border-bottom: 0; }
+.evidence-source-row b, .module-status-row b, .evidence-center-row b { display: block; color: var(--shb-navy-dark); font-size: 12.5px; }
+.evidence-source-row span, .module-status-row em, .evidence-center-row span, .evidence-center-row em { display: block; color: var(--text-muted); font-size: 11px; font-style: normal; margin-top: 3px; }
+.applied-domain-card { padding: 14px; border-radius: 12px; background: var(--orange-050); border: 1px solid var(--orange-100); display: grid; gap: 5px; }
+.applied-domain-card strong { color: var(--shb-navy-dark); font-size: 16px; }
+.applied-domain-card span { color: var(--text-secondary); font-size: 12.5px; line-height: 1.5; }
+.applied-domain-card em { color: var(--shb-orange-dark); font-style: normal; font-weight: 800; font-size: 11px; }
+.module-status-list { display: grid; gap: 2px; }
+.module-status-row { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; }
+.human-review-box p { color: var(--text-secondary); font-size: 12px; line-height: 1.55; margin: 0; }
+.domain-workspace { display: grid; grid-template-columns: 250px minmax(0, 1fr) 320px; gap: 12px; align-items: start; }
+.domain-step-nav { position: sticky; top: 0; display: grid; gap: 6px; }
+.domain-step-nav button { display: flex; align-items: center; gap: 8px; border: 0; background: transparent; border-radius: 10px; padding: 9px 10px; text-align: left; color: var(--text-secondary); font-weight: 750; font-size: 12px; cursor: pointer; font-family: inherit; }
+.domain-step-nav button span { width: 18px; height: 18px; border-radius: 999px; background: var(--gridline); color: var(--text-muted); text-align: center; line-height: 18px; font-size: 10px; flex: none; }
+.domain-step-nav button.active { background: var(--orange-050); color: var(--shb-navy-dark); }
+.domain-step-nav button.active span { background: var(--shb-orange); color: #fff; }
+.domain-main-workspace { display: grid; gap: 12px; min-width: 0; }
+.right-evidence-panel { min-width: 0; }
+.evidence-center-row.compact { padding: 9px 0; }
+.report-section-list { display: grid; gap: 7px; margin-top: 10px; }
+.report-section-list span { color: var(--text-secondary); font-size: 11.5px; }
+.evidence-center-layout { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 12px; }
+.evidence-list { display: grid; }
+.evidence-center-row { width: 100%; text-align: left; border-left: 0; border-right: 0; border-top: 0; background: transparent; font-family: inherit; cursor: pointer; }
+.evidence-center-row.active, .evidence-center-row:hover { background: var(--orange-050); border-radius: 10px; padding-left: 10px; padding-right: 10px; }
+.evidence-preview-card h2, .report-card h2 { margin: 0 0 8px; color: var(--shb-navy-dark); font-size: 18px; }
+.evidence-preview-card p, .report-card p { color: var(--text-secondary); font-size: 12px; line-height: 1.55; }
+.evidence-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.evidence-detail-grid span { padding: 10px; border-radius: 10px; background: var(--surface-warm); color: var(--text-secondary); font-size: 11.5px; }
+.evidence-detail-grid b { display: block; color: var(--text-muted); font-size: 9px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+.report-card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+
+@media (max-width: 1200px) {
+  .platform-kpi-row, .asset-domain-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .platform-two-col, .case-detail-layout, .domain-workspace { grid-template-columns: 1fr; }
+  .case-detail-left, .case-detail-right, .right-evidence-panel { position: static; }
+  .case-card-grid, .report-card-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 1000px) {
 }
 

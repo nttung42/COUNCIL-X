@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { WorkflowNav } from '../../app/layout/WorkflowNav';
+import { PlatformNav } from '../../app/layout/PlatformNav';
 import { AppraisalChatPane } from './components/AppraisalChatPane';
 import { AppraisalSidebar } from './components/AppraisalSidebar';
 import { AppraisalWorkspace } from './components/AppraisalWorkspace';
@@ -16,7 +16,7 @@ export function CollateralAppraisalPage({ params: _params }: { params: Record<st
 
   return (
     <div className="page-shell appraisal-page">
-      <WorkflowNav />
+      <PlatformNav />
       <div className="app-shell">
         <AppraisalSidebar />
         <div className="main-col">
