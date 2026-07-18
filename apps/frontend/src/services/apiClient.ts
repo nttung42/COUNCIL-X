@@ -6,14 +6,14 @@ import type {
   ApiPluginRunAsyncResponse,
   ApiPluginRunResponse,
   ApiPropertyIntakeOutput,
+  ApiPropertyLookupOutput,
+  ApiPropertyValuationOutput,
   ApiRegisterResponse,
 } from './apiTypes';
 
 // Client cho backend thật ở ai/ (FastAPI, xem ai/src/shb/main.py + ai/src/shb/api/v1/api.py).
-// Hiện backend mới có route cho auth/upload-file/chạy-service-bất-đồng-bộ/SSE job — CHƯA có
-// route riêng cho case/lookup/valuation/risk/dashboard/chat (những bảng đó mới chỉ là ORM model,
-// xem models_paa.py). Vì vậy chỉ màn "Nhập thông tin" (property_intake) gọi API thật; các màn
-// 2-5 + chat + xác nhận chỉnh sửa vẫn dùng fixtureCase cho tới khi backend có endpoint tương ứng.
+// Các service AI dùng chung route /services/{id}/run; service nặng trả job_id rồi stream SSE.
+// Màn rủi ro/dashboard/chat chưa có service riêng nên vẫn giữ dữ liệu fixture khi backend chưa sẵn sàng.
 
 const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim();
 const API_BASE_URL = RAW_BASE_URL ? RAW_BASE_URL.replace(/\/+$/, '') : '';
@@ -111,13 +111,13 @@ function parseSsePayload(event: MessageEvent<string>): SsePayload {
   }
 }
 
-function streamJob(jobId: string, apiKey: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
+function streamJob<T>(jobId: string, apiKey: string, onProgress?: (progress: number) => void): Promise<T> {
   return new Promise((resolve, reject) => {
     const url = `${API_BASE_URL}/api/v1/jobs/${encodeURIComponent(jobId)}/stream?api_key=${encodeURIComponent(apiKey)}`;
     const es = new EventSource(url);
     const timeout = window.setTimeout(() => {
       es.close();
-      reject(new Error('Quá thời gian chờ trích xuất dữ liệu (2 phút) — vui lòng thử lại.'));
+      reject(new Error('Quá thời gian chờ xử lý (2 phút) — vui lòng thử lại.'));
     }, SSE_TIMEOUT_MS);
 
     function finish(fn: () => void) {
@@ -135,29 +135,41 @@ function streamJob(jobId: string, apiKey: string, onProgress?: (progress: number
       if (typeof progress === 'number') onProgress?.(progress);
     });
     es.addEventListener('done', (event) => {
-      const result = parseSsePayload(event as MessageEvent<string>).result as ApiPropertyIntakeOutput | undefined;
-      finish(() => (result ? resolve(result) : reject(new Error('SSE done không có kết quả trích xuất.'))));
+      const result = parseSsePayload(event as MessageEvent<string>).result as T | undefined;
+      finish(() => (result ? resolve(result) : reject(new Error('SSE done không có kết quả.'))));
     });
     es.addEventListener('error', (event) => {
       if (!('data' in event)) return; // Rớt mạng/proxy tạm thời — để EventSource tự nối lại, timeout vẫn chặn treo vô hạn.
       const message = parseSsePayload(event as MessageEvent<string>).error;
-      finish(() => reject(new Error(message ?? 'Trích xuất dữ liệu thất bại.')));
+      finish(() => reject(new Error(message ?? 'Xử lý dữ liệu thất bại.')));
     });
   });
 }
 
-/** Chạy plugin property_intake trên các file đã upload, nhận tiến độ qua SSE, trả kết quả trích xuất. */
-export async function runPropertyIntake(fileIds: string[], caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
-  const res = await authedFetch('/api/v1/services/property_intake/run', {
+async function runService<T>(serviceId: string, input: Record<string, unknown>, onProgress?: (progress: number) => void): Promise<T> {
+  const res = await authedFetch(`/api/v1/services/${serviceId}/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ input: { file_ids: fileIds, language: 'vi', case_id: caseId } }),
+    body: JSON.stringify({ input }),
   });
   const body = (await res.json()) as ApiPluginRunAsyncResponse | ApiPluginRunResponse;
 
-  if ('result' in body) return body.result as unknown as ApiPropertyIntakeOutput;
+  if ('result' in body) return body.result as unknown as T;
 
-  return streamJob(body.job_id, await ensureApiKey(), onProgress);
+  return streamJob<T>(body.job_id, await ensureApiKey(), onProgress);
+}
+
+/** Chạy plugin property_intake trên các file đã upload, nhận tiến độ qua SSE, trả kết quả trích xuất. */
+export function runPropertyIntake(fileIds: string[], caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
+  return runService<ApiPropertyIntakeOutput>('property_intake', { file_ids: fileIds, language: 'vi', case_id: caseId }, onProgress);
+}
+
+export function runPropertyLookup(caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyLookupOutput> {
+  return runService<ApiPropertyLookupOutput>('property_lookup', { case_id: caseId }, onProgress);
+}
+
+export function runPropertyValuation(caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyValuationOutput> {
+  return runService<ApiPropertyValuationOutput>('property_valuation', { case_id: caseId }, onProgress);
 }
 
 export interface ExtractionResult {

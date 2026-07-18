@@ -13,8 +13,10 @@ import {
   matchDemoEdit,
 } from '../mocks/chatScripts';
 import { downloadStandaloneReport } from '../utils/exportReport';
-import { isApiConfigured, runPropertyIntake, uploadFile } from '../services/apiClient';
+import { isApiConfigured, runPropertyIntake, runPropertyLookup, runPropertyValuation, uploadFile } from '../services/apiClient';
 import { mapPropertyIntakeOutput } from '../utils/mapPropertyIntake';
+import { mapPropertyLookupOutput } from '../utils/mapPropertyLookup';
+import { mapPropertyValuationOutput } from '../utils/mapPropertyValuation';
 
 // Store trung tâm cho toàn bộ workspace thẩm định — chuyển thể hành vi từ khối <script>
 // trong ai/PAA_Mockup_SHB_8.html (khoá/mở tab, luồng "sửa -> chờ xác nhận -> xác nhận",
@@ -76,6 +78,13 @@ function readFieldValue(caseData: AppraisalCaseFull, key: string): string {
   return caseData.tab1Fields.find((f) => f.key === key)?.value ?? '';
 }
 
+function upsertDashboardSummary(caseData: AppraisalCaseFull, stepNumber: 2 | 3, summaryText: string): AppraisalCaseFull {
+  const dashboardSteps = caseData.dashboardSteps.map((step) =>
+    step.stepNumber === stepNumber ? { ...step, summaryText } : step,
+  );
+  return { ...caseData, dashboardSteps };
+}
+
 function emptyPerStep<T>(fill: () => T): Record<StepNumber, T> {
   const out = {} as Record<StepNumber, T>;
   STEP_NUMBERS.forEach((n) => {
@@ -124,6 +133,12 @@ interface CaseStoreState {
   extractionProgress: number | null;
   /** Cảnh báo từ lần trích xuất gần nhất (vd. loại tài liệu chưa hỗ trợ) — hiện thành banner riêng, không chỉ chìm trong chat. */
   extractionWarnings: string[];
+  isRunningLookup: boolean;
+  lookupProgress: number | null;
+  lookupWarnings: string[];
+  isRunningValuation: boolean;
+  valuationProgress: number | null;
+  valuationWarnings: string[];
 
   dvCurrentKey: string;
   dvPulseBoxId: string | null;
@@ -153,6 +168,8 @@ interface CaseStoreState {
   addMockUpload: () => void;
   uploadRealFiles: (files: File[]) => Promise<void>;
   runExtraction: () => Promise<void>;
+  runLookup: () => Promise<void>;
+  runValuation: () => Promise<void>;
   removeUpload: (id: string) => void;
 
   setDvCurrent: (key: string) => void;
@@ -189,6 +206,12 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
   isExtracting: false,
   extractionProgress: null,
   extractionWarnings: [],
+  isRunningLookup: false,
+  lookupProgress: null,
+  lookupWarnings: [],
+  isRunningValuation: false,
+  valuationProgress: null,
+  valuationWarnings: [],
 
   dvCurrentKey: 'so-hong',
   dvPulseBoxId: null,
@@ -378,6 +401,8 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
     if (nextUserMsg) steps.push({ type: 'user', text: nextUserMsg });
     steps.push({ type: 'status', text: '⏳ ' + (LOADING_TEXT[target] ?? 'Đang xử lý…'), delay: 500 });
     await get().runSteps(steps);
+    if (cur === 1) await get().runLookup();
+    if (cur === 2) await get().runValuation();
     get().switchTab(target);
   },
 
@@ -503,6 +528,82 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
       get().pushMessage('status', `Trích xuất dữ liệu thất bại: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       set({ isExtracting: false, extractionProgress: null });
+    }
+  },
+
+  runLookup: async () => {
+    const s = get();
+    if (!s.apiMode || s.isRunningLookup) return;
+    set({ isRunningLookup: true, lookupProgress: 0, lookupWarnings: [] });
+    try {
+      const output = await runPropertyLookup(s.caseData.caseId, (progress) => set({ lookupProgress: progress }));
+      const mapped = mapPropertyLookupOutput(output);
+      set((state) => {
+        const caseData = upsertDashboardSummary(
+          {
+            ...state.caseData,
+            marketComparables: mapped.marketComparables,
+            marketInferenceText: mapped.marketInferenceText,
+            lookupFindings: mapped.lookupFindings,
+          },
+          2,
+          `${mapped.lookupFindings.length} nguồn tra cứu hoàn tất · ${mapped.marketComparables.length} giao dịch so sánh.`,
+        );
+        return { caseData, lookupWarnings: mapped.warnings };
+      });
+      get().pushMessage(
+        'status',
+        `Đã cập nhật kết quả tra cứu từ backend: ${mapped.lookupFindings.length} nguồn, ${mapped.marketComparables.length} giao dịch so sánh.` +
+          (mapped.warnings.length ? ` Có ${mapped.warnings.length} cảnh báo.` : ''),
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      set({ lookupWarnings: [`Không lấy được dữ liệu tra cứu thật: ${message}`] });
+      get().pushMessage('status', `Không lấy được dữ liệu tra cứu thật, đang giữ dữ liệu demo. ${message}`);
+    } finally {
+      set({ isRunningLookup: false, lookupProgress: null });
+    }
+  },
+
+  runValuation: async () => {
+    const s = get();
+    if (!s.apiMode || s.isRunningValuation) return;
+    set({ isRunningValuation: true, valuationProgress: 0, valuationWarnings: [] });
+    try {
+      const output = await runPropertyValuation(s.caseData.caseId, (progress) => set({ valuationProgress: progress }));
+      const mapped = mapPropertyValuationOutput(output);
+      if (!mapped.ok) {
+        set({ valuationWarnings: mapped.warnings });
+        get().pushMessage('status', `Backend chưa trả được định giá, đang giữ dữ liệu demo. ${mapped.warnings.join(' ')}`);
+        return;
+      }
+      set((state) => {
+        const caseData = upsertDashboardSummary(
+          {
+            ...state.caseData,
+            valuation: mapped.valuation,
+            priceIndexSeries: mapped.priceIndexSeries,
+            valuationMethods: mapped.valuationMethods,
+            valuationWeightedInferenceText: mapped.valuationWeightedInferenceText,
+            confidenceFactors: mapped.confidenceFactors,
+            confidenceInferenceText: mapped.confidenceInferenceText,
+          },
+          3,
+          `${mapped.valuation.proposedValueLabel} (${mapped.valuation.valueRangeLabel}) · độ tin cậy ${mapped.valuation.confidencePct}%, kết hợp ${mapped.valuationMethods.length} phương pháp.`,
+        );
+        return { caseData, valuationWarnings: mapped.warnings };
+      });
+      get().pushMessage(
+        'status',
+        `Đã cập nhật định giá từ backend: ${mapped.valuation.proposedValueLabel}, độ tin cậy ${mapped.valuation.confidencePct}%.` +
+          (mapped.warnings.length ? ` Có ${mapped.warnings.length} cảnh báo.` : ''),
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      set({ valuationWarnings: [`Không lấy được định giá thật: ${message}`] });
+      get().pushMessage('status', `Không lấy được định giá thật, đang giữ dữ liệu demo. ${message}`);
+    } finally {
+      set({ isRunningValuation: false, valuationProgress: null });
     }
   },
 

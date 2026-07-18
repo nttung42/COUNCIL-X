@@ -11,12 +11,13 @@ const PAD_TOP = 10;
 const PAD_BOTTOM = 12;
 
 function PriceIndexSpark({ series }: { series: { periodLabel: string; indexValue: number }[] }) {
+  const safeSeries = series.length ? series : [{ periodLabel: '—', indexValue: 100 }];
   const { lineStr, areaStr, endX, endY } = useMemo(() => {
-    const values = series.map((p) => p.indexValue);
+    const values = safeSeries.map((p) => p.indexValue);
     const min = Math.min(...values);
     const max = Math.max(...values);
-    const xStep = (SPARK_W - PAD_X * 2) / Math.max(1, series.length - 1);
-    const pts = series.map((p, i) => {
+    const xStep = (SPARK_W - PAD_X * 2) / Math.max(1, safeSeries.length - 1);
+    const pts = safeSeries.map((p, i) => {
       const x = PAD_X + i * xStep;
       const range = max - min || 1;
       const y = PAD_TOP + (1 - (p.indexValue - min) / range) * (SPARK_H - PAD_TOP - PAD_BOTTOM);
@@ -26,10 +27,10 @@ function PriceIndexSpark({ series }: { series: { periodLabel: string; indexValue
     const area = `${PAD_X},${SPARK_H - PAD_BOTTOM} ${line} ${SPARK_W - PAD_X},${SPARK_H - PAD_BOTTOM}`;
     const last = pts[pts.length - 1] ?? [0, 0];
     return { lineStr: line, areaStr: area, endX: last[0], endY: last[1] };
-  }, [series]);
+  }, [safeSeries]);
 
-  const first = series[0];
-  const last = series[series.length - 1];
+  const first = safeSeries[0];
+  const last = safeSeries[safeSeries.length - 1];
 
   return (
     <>
@@ -57,14 +58,26 @@ export function Tab3Valuation() {
   const valuationWeightedInferenceText = useCaseStore((s) => s.caseData.valuationWeightedInferenceText);
   const confidenceFactors = useCaseStore((s) => s.caseData.confidenceFactors);
   const confidenceInferenceText = useCaseStore((s) => s.caseData.confidenceInferenceText);
+  const valuationWarnings = useCaseStore((s) => s.valuationWarnings);
   const pendingEdits = useCaseStore((s) => s.pendingEdits);
   const confirmedKeys = useCaseStore((s) => s.confirmedKeys);
 
   const tileStatus = getEditStatus(pendingEdits, confirmedKeys, 3, 'valuation.tile');
-  const maxMethodValue = Math.max(...valuationMethods.map((m) => parseLeadingNumber(m.estimatedValueLabel)));
+  const maxMethodValue = Math.max(0, ...valuationMethods.map((m) => parseLeadingNumber(m.estimatedValueLabel)));
 
   return (
     <>
+      {valuationWarnings.length > 0 && (
+        <Card style={{ marginBottom: 12, background: 'var(--warning-tint)', border: '1px solid rgba(250,178,25,0.4)' }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6100', marginBottom: 4 }}>{valuationWarnings.length} cảnh báo định giá</div>
+          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: 'var(--ink)', lineHeight: 1.55 }}>
+            {valuationWarnings.map((w, i) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </Card>
+      )}
       <div className="grid c4">
         <StatTile label="Giá trị đề xuất" value={valuation.proposedValueLabel} sub={valuation.valueRangeLabel} status={tileStatus} id="tile-valuation" />
         <StatTile label="Giá/m²" value={valuation.pricePerSqmLabel} sub={`quy đổi ${valuation.priceIndexPeriod}`} />
@@ -85,14 +98,18 @@ export function Tab3Valuation() {
             <Qmark text="Kết hợp so sánh trực tiếp, hedonic-ML và chi phí xây dựng để giảm sai lệch." />
           </div>
           <div className="barchart">
-            {valuationMethods.map((m) => (
-              <BarRow
-                key={m.id}
-                label={m.label}
-                valueLabel={m.estimatedValueLabel}
-                percent={(parseLeadingNumber(m.estimatedValueLabel) / (maxMethodValue || 1)) * 100}
-              />
-            ))}
+            {valuationMethods.length ? (
+              valuationMethods.map((m) => (
+                <BarRow
+                  key={m.id}
+                  label={m.label}
+                  valueLabel={m.estimatedValueLabel}
+                  percent={(parseLeadingNumber(m.estimatedValueLabel) / (maxMethodValue || 1)) * 100}
+                />
+              ))
+            ) : (
+              <div className="meta">Chưa có dữ liệu phương pháp định giá.</div>
+            )}
           </div>
         </Card>
         <Card>
