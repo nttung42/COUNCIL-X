@@ -13,12 +13,14 @@ html, body { overflow: hidden; font-family: SVN-Gilroy, ui-sans-serif, system-ui
 
 /* ================= SIDEBAR ================= */
 .sidebar { width: 264px; flex: none; min-height: 0; background: var(--white); color: var(--shb-navy-dark); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-.sb-brand { display: flex; align-items: center; gap: 10px; padding: 16px; border-bottom: 1px solid var(--border); }
+.sb-brand { height: 64px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid var(--border); }
 .sb-brand .mark { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex: none; }
 .sb-brand .name { font-size: 13.5px; font-weight: 700; }
 .sb-brand .name small { display: block; font-size: 10.5px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
 
 .sb-section { padding: 12px; }
+.sidebar > .sb-section:first-of-type { height: 64px; flex: none; display: flex; align-items: center; padding: 0 12px !important; }
+.sidebar > .sb-section:first-of-type .nav-item { width: 100%; margin-bottom: 0; }
 .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px; font-size: 12.8px; font-weight: 700; color: var(--shb-navy); margin-bottom: 2px; cursor: pointer; border-left: 3px solid transparent; }
 .nav-item .ic { width: 17px; height: 17px; flex: none; opacity: 0.9; }
 .nav-item.active { background: var(--shb-orange-soft); color: var(--shb-navy-dark); border-left-color: var(--orange-500); }
@@ -52,7 +54,7 @@ html, body { overflow: hidden; font-family: SVN-Gilroy, ui-sans-serif, system-ui
 
 /* ---- Agent pane ---- */
 .chat-pane { flex: 0 0 352px; min-width: 320px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: #FFFBF7; min-height: 0; }
-.pane-head { padding: 15px 18px; border-bottom: 1px solid var(--border); background: var(--white); }
+.pane-head { height: 64px; flex: none; display: flex; flex-direction: column; justify-content: center; padding: 0 18px; border-bottom: 1px solid var(--border); background: var(--white); }
 .pane-head .title { font-size: 13px; font-weight: 700; color: var(--shb-navy-dark); }
 .pane-head .sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
@@ -72,7 +74,7 @@ html, body { overflow: hidden; font-family: SVN-Gilroy, ui-sans-serif, system-ui
 /* ---- Info pane 70% ---- */
 .info-pane { flex: 7; min-width: 360px; display: flex; flex-direction: column; background: var(--page-bg); min-height: 0; }
 
-.subtab-bar { display: flex; gap: 4px; padding: 10px 18px; border-bottom: 1px solid var(--border); background: var(--white); overflow-x: auto; }
+.subtab-bar { height: 64px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 18px; border-bottom: 1px solid var(--border); background: var(--white); overflow-x: auto; }
 .subtab-btn { flex: none; display:flex; align-items:center; gap:6px; font-size: 12px; font-weight: 700; color: var(--text-secondary); padding: 8px 13px; border-radius: 999px; border: none; background: transparent; white-space: nowrap; cursor: pointer; font-family: inherit; }
 .subtab-btn .n { display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--gridline); color: var(--text-muted); font-size: 9px; text-align: center; line-height: 16px; }
 .step-num { display: inline-block; border-radius: 50%; background: var(--navy-050); color: var(--navy-600); font-weight: 700; text-align: center; }
