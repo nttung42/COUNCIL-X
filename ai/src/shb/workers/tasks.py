@@ -75,6 +75,7 @@ def execute_job(self, job_id: str, user_id: str, plugin_id: str, input_data: dic
                 job_id=job_id,
                 update_progress=update_progress,
                 storage_service=storage_service,  # ← prevents plugin from creating its own engine
+                db_session_factory=AsyncSessionLocal,  # ← DB-reading services (property_lookup)
             )
 
             input_schema = service.InputSchema(**input_data)

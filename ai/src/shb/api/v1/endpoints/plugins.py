@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from shb.ai.plugins import AIServiceContext, get_registry
 from shb.api.v1.dependencies import get_current_user
 from shb.core.celery_app import celery_app
-from shb.core.db import get_db
+from shb.core.db import AsyncSessionLocal, get_db
 from shb.db.models import User
 from shb.schemas import (
     PluginMetaResponse,
@@ -127,7 +127,11 @@ async def run_service(
 
         return PluginRunAsyncResponse(job_id=job.id, status="pending")
     else:
-        ctx = AIServiceContext(user_id=user.id, service_id=service_id)
+        ctx = AIServiceContext(
+            user_id=user.id,
+            service_id=service_id,
+            db_session_factory=AsyncSessionLocal,  # sync services may read the DB
+        )
         result = await service.run(input_data, ctx)
 
         return PluginRunResponse(result=result.model_dump())

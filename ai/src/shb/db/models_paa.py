@@ -32,18 +32,26 @@ from enum import Enum
 
 from sqlalchemy import (
     JSON,
+)
+from sqlalchemy import BigInteger as BigInt
+from sqlalchemy import (
     Boolean,
     CheckConstraint,
     Date,
     DateTime,
+)
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import (
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     SmallInteger,
+    String,
+    Text,
+    UniqueConstraint,
+    text,
 )
-from sqlalchemy import BigInteger as BigInt
-from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import Integer, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from shb.db.models import Base
@@ -186,6 +194,18 @@ class RiskGroupKey(str, Enum):
     REPUTATION = "reputation"
 
 
+def _pg_enum(enum_cls: type[Enum], name: str) -> SQLEnum:
+    """Build an enum column that persists the enum *value* (lowercase domain code).
+
+    Without ``values_callable`` SQLAlchemy binds the enum member *name*
+    ("MARKET_PRICE"), but the Postgres ENUM labels created by Alembic 002 and the
+    demo seed use the lowercase *value* ("market_price") — so ORM reads/writes
+    fail with ``invalid input value for enum``. Persisting the value keeps ORM,
+    Alembic, and the seed consistent. (Same fix as ``models.JobStatus``.)
+    """
+    return SQLEnum(enum_cls, name=name, values_callable=lambda e: [m.value for m in e])
+
+
 def _uuid() -> str:
     """Default factory for UUID-as-string primary keys (matches User/Job/File)."""
     return str(uuid.uuid4())
@@ -211,7 +231,7 @@ class AppraisalCase(Base):
 
     case_id: Mapped[str] = mapped_column(String, primary_key=True)  # vd. 'REQ-2026-0001'
     status: Mapped[CaseStatus] = mapped_column(
-        SQLEnum(CaseStatus, name="case_status"), nullable=False, default=CaseStatus.DANG_XU_LY
+        _pg_enum(CaseStatus, name="case_status"), nullable=False, default=CaseStatus.DANG_XU_LY
     )
     current_step: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=1)
     requested_by: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -239,7 +259,7 @@ class CaseStepProgress(Base):
     )
     step_number: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     status: Mapped[StepStatus] = mapped_column(
-        SQLEnum(StepStatus, name="step_status"), nullable=False, default=StepStatus.LOCKED
+        _pg_enum(StepStatus, name="step_status"), nullable=False, default=StepStatus.LOCKED
     )
     unlocked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -345,12 +365,12 @@ class AttachedDocument(Base):
     file_type: Mapped[str] = mapped_column(String, nullable=False)
     file_size_kb: Mapped[int | None] = mapped_column(Integer, nullable=True)
     doc_category: Mapped[DocumentCategory] = mapped_column(
-        SQLEnum(DocumentCategory, name="document_category"),
+        _pg_enum(DocumentCategory, name="document_category"),
         nullable=False,
         default=DocumentCategory.KHAC,
     )
     detected_doc_type: Mapped[ExtractedDocType | None] = mapped_column(
-        SQLEnum(ExtractedDocType, name="extracted_doc_type"), nullable=True
+        _pg_enum(ExtractedDocType, name="extracted_doc_type"), nullable=True
     )
     is_scan: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     ocr_engine: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -417,7 +437,7 @@ class FieldProvenance(Base):
     bbox_height: Mapped[float | None] = mapped_column(Numeric(6, 4), nullable=True)
     confidence_pct: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     status: Mapped[ExtractionFieldStatus] = mapped_column(
-        SQLEnum(ExtractionFieldStatus, name="extraction_field_status"),
+        _pg_enum(ExtractionFieldStatus, name="extraction_field_status"),
         nullable=False,
         default=ExtractionFieldStatus.CAN_XAC_MINH,
     )
@@ -468,11 +488,11 @@ class LookupFinding(Base):
         String, ForeignKey("appraisal_case.case_id", ondelete="CASCADE"), nullable=False
     )
     category: Mapped[LookupCategory] = mapped_column(
-        SQLEnum(LookupCategory, name="lookup_category"), nullable=False
+        _pg_enum(LookupCategory, name="lookup_category"), nullable=False
     )
     tool_name: Mapped[str] = mapped_column(String, nullable=False)
     status_badge: Mapped[LookupBadge] = mapped_column(
-        SQLEnum(LookupBadge, name="lookup_badge"),
+        _pg_enum(LookupBadge, name="lookup_badge"),
         nullable=False,
         default=LookupBadge.CHUA_XAC_THUC,
     )
@@ -546,7 +566,7 @@ class ValuationMethod(Base):
         String, ForeignKey("appraisal_case.case_id", ondelete="CASCADE"), nullable=False
     )
     method_key: Mapped[ValuationMethodKey] = mapped_column(
-        SQLEnum(ValuationMethodKey, name="valuation_method_key"), nullable=False
+        _pg_enum(ValuationMethodKey, name="valuation_method_key"), nullable=False
     )
     estimated_value_vnd: Mapped[int] = mapped_column(BigInt, nullable=False)
     weight_pct: Mapped[int] = mapped_column(SmallInteger, nullable=False)
@@ -573,7 +593,7 @@ class ValuationConfidenceFactor(Base):
         String, ForeignKey("appraisal_case.case_id", ondelete="CASCADE"), nullable=False
     )
     factor_key: Mapped[ConfidenceFactorKey] = mapped_column(
-        SQLEnum(ConfidenceFactorKey, name="confidence_factor_key"), nullable=False
+        _pg_enum(ConfidenceFactorKey, name="confidence_factor_key"), nullable=False
     )
     label: Mapped[str] = mapped_column(String, nullable=False)
     weight_pct: Mapped[int] = mapped_column(SmallInteger, nullable=False)
@@ -601,7 +621,7 @@ class RiskAssessmentResult(Base):
     )
     risk_score: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     risk_label: Mapped[SeverityLevel] = mapped_column(
-        SQLEnum(SeverityLevel, name="severity_level"), nullable=False
+        _pg_enum(SeverityLevel, name="severity_level"), nullable=False
     )
     ltv_proposed_pct: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     risk_inference_text: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -643,7 +663,7 @@ class RiskGroup(Base):
         String, ForeignKey("appraisal_case.case_id", ondelete="CASCADE"), nullable=False
     )
     group_key: Mapped[RiskGroupKey] = mapped_column(
-        SQLEnum(RiskGroupKey, name="risk_group_key"), nullable=False
+        _pg_enum(RiskGroupKey, name="risk_group_key"), nullable=False
     )
     label: Mapped[str] = mapped_column(String, nullable=False)
     weight_pct: Mapped[int] = mapped_column(SmallInteger, nullable=False)
@@ -655,7 +675,7 @@ class RiskGroup(Base):
 
 
 class RiskFlag(Base):
-    """"Flags cần lưu ý" — danh sách cảnh báo rút gọn hiển thị cuối màn 4."""
+    """ "Flags cần lưu ý" — danh sách cảnh báo rút gọn hiển thị cuối màn 4."""
 
     __tablename__ = "risk_flag"
     __table_args__ = (
@@ -671,13 +691,13 @@ class RiskFlag(Base):
         String, ForeignKey("appraisal_case.case_id", ondelete="CASCADE"), nullable=False
     )
     severity: Mapped[SeverityLevel] = mapped_column(
-        SQLEnum(SeverityLevel, name="severity_level"), nullable=False
+        _pg_enum(SeverityLevel, name="severity_level"), nullable=False
     )
     title: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     confidence_pct: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     verified_status: Mapped[VerificationStatus] = mapped_column(
-        SQLEnum(VerificationStatus, name="verification_status"),
+        _pg_enum(VerificationStatus, name="verification_status"),
         nullable=False,
         default=VerificationStatus.CHUA_XAC_THUC,
     )
@@ -693,7 +713,7 @@ class RiskFlag(Base):
 
 
 class DashboardStepSummary(Base):
-    """"Tổng hợp theo từng bước" — 4 dòng tóm tắt, mỗi dòng nhảy về đúng subtab."""
+    """ "Tổng hợp theo từng bước" — 4 dòng tóm tắt, mỗi dòng nhảy về đúng subtab."""
 
     __tablename__ = "dashboard_step_summary"
     __table_args__ = (
@@ -713,7 +733,7 @@ class DashboardStepSummary(Base):
 
 
 class AgentTraceEvent(Base):
-    """"Trace thực thi PAA" — timeline agent trace hiển thị ở tab Dashboard."""
+    """ "Trace thực thi PAA" — timeline agent trace hiển thị ở tab Dashboard."""
 
     __tablename__ = "agent_trace_event"
     __table_args__ = (Index("idx_agent_trace_event_case_id", "case_id"),)
@@ -772,10 +792,10 @@ class CaseEditLog(Base):
     old_value: Mapped[str | None] = mapped_column(Text, nullable=True)
     new_value: Mapped[str | None] = mapped_column(Text, nullable=True)
     edit_source: Mapped[EditSource] = mapped_column(
-        SQLEnum(EditSource, name="edit_source"), nullable=False
+        _pg_enum(EditSource, name="edit_source"), nullable=False
     )
     status: Mapped[EditStatus] = mapped_column(
-        SQLEnum(EditStatus, name="edit_status"), nullable=False, default=EditStatus.PENDING
+        _pg_enum(EditStatus, name="edit_status"), nullable=False, default=EditStatus.PENDING
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=_now
@@ -793,7 +813,7 @@ class ChatMessage(Base):
     case_id: Mapped[str] = mapped_column(
         String, ForeignKey("appraisal_case.case_id", ondelete="CASCADE"), nullable=False
     )
-    role: Mapped[ChatRole] = mapped_column(SQLEnum(ChatRole, name="chat_role"), nullable=False)
+    role: Mapped[ChatRole] = mapped_column(_pg_enum(ChatRole, name="chat_role"), nullable=False)
     message_text: Mapped[str] = mapped_column(Text, nullable=False)
     related_edit_log_id: Mapped[str | None] = mapped_column(
         String, ForeignKey("case_edit_log.id", ondelete="SET NULL"), nullable=True
