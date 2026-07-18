@@ -4,7 +4,7 @@
 --
 -- File này định nghĩa toàn bộ bảng dữ liệu cần thiết để vận hành 5 màn của mockup:
 --   Màn 1  Nhập thông tin       -> case_borrower, property_legal_info, property_physical_info,
---                                   loan_info, attached_document
+--                                   loan_info, attached_document, field_provenance
 --   Màn 2  Kết quả tra cứu      -> market_comparable, lookup_finding (7 nguồn tra cứu)
 --   Màn 3  Định giá             -> valuation_result, valuation_method, valuation_confidence_factor
 --   Màn 4  Rủi ro               -> risk_assessment_result, risk_group, risk_flag, risk_ltv_policy_band
@@ -18,6 +18,14 @@
 --   - Điểm số / % lưu SMALLINT có CHECK 0-100.
 --   - "raw_findings" (dữ liệu tra cứu thô dạng bullet) lưu TEXT[] — đủ dùng cho quy mô 1 hồ sơ,
 --     có thể tách bảng con nếu sau này cần tìm kiếm/lọc theo từng dòng.
+--   - Chống hallucination ở Màn 1: mọi giá trị auto-fill từ tài liệu upload PHẢI có 1 dòng tương ứng
+--     trong field_provenance (nguồn, trang, bounding box, đoạn text, confidence) — xem chi tiết ở
+--     comment của bảng field_provenance bên dưới. Giá trị nhập tay hoặc do agent suy luận thì không
+--     có source_document_id nhưng vẫn bắt buộc gắn status 'nhap_tay'/'suy_luan' để phân biệt.
+--
+-- Nguồn dữ liệu Màn 1: được sinh bởi plugin AI `property_intake`. Hợp đồng JSON input/output
+-- (mapping từng field -> target_table/target_field, provenance, is_selected/mau_thuan, đơn vị
+-- confidence_pct 0-100, bbox 0-1) xem: ai/docs/contracts/property-intake-contract.md
 -- =====================================================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto; -- cho gen_random_uuid()
@@ -53,6 +61,15 @@ CREATE TYPE chat_role AS ENUM ('user', 'agent', 'status');
 
 -- Nhóm tài liệu đính kèm (màn 1 — Nguồn tài liệu đính kèm)
 CREATE TYPE document_category AS ENUM ('so_do_so_hong', 'cmnd_cccd', 'hop_dong', 'anh_hien_trang', 'khac');
+
+-- Loại giấy tờ do bộ phân loại tài liệu (document classifier) tự động nhận diện trên file upload —
+-- khác với document_category (do người dùng/nghiệp vụ gắn nhãn), detected_doc_type là kết quả OCR/phân loại tự động.
+-- Đồng bộ tuyệt đối với enum DocType của plugin property_intake (documents[].detected_doc_type).
+CREATE TYPE extracted_doc_type AS ENUM ('so_do_so_hong', 'to_khai_lptb', 'bien_ban_ban_giao', 'thong_bao_thue_dat', 'khac');
+
+-- Trạng thái của 1 giá trị được trích xuất từ tài liệu vào 1 ô/field cụ thể — dùng ở field_provenance.
+-- Đồng bộ tuyệt đối với enum FieldStatus của plugin property_intake (fields[].status).
+CREATE TYPE extraction_field_status AS ENUM ('da_xac_thuc', 'can_xac_minh', 'mau_thuan', 'nhap_tay', 'suy_luan');
 
 -- 7 nguồn tra cứu của Research Agent (đúng theo PAA_KienTruc_HighLevel.md)
 CREATE TYPE lookup_category AS ENUM (
@@ -99,7 +116,7 @@ CREATE TABLE case_step_progress (
   confirmed_at  TIMESTAMPTZ,
   UNIQUE (case_id, step_number)
 );
-COMMENT ON TABLE case_step_progress IS 'Trạng thái khoá/mở/xác nhận của 5 subtab — dùng để hiển thị icon 🔒 và chặn nhảy tab khi chưa xác nhận bước trước.';
+COMMENT ON TABLE case_step_progress IS 'Trạng thái khoá/mở/xác nhận của 5 subtab — dùng để hiển thị icon 🔒 và chặn nhảy tab khi chưa xác nhận bước trước. Sau khi property_intake ghi xong Màn 1, backend set step_number=1 -> unlocked.';
 
 -- =====================================================================================
 -- MÀN 1 — NHẬP THÔNG TIN
@@ -146,8 +163,8 @@ CREATE TABLE property_physical_info (
   land_area_sqm           NUMERIC(8,2) NOT NULL,
   floor_area_sqm          NUMERIC(8,2),
   num_floors_desc         TEXT,                       -- vd. '2 tầng + sân thượng' (giữ text tự do như mockup)
-  frontage_m              NUMERIC(5,2),
-  depth_m                 NUMERIC(5,2),
+  frontage_m              NUMERIC(5,2),               -- mặt tiền — plugin trích + dùng cho check frontage*depth≈diện tích
+  depth_m                 NUMERIC(5,2),               -- chiều sâu
   construction_year       SMALLINT,
   structure_material      TEXT,                       -- vd. 'Bê tông cốt thép, tường gạch'
   house_direction         TEXT,                       -- vd. 'Đông Nam'
@@ -166,15 +183,59 @@ CREATE TABLE loan_info (
 
 -- Nguồn tài liệu đính kèm (upload) — chỉ hiển thị ở màn 1
 CREATE TABLE attached_document (
-  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  case_id        TEXT NOT NULL REFERENCES appraisal_case(case_id) ON DELETE CASCADE,
-  file_name      TEXT NOT NULL,
-  file_type      TEXT NOT NULL,        -- 'pdf' | 'jpg' | 'png'
-  file_size_kb   INTEGER,
-  doc_category   document_category NOT NULL DEFAULT 'khac',
-  uploaded_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id            TEXT NOT NULL REFERENCES appraisal_case(case_id) ON DELETE CASCADE,
+  file_name          TEXT NOT NULL,
+  file_type          TEXT NOT NULL,        -- 'pdf' | 'jpg' | 'png'
+  file_size_kb       INTEGER,
+  doc_category       document_category NOT NULL DEFAULT 'khac',   -- nhãn nghiệp vụ (người dùng chọn khi upload)
+  detected_doc_type  extracted_doc_type,                          -- loại giấy tờ do document classifier tự nhận diện
+  is_scan            BOOLEAN NOT NULL DEFAULT false,               -- true = ảnh scan, cần OCR; false = PDF có text gốc
+  ocr_engine         TEXT,                                          -- vd. 'google-vision', 'tesseract' — NULL nếu is_scan = false
+  page_count         SMALLINT,
+  uploaded_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_attached_document_case_id ON attached_document(case_id);
+COMMENT ON COLUMN attached_document.detected_doc_type IS 'Kết quả phân loại tài liệu tự động (document classifier) — dùng để định tuyến đúng luồng OCR/trích xuất field cho từng loại giấy tờ (sổ đỏ/sổ hồng, tờ khai LPTB, biên bản bàn giao, thông báo thuế đất...). Nguồn: documents[].detected_doc_type của plugin property_intake.';
+
+-- Nguồn gốc của TỪNG GIÁ TRỊ đã điền vào form Màn 1 — chống hallucination: mọi giá trị trích xuất từ
+-- tài liệu phải truy được về đúng file, đúng trang, đúng vùng ảnh (bounding box) và đoạn text gốc.
+-- Quy ước: 1 dòng = 1 giá trị ứng viên cho 1 field. Nếu >1 tài liệu cho ra giá trị khác nhau cho cùng
+-- 1 field (vd. diện tích ghi khác nhau giữa sổ hồng và tờ khai LPTB) thì sẽ có nhiều dòng cùng
+-- (case_id, target_table, target_field) với status = 'mau_thuan' — cần thẩm định viên chọn is_selected.
+--
+-- Nạp từ output plugin property_intake:
+--   - Mỗi fields[] có value  -> 1 dòng is_selected = true  (dùng source_file_id/source_page/source_snippet/bbox/confidence_pct/status).
+--   - Mỗi fields[].alternatives[] -> 1 dòng is_selected = false, status = 'mau_thuan'.
+--   - confidence_pct (0-100) lấy trực tiếp từ fields[].confidence_pct; bbox lấy từ fields[].bbox (0-1).
+CREATE TABLE field_provenance (
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id             TEXT NOT NULL REFERENCES appraisal_case(case_id) ON DELETE CASCADE,
+  source_document_id  UUID REFERENCES attached_document(id) ON DELETE SET NULL,  -- NULL nếu status = 'nhap_tay'/'suy_luan'
+  target_table        TEXT NOT NULL,      -- bảng đích ở Màn 1, vd. 'property_legal_info'
+  target_field        TEXT NOT NULL,      -- cột đích, vd. 'certificate_number'
+  target_record_id    UUID,               -- dùng khi target_table có nhiều dòng/case (vd. case_borrower nhiều đồng sở hữu)
+  extracted_value     TEXT,               -- giá trị trích được TỪ NGUỒN NÀY — có thể khác giá trị cuối nếu đang mâu thuẫn
+  source_snippet      TEXT,               -- đoạn text OCR/gốc chứa giá trị này, phục vụ hiển thị "trích từ đâu"
+  source_page         SMALLINT,           -- trang trong tài liệu nguồn (đối chiếu attached_document.page_count)
+  bbox_x              NUMERIC(6,4),       -- bounding box trên ảnh trang, toạ độ chuẩn hoá 0-1 (góc trên-trái)
+  bbox_y              NUMERIC(6,4),
+  bbox_width          NUMERIC(6,4),
+  bbox_height         NUMERIC(6,4),
+  confidence_pct      SMALLINT CHECK (confidence_pct BETWEEN 0 AND 100),
+  status              extraction_field_status NOT NULL DEFAULT 'can_xac_minh',
+  is_selected         BOOLEAN NOT NULL DEFAULT false,   -- true = giá trị này hiện đang được ghi vào target_table.target_field
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (source_document_id IS NOT NULL OR status IN ('nhap_tay', 'suy_luan'))
+);
+CREATE INDEX idx_field_provenance_case_id ON field_provenance(case_id);
+CREATE INDEX idx_field_provenance_target ON field_provenance(case_id, target_table, target_field);
+CREATE INDEX idx_field_provenance_source_document_id ON field_provenance(source_document_id);
+-- Mỗi field (theo case + bảng + cột + bản ghi đích) chỉ được có tối đa 1 giá trị "đang chọn" tại 1 thời điểm.
+CREATE UNIQUE INDEX ux_field_provenance_selected ON field_provenance (
+  case_id, target_table, target_field, COALESCE(target_record_id, '00000000-0000-0000-0000-000000000000'::uuid)
+) WHERE is_selected;
+COMMENT ON TABLE field_provenance IS 'Bảng chống hallucination cho Màn 1: mọi giá trị auto-fill vào case_borrower/property_legal_info/property_physical_info/loan_info phải có 1 dòng provenance trỏ về tài liệu nguồn (trang + bounding box + đoạn text + confidence). Nhiều dòng cùng field = mâu thuẫn giữa các nguồn, cần người xác minh (is_selected đánh dấu giá trị đang được dùng). Dữ liệu do plugin property_intake sinh — xem ai/docs/contracts/property-intake-contract.md.';
 
 -- =====================================================================================
 -- MÀN 2 — KẾT QUẢ TRA CỨU (Research Agent, 7 tool)
