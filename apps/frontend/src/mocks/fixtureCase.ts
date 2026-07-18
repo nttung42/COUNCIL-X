@@ -1,178 +1,524 @@
-/* ============================================================================
-   Fixture — 1 case mẫu đúng shape GET /api/cases/{id} (contracts §3).
-   Số liệu bám sát PAA_Mockup_SHB.html + backend/app/mockdata/README.md:
-   địa chỉ "Hẻm 45 Nguyễn Văn A", định giá 4.85 tỷ (78%), risk 34/100 (MEDIUM),
-   LTV 65%, flag stigma (tin đồn 2019, verified=false) + flag môi trường (ngập 2022–2023).
+import type {
+  AppraisalCaseFull,
+  AppraisalCaseSummary,
+  AttachedDocument,
+  DocPage,
+} from '../types';
 
-   Dùng khi VITE_USE_FIXTURE=true để phát triển/test UI độc lập, KHÔNG chờ backend.
-   Không xoá khi tích hợp API thật — giữ để test/Storybook (theo skill paa-frontend-impl).
-   ============================================================================ */
-import type { AppraisalReport, CaseListItem, StepUpdateEvent } from '../types'
+// Dữ liệu demo tĩnh cho hồ sơ REQ-2026-0001, chuyển thể 1:1 từ ai/PAA_Mockup_SHB_8.html.
+// Khi API thật sẵn sàng, thay thế điểm dùng fixtureCase trong src/services/apiClient.ts
+// bằng lời gọi API — phần còn lại của UI không cần đổi vì đã theo type AppraisalCaseFull.
 
-export const FIXTURE_CASE_ID = 'fixture-0001'
+export const CASE_ID = 'REQ-2026-0001';
 
-export const fixtureCaseList: CaseListItem[] = [
-  { case_id: 'fixture-0001', address: 'Hẻm 45 Nguyễn Văn A, Q.C', status: 'processing', updated_at: '2026-07-18T10:00:00Z' },
-  { case_id: 'fixture-0002', address: '12 Trần Văn B, Q.7', status: 'completed', updated_at: '2026-07-17T09:00:00Z' },
-  { case_id: 'fixture-0003', address: 'Chung cư Sunview, Q.Bình Thạnh', status: 'completed', updated_at: '2026-07-15T09:00:00Z' },
-  { case_id: 'fixture-0004', address: 'Đất nền Long Thành, Đồng Nai', status: 'completed', updated_at: '2026-07-11T09:00:00Z' },
-  { case_id: 'fixture-0005', address: '34 Lê Văn C, Q.10', status: 'cancelled', updated_at: '2026-07-04T09:00:00Z' },
-]
+export const caseHistory: AppraisalCaseSummary[] = [
+  { caseId: 'REQ-2026-0001', address: 'Hẻm 45 Nguyễn Văn A, Q.C', status: 'dang_xu_ly', updatedAtLabel: 'hôm nay' },
+  { caseId: 'REQ-2026-0002', address: '12 Trần Văn B, Q.7', status: 'hoan_tat', updatedAtLabel: 'hôm qua' },
+  { caseId: 'REQ-2026-0003', address: 'Chung cư Sunview, Q.Bình Thạnh', status: 'hoan_tat', updatedAtLabel: '3 ngày trước' },
+  { caseId: 'REQ-2026-0004', address: 'Đất nền Long Thành, Đồng Nai', status: 'hoan_tat', updatedAtLabel: 'tuần trước' },
+  { caseId: 'REQ-2026-0005', address: '34 Lê Văn C, Q.10', status: 'huy', updatedAtLabel: '2 tuần trước' },
+];
 
-export const fixtureCase: AppraisalReport = {
-  case_id: FIXTURE_CASE_ID,
-  request_id: 'REQ-2026-0001',
-  status: 'completed',
-  subject_property: {
-    address: 'Hẻm 45 Nguyễn Văn A, Phường B, Quận C',
-    lat: 10.7756,
-    long: 106.7019,
-    area_m2: 62,
-    property_type: 'nha_pho',
-    legal_status_claimed: 'so_hong',
+export const docPages: DocPage[] = [
+  {
+    key: 'so-hong',
+    label: 'Sổ hồng',
+    boxes: [
+      { id: 'loaigcn', top: 5, left: 12, w: 76, h: 5, conf: 97, field: 'Loại giấy chứng nhận', value: 'Sổ hồng (QSDĐ & QSH nhà ở)' },
+      { id: 'sogcn', top: 14, left: 58, w: 34, h: 5, conf: 96, field: 'Số giấy chứng nhận', value: 'CS 01234567' },
+      { id: 'hoten', top: 24, left: 8, w: 68, h: 5, conf: 98, field: 'Họ và tên chủ sở hữu', value: 'Nguyễn Văn A' },
+      { id: 'diachi', top: 33, left: 8, w: 80, h: 5, conf: 94, field: 'Địa chỉ', value: 'Hẻm 45 Nguyễn Văn A, P.B, Q.C' },
+      { id: 'dientich', top: 42, left: 8, w: 38, h: 5, conf: 91, field: 'Diện tích đất (⚠ mâu thuẫn)', value: '62 m²' },
+      { id: 'mucdich', top: 42, left: 50, w: 42, h: 5, conf: 90, field: 'Mục đích sử dụng đất', value: 'Đất ở tại đô thị' },
+      { id: 'thoihan', top: 50, left: 8, w: 34, h: 5, conf: 95, field: 'Thời hạn sử dụng', value: 'Lâu dài' },
+      { id: 'hinhthuc', top: 50, left: 46, w: 40, h: 5, conf: 94, field: 'Hình thức sở hữu', value: 'Sở hữu riêng' },
+      { id: 'kichthuoc', top: 59, left: 55, w: 37, h: 9, conf: 88, field: 'Kích thước (sơ đồ thửa)', value: '4.2m × 14.8m' },
+      { id: 'sotang', top: 60, left: 8, w: 32, h: 5, conf: 86, field: 'Số tầng', value: '2 tầng + sân thượng' },
+      { id: 'namxd', top: 68, left: 8, w: 26, h: 5, conf: 90, field: 'Năm xây dựng', value: '2016' },
+      { id: 'ketcau', top: 68, left: 38, w: 44, h: 5, conf: 85, field: 'Kết cấu / vật liệu', value: 'BTCT, tường gạch' },
+      { id: 'thechap', top: 78, left: 8, w: 60, h: 5, conf: 55, field: 'Tình trạng thế chấp (chưa đủ căn cứ)', value: 'Trang biến động để trống' },
+      { id: 'ngaycap', top: 88, left: 48, w: 44, h: 6, conf: 93, field: 'Ngày cấp / Cơ quan cấp', value: '14/03/2019 · Sở TN&MT' },
+    ],
   },
-  loan_context: {
-    requested_amount: 3200000000,
-    purpose: 'the_chap_vay_von',
+  {
+    key: 'to-khai',
+    label: 'Tờ khai LPTB',
+    boxes: [
+      { id: 'hoten', top: 13, left: 10, w: 70, h: 5, conf: 90, field: 'Họ tên người nộp', value: 'Nguyễn Văn A' },
+      { id: 'cccd', top: 21, left: 10, w: 60, h: 5, conf: 95, field: 'Số CMND/CCCD người nộp', value: '079xxxxxxxxx' },
+      { id: 'dientich65', top: 45, left: 10, w: 42, h: 5, conf: 72, field: 'Diện tích đất (⚠ mâu thuẫn)', value: '65 m²' },
+    ],
   },
-  lookup_result: {
-    market_price: {
-      tool_name: 'market_price_lookup',
-      status: 'ok',
-      confidence: 0.82,
-      source_type: 'mock',
-      data: {
-        price_index_period: '2026-Q2',
-        price_index: [
-          { period: '2024-Q1', index: 100.0 },
-          { period: '2024-Q3', index: 103.1 },
-          { period: '2025-Q1', index: 106.2 },
-          { period: '2025-Q3', index: 110.4 },
-          { period: '2025-Q4', index: 114.8 },
-          { period: '2026-Q1', index: 116.9 },
-          { period: '2026-Q2', index: 118.3 },
-        ],
-        comparables: [
-          { transaction_id: 'TXN-000121', address: 'Hẻm 40 Nguyễn Văn A', distance_from_subject_km: 0.3, area_m2: 58, transaction_date: '2025-11-01', price_per_m2: 76600000, source_type: 'mock', confidence: 0.8 },
-          { transaction_id: 'TXN-000122', address: 'Đường Nguyễn Văn A', distance_from_subject_km: 0.6, area_m2: 65, transaction_date: '2025-09-01', price_per_m2: 79200000, source_type: 'mock', confidence: 0.78 },
-          { transaction_id: 'TXN-000123', address: 'Hẻm 12 Trần Văn B', distance_from_subject_km: 0.8, area_m2: 60, transaction_date: '2025-06-01', price_per_m2: 88100000, source_type: 'mock', confidence: 0.72 },
-          { transaction_id: 'TXN-000124', address: 'Hẻm 45 (kế bên)', distance_from_subject_km: 0.1, area_m2: 64, transaction_date: '2026-02-01', price_per_m2: 98400000, source_type: 'mock', confidence: 0.9 },
-          { transaction_id: 'TXN-000125', address: 'Đường Lê Văn C', distance_from_subject_km: 1.1, area_m2: 70, transaction_date: '2026-01-01', price_per_m2: 95000000, source_type: 'mock', confidence: 0.85 },
-        ],
+  {
+    key: 'bien-ban',
+    label: 'Biên bản BG',
+    boxes: [
+      { id: 'dtsan', top: 30, left: 10, w: 56, h: 5, conf: 66, field: 'Diện tích sàn xây dựng', value: '~98 m²' },
+      { id: 'huong', top: 42, left: 10, w: 40, h: 5, conf: 60, field: 'Hướng nhà', value: 'Đông Nam' },
+      { id: 'tinhtrang', top: 54, left: 10, w: 66, h: 5, conf: 85, field: 'Tình trạng sử dụng / lối vào', value: 'Đang ở · hẻm ô tô vào được' },
+    ],
+  },
+  {
+    key: 'tb-thue',
+    label: 'TB thuế đất (scan)',
+    scan: true,
+    boxes: [
+      { id: 'diachi', top: 25, left: 10, w: 70, h: 5, conf: 80, field: 'Địa chỉ thửa đất', value: 'Hẻm 45 Nguyễn Văn A' },
+      { id: 'sothua', top: 35, left: 10, w: 60, h: 6, conf: 68, field: 'Số thửa / tờ bản đồ', value: 'Thửa 45, tờ BĐ 12' },
+    ],
+  },
+];
+
+/** Danh mục tệp mẫu để mô phỏng thao tác tải lên (dropzone demo, không upload thật). */
+export const mockUploadPool: Omit<AttachedDocument, 'id' | 'uploadedAtLabel'>[] = [
+  { fileName: 'so-hong-scan.pdf', icon: '📜', docCategory: 'so_do_so_hong' },
+  { fileName: 'cccd-chu-so-huu.jpg', icon: '🪪', docCategory: 'cmnd_cccd' },
+  { fileName: 'hop-dong-mua-ban.pdf', icon: '📃', docCategory: 'hop_dong' },
+  { fileName: 'anh-hien-trang-1.jpg', icon: '📷', docCategory: 'anh_hien_trang' },
+  { fileName: 'anh-hien-trang-2.jpg', icon: '📷', docCategory: 'anh_hien_trang' },
+  { fileName: 'giay-phep-xay-dung.pdf', icon: '🏗️', docCategory: 'khac' },
+];
+
+export const fixtureCase: AppraisalCaseFull = {
+  caseId: CASE_ID,
+  status: 'dang_xu_ly',
+
+  borrower: {
+    id: 'borrower-1',
+    fullName: {
+      value: 'Nguyễn Văn A',
+      source: { docKey: 'so-hong', boxId: 'hoten', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · trang 1: “Người sử dụng đất, chủ sở hữu: Ông NGUYỄN VĂN A”' },
+    },
+    nationalId: {
+      value: '079xxxxxxxxx',
+      source: { docKey: 'to-khai', boxId: 'cccd', label: '📄 Tờ khai LPTB ↗', srcText: 'Tờ khai lệ phí trước bạ · mục Người nộp: “CCCD số 079xxxxxxxxx”' },
+    },
+    phoneNumber: {
+      value: '09xx xxx xxx',
+      source: { docKey: 'suy-luan', label: '✍️ Nhập tay (không có nguồn)', srcText: 'Không có trong tài liệu tài sản — nhập tay.' },
+    },
+    relationshipToAsset: {
+      value: 'Chủ sở hữu đứng tên trên GCN',
+      source: { docKey: 'so-hong', boxId: 'hoten', label: '📄 Sổ hồng ↗', srcText: 'Suy ra từ đối chiếu: tên người vay trùng tên chủ sở hữu trên Sổ hồng.' },
+    },
+  },
+
+  legal: {
+    certificateType: {
+      value: 'Sổ hồng (QSDĐ & QSH nhà ở)',
+      source: { docKey: 'so-hong', boxId: 'loaigcn', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · tiêu đề: “GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT, QUYỀN SỞ HỮU NHÀ Ở...”' },
+    },
+    certificateNumber: {
+      value: 'CS 01234567',
+      source: { docKey: 'so-hong', boxId: 'sogcn', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · góc trên bên phải: “Số phát hành: CS 01234567”' },
+    },
+    issueDateAuthority: {
+      value: '14/03/2019 · Sở TN&MT TP',
+      source: { docKey: 'so-hong', boxId: 'ngaycap', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · trang 2: “Ngày 14 tháng 3 năm 2019 — Giám đốc Sở TN&MT”' },
+    },
+    landPlotMapSheet: {
+      value: 'Thửa 45, tờ BĐ 12',
+      source: { docKey: 'tb-thue', boxId: 'sothua', label: '📄 TB thuế đất (scan) ↗', srcText: 'Thông báo nộp thuế đất · bản scan (chất lượng thấp): “Thửa đất số 45, tờ bản đồ 12”' },
+    },
+    landUsePurpose: {
+      value: 'Đất ở tại đô thị (ODT)',
+      source: { docKey: 'so-hong', boxId: 'mucdich', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · mục Mục đích sử dụng: “Đất ở tại đô thị”' },
+    },
+    useTerm: {
+      value: 'Lâu dài',
+      source: { docKey: 'so-hong', boxId: 'thoihan', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · mục Thời hạn sử dụng: “Lâu dài”' },
+    },
+    ownershipForm: {
+      value: 'Sở hữu riêng',
+      source: { docKey: 'so-hong', boxId: 'hinhthuc', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · mục Hình thức sử dụng: “Sử dụng riêng”' },
+    },
+    currentMortgageStatus: {
+      value: 'Chưa thế chấp tại TCTD nào',
+      source: {
+        docKey: 'so-hong',
+        boxId: 'thechap',
+        label: '📄 Sổ hồng · cần đối chiếu CIC ↗',
+        srcText: 'Trang biến động Sổ hồng để trống — chưa đủ căn cứ khẳng định, cần tra cứu CIC/hệ thống nội bộ trước khi kết luận.',
+        warn: true,
       },
     },
-    planning_zoning: {
-      tool_name: 'planning_zoning_lookup', status: 'ok', confidence: 0.85, source_type: 'mock',
-      data: { zoning_status: 'Không quy hoạch treo. Lộ giới dự kiến mở rộng theo QH 2024.', is_planned_overlay: false, road_widening_plan: 'QH 2024' },
+  },
+
+  physical: {
+    address: {
+      value: 'Hẻm 45 Nguyễn Văn A, Phường B, Quận C',
+      source: { docKey: 'so-hong', boxId: 'diachi', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · Địa chỉ thửa đất: “Hẻm 45 Nguyễn Văn A, Phường B, Quận C”' },
     },
-    legal_status: {
-      tool_name: 'legal_status_lookup', status: 'ok', confidence: 0.95, source_type: 'mock',
-      data: { legal_status: 'Sổ hồng chính chủ, không tranh chấp, không thế chấp nơi khác.', has_dispute: false, mortgaged_elsewhere: false },
+    propertyType: {
+      value: 'Nhà phố (nhà trong hẻm)',
+      source: { docKey: 'suy-luan', label: '📄 Suy luận (không có vùng nguồn)', srcText: 'Suy luận từ đặc điểm nhà + vị trí trong hẻm — không nêu trực tiếp trên tài liệu, cần thẩm định viên xác nhận.' },
     },
-    neighborhood_amenity: {
-      tool_name: 'neighborhood_amenity_lookup', status: 'ok', confidence: 0.8, source_type: 'mock',
-      data: {
-        amenities: [
-          { type: 'school', name: 'Trường tiểu học', distance_m: 300 },
-          { type: 'market', name: 'Chợ', distance_m: 450 },
-          { type: 'bus', name: 'Trạm bus', distance_m: 200 },
-          { type: 'hospital', name: 'BV quận', distance_m: 1200 },
-        ],
+    landAreaSqm: {
+      value: '62 m²',
+      source: {
+        docKey: 'so-hong',
+        boxId: 'dientich',
+        label: '⚠ 2 nguồn khác nhau ↗',
+        srcText: '⚠ 2 tài liệu ghi khác nhau: Sổ hồng = 62 m², Tờ khai LPTB = 65 m². Kiểm tra chéo sơ đồ (4.2 × 14.8 = 62.2 m²) ủng hộ 62 m². Cần thẩm định viên chốt.',
+        warn: true,
       },
     },
-    environmental_risk: {
-      tool_name: 'environmental_risk_lookup', status: 'ok', confidence: 0.7, source_type: 'mock',
-      data: { flood_risk: 'Thấp', landslide_risk: 'Không', pollution_risk: 'Thấp', notes: 'Từng ngập nhẹ mùa mưa 2022–2023 (mức thấp).' },
+    floorAreaSqm: {
+      value: '98 m² (2 tầng)',
+      source: { docKey: 'bien-ban', boxId: 'dtsan', label: '📄 Biên bản BG ↗', srcText: 'Biên bản bàn giao · “Tổng diện tích sàn ~98m²” (diễn đạt xấp xỉ).' },
     },
-    liquidity_stat: {
-      tool_name: 'liquidity_stat_lookup', status: 'ok', confidence: 0.75, source_type: 'mock',
-      data: { avg_days_on_market: 45, success_rate_pct: 82 },
+    frontageDepth: {
+      value: '4.2m × 14.8m',
+      source: { docKey: 'so-hong', boxId: 'kichthuoc', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · sơ đồ thửa đất: cạnh 4.2m × 14.8m' },
     },
-    stigma_reputation: {
-      tool_name: 'stigma_reputation_lookup', status: 'partial', confidence: 0.3, source_type: 'unverified_rumor',
-      warning: 'Tin đồn chưa kiểm chứng — chỉ mang tính cảnh báo tham khảo, không dùng để từ chối hồ sơ.',
-      data: { rumors: [{ detail: 'Tin đồn dân cư chưa xác thực về sự việc năm 2019.', year: 2019, verified: false }] },
+    numFloorsDesc: {
+      value: '2 tầng + sân thượng',
+      source: { docKey: 'so-hong', boxId: 'sotang', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · tài sản gắn liền với đất: “Nhà ở 2 tầng”' },
+    },
+    constructionYear: {
+      value: '2016',
+      source: { docKey: 'so-hong', boxId: 'namxd', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · năm hoàn thành xây dựng: 2016' },
+    },
+    structureMaterial: {
+      value: 'Bê tông cốt thép, tường gạch',
+      source: { docKey: 'so-hong', boxId: 'ketcau', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · kết cấu: “BTCT, tường gạch”' },
+    },
+    houseDirection: {
+      value: 'Đông Nam',
+      source: { docKey: 'bien-ban', boxId: 'huong', label: '📄 Biên bản BG ↗', srcText: 'Biên bản bàn giao · ghi chú hiện trạng: “hướng Đông Nam” (nguồn thứ cấp, nên xác minh thực địa).' },
+    },
+    roadTypeDesc: {
+      value: 'Hẻm bê tông, rộng 3.5m, ô tô vào được',
+      source: { docKey: 'bien-ban', boxId: 'tinhtrang', label: '📄 Biên bản BG ↗', srcText: 'Biên bản bàn giao · mô tả lối vào/hiện trạng khu vực.' },
+    },
+    currentUsageStatus: {
+      value: 'Đang ở, không cho thuê',
+      source: { docKey: 'bien-ban', boxId: 'tinhtrang', label: '📄 Biên bản BG ↗', srcText: 'Biên bản bàn giao: “Bàn giao nhà đang sử dụng để ở”' },
     },
   },
+
+  loan: {
+    loanAmountVnd: { value: '3.200.000.000 ₫' },
+    loanPurpose: { value: 'Thế chấp vay vốn' },
+    loanTermYears: { value: '15 năm' },
+  },
+
+  documents: [],
+  docPages,
+
+  marketComparables: [
+    { id: 'mc-1', compAddress: 'Hẻm 40 Nguyễn Văn A', distanceKmLabel: '0.3 km', areaSqmLabel: '58 m²', transactionDateLabel: '11/2025', pricePerSqmLabel: '76.6 tr' },
+    { id: 'mc-2', compAddress: 'Đường Nguyễn Văn A', distanceKmLabel: '0.6 km', areaSqmLabel: '65 m²', transactionDateLabel: '09/2025', pricePerSqmLabel: '79.2 tr' },
+    { id: 'mc-3', compAddress: 'Hẻm 12 Trần Văn B', distanceKmLabel: '0.8 km', areaSqmLabel: '60 m²', transactionDateLabel: '06/2025', pricePerSqmLabel: '88.1 tr' },
+    { id: 'mc-4', compAddress: 'Hẻm 45 (kế bên)', distanceKmLabel: '0.1 km', areaSqmLabel: '64 m²', transactionDateLabel: '02/2026', pricePerSqmLabel: '98.4 tr' },
+    { id: 'mc-5', compAddress: 'Đường Lê Văn C', distanceKmLabel: '1.1 km', areaSqmLabel: '70 m²', transactionDateLabel: '01/2026', pricePerSqmLabel: '95.0 tr' },
+  ],
+  marketInferenceText:
+    'Giá giao dịch so sánh dao động 76.6–98.4 triệu/m², trung vị khoảng 88 triệu/m². Xu hướng tăng nhẹ theo thời gian — giao dịch gần nhất (02/2026) cao hơn ~28% so với giao dịch xa nhất (11/2025), cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.',
+
+  lookupFindings: [
+    {
+      id: 'lc-planning',
+      category: 'planning_zoning',
+      toolName: 'planning_zoning_lookup',
+      statusBadge: 'da_xac_thuc',
+      title: 'Quy hoạch',
+      rawFindings: [
+        'Không nằm trong khu vực quy hoạch treo.',
+        'Lộ giới hẻm dự kiến mở rộng lên 4m theo đồ án quy hoạch 1/2000 phê duyệt 2024.',
+        'Không thuộc diện giải toả, thu hồi đất.',
+      ],
+      inferenceText:
+        'Mở rộng lộ giới thường làm tăng giá trị BĐS trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận. Nên đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để loại trừ khả năng một phần diện tích nằm trong lộ giới mới.',
+      sourceLabel: 'Cổng thông tin quy hoạch đô thị',
+      confidencePct: 85,
+    },
+    {
+      id: 'lc-legal',
+      category: 'legal_status',
+      toolName: 'legal_status_lookup',
+      statusBadge: 'da_xac_thuc',
+      title: 'Pháp lý',
+      rawFindings: [
+        'Sổ hồng đứng tên chính chủ, cấp 14/03/2019.',
+        'Không ghi nhận tranh chấp, kê biên hay khiếu nại.',
+        'Không đang thế chấp tại tổ chức tín dụng khác.',
+      ],
+      inferenceText:
+        'Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.',
+      sourceLabel: 'Hệ thống tra cứu sổ đỏ/sổ hồng liên thông',
+      confidencePct: 95,
+    },
+    {
+      id: 'lc-amenity',
+      category: 'neighborhood_amenity',
+      toolName: 'neighborhood_amenity_lookup',
+      title: 'Tiện ích xung quanh',
+      rawFindings: ['Trường tiểu học: 300m · Chợ dân sinh: 450m', 'Trạm xe bus: 200m · Bệnh viện quận: 1.2km'],
+      inferenceText:
+        'Mật độ tiện ích cao hơn trung bình khu vực (đầy đủ trường học/chợ/giao thông công cộng trong bán kính <500m) — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.',
+      sourceLabel: 'Dữ liệu điểm tiện ích (POI) khu vực',
+      confidencePct: 90,
+    },
+    {
+      id: 'lc-environment',
+      category: 'environmental_risk',
+      toolName: 'environmental_risk_lookup',
+      statusBadge: 'luu_y',
+      title: 'Môi trường',
+      rawFindings: [
+        'Ghi nhận ngập nhẹ cục bộ mùa mưa 2022–2023 (mức nước <15cm, rút trong ngày).',
+        'Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp.',
+      ],
+      inferenceText:
+        'Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản và có phương án chống ngập khi cải tạo.',
+      sourceLabel: 'Dữ liệu khí tượng thuỷ văn & phản ánh cư dân',
+      confidencePct: 70,
+    },
+    {
+      id: 'lc-liquidity',
+      category: 'liquidity_stat',
+      toolName: 'liquidity_stat_lookup',
+      title: 'Thanh khoản khu vực',
+      rawFindings: ['Thời gian bán trung bình: 45 ngày · Tỷ lệ giao dịch thành công: 82%', 'Số tin rao bán cùng phân khúc trong bán kính 1km: 14 tin'],
+      inferenceText:
+        'Thanh khoản khá tốt so với mặt bằng chung phân khúc nhà phố hẻm (thường 60–90 ngày) — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.',
+      sourceLabel: 'Thống kê giao dịch sàn & môi giới khu vực',
+      confidencePct: 80,
+    },
+    {
+      id: 'lc-reputation',
+      category: 'stigma_reputation',
+      toolName: 'stigma_reputation_lookup',
+      statusBadge: 'chua_xac_thuc',
+      title: 'Dư luận / tâm linh',
+      rawFindings: [
+        'Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2019.',
+        'Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận.',
+      ],
+      inferenceText:
+        'Độ tin cậy nguồn tin thấp (30%), chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa (hỏi hàng xóm, chính quyền địa phương) trước khi đưa vào báo cáo chính thức.',
+      sourceLabel: 'Tra cứu dư luận mạng xã hội & diễn đàn khu vực',
+      confidencePct: 30,
+    },
+  ],
+
   valuation: {
-    estimated_value: 4850000000,
-    value_range: { low: 4550000000, high: 5100000000 },
-    value_per_m2: 97000000,
-    confidence_score: 0.78,
-    methodology_breakdown: {
-      comparable_approach: 4900000000,
-      hedonic_model: 4800000000,
-      cost_approach: 4750000000,
-    },
-    comparables_used: 6,
-    time_adjustment_index_period: '2026-Q2',
-    price_index_series: [
-      { period: '2024-Q1', index: 100.0 },
-      { period: '2024-Q3', index: 103.1 },
-      { period: '2025-Q1', index: 106.2 },
-      { period: '2025-Q3', index: 110.4 },
-      { period: '2025-Q4', index: 114.8 },
-      { period: '2026-Q1', index: 116.9 },
-      { period: '2026-Q2', index: 118.3 },
-    ],
-    adjustment_notes: [
-      'Quy đổi giá giao dịch về kỳ 2026-Q2 theo chỉ số giá khu vực (gốc 100).',
-      'Loại 1 giao dịch ngoài bán kính 1.1km khỏi blend so sánh trực tiếp.',
-    ],
+    proposedValueLabel: '4.85 tỷ',
+    valueRangeLabel: '4.55–5.10 tỷ',
+    pricePerSqmLabel: '97.0 tr',
+    confidencePct: 78,
+    comparableCount: 5,
+    priceIndexPeriod: '2026-Q2',
+    priceIndexValue: 118.3,
+    priceIndexBase: 100,
   },
-  asset_risk: {
-    asset_risk_score: 34,
-    risk_tier: 'MEDIUM',
-    recommended_ltv_cap: 0.65,
-    risk_group_scores: {
-      legal: 15,
-      liquidity: 30,
-      price_volatility: 55,
-      physical_environmental: 30,
-      reputation_stigma: 60,
-    },
-    flags: [
-      { type: 'legal', severity: 'low', detail: 'Sổ hồng hợp lệ, không tranh chấp ghi nhận.', confidence: 0.95, verified: true },
-      { type: 'stigma', severity: 'medium', detail: 'Tin đồn dân cư chưa xác thực về sự việc 2019 — cần xác minh thực địa.', confidence: 0.35, verified: false, action: 'Khảo sát thực địa xác minh tin đồn' },
-      { type: 'environmental', severity: 'low', detail: 'Khu vực từng ngập nhẹ 2022–2023 — khuyến nghị mua bảo hiểm tài sản.', confidence: 0.7, verified: true, action: 'Mua bảo hiểm tài sản' },
-    ],
-    recommended_conditions: [
-      'Xác minh thực địa tin đồn dân cư trước khi phê duyệt.',
-      'Mua bảo hiểm tài sản do khu vực từng ngập nhẹ.',
-    ],
-  },
-  checklist: [
-    { item_id: 'CHK-1', text: 'Xác thực sổ hồng qua hệ thống nội bộ', is_checked: true, related_flag_type: 'legal' },
-    { item_id: 'CHK-2', text: 'Đối chiếu quy hoạch khu vực', is_checked: true, related_flag_type: null },
-    { item_id: 'CHK-3', text: 'Khảo sát thực địa xác minh tin đồn dân cư (2019)', is_checked: false, related_flag_type: 'stigma' },
-    { item_id: 'CHK-4', text: 'Mua bảo hiểm tài sản do khu vực từng ngập nhẹ', is_checked: false, related_flag_type: 'environmental' },
-    { item_id: 'CHK-5', text: 'Chụp ảnh hiện trạng công trình', is_checked: false, related_flag_type: null },
+  priceIndexSeries: [
+    { periodLabel: '2024-Q1', indexValue: 100.0 },
+    { periodLabel: '2024-Q2', indexValue: 103.1 },
+    { periodLabel: '2024-Q3', indexValue: 106.2 },
+    { periodLabel: '2024-Q4', indexValue: 110.4 },
+    { periodLabel: '2025-Q2', indexValue: 114.8 },
+    { periodLabel: '2025-Q4', indexValue: 116.9 },
+    { periodLabel: '2026-Q2', indexValue: 118.3 },
   ],
-  draft_report: {
-    sections: {
-      property_info: 'Hẻm 45 Nguyễn Văn A, 62m² · Sổ hồng chính chủ.',
-      valuation: '4.85 tỷ (4.55–5.10 tỷ), độ tin cậy 78%.',
-      risk_and_ltv: 'Điểm rủi ro tài sản 34/100 (Trung bình) — LTV đề xuất 65%.',
+  valuationMethods: [
+    {
+      id: 'lc-method-sales',
+      methodKey: 'sales_comparison',
+      label: 'So sánh trực tiếp',
+      estimatedValueLabel: '4.90 tỷ',
+      weightPct: 50,
+      contributionValueLabel: '2.45 tỷ',
+      methodConfidencePct: 82,
+      inputs: [
+        '5 giao dịch so sánh trong bán kính 1.1km, gần nhất 02/2026.',
+        'Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch (quy đổi theo chỉ số giá index 118.3).',
+        'Giá/m² sau điều chỉnh: 79–98 triệu, trung vị ~86 triệu.',
+      ],
+      inferenceText:
+        'Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh. Với 5 giao dịch cùng loại hình hẻm, diện tích 58–70m², độ tương đồng khá cao nên độ tin cậy phương pháp này ở mức cao.',
+      sourceLabel: 'market_price_lookup (Research Agent)',
     },
-    signature_block: '☐ Chữ ký thẩm định viên      ☐ Xác nhận chuyên viên tín dụng',
-  },
-  requires_human_verification: true,
-  trace_id: 'TRACE-8891',
-  trace_events: [
-    { step_name: 'Hệ thống tiếp nhận yêu cầu', component: 'planner', t_offset_seconds: 0.0, output_summary: 'Từ hệ thống điều phối chung (Planner Agent)' },
-    { step_name: '7 nguồn tra cứu chạy song song', component: 'research_agent', t_offset_seconds: 1.2, output_summary: 'Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...' },
-    { step_name: 'Bộ máy định giá hoàn tất', component: 'valuation_agent', t_offset_seconds: 1.4, output_summary: 'Giá trị ước tính: 4.85 tỷ' },
-    { step_name: 'Bộ máy chấm điểm rủi ro hoàn tất', component: 'risk_agent', t_offset_seconds: 1.6, output_summary: 'Điểm rủi ro tài sản: 34/100 · Trung bình' },
-    { step_name: 'Copilot sinh nháp biên bản', component: 'advisory_agent', t_offset_seconds: 2.3, output_summary: 'Cần thẩm định viên xác minh thêm: Có' },
+    {
+      id: 'lc-method-hedonic',
+      methodKey: 'hedonic_ml',
+      label: 'Hedonic (ML)',
+      estimatedValueLabel: '4.80 tỷ',
+      weightPct: 30,
+      contributionValueLabel: '1.44 tỷ',
+      methodConfidencePct: 78,
+      inputs: [
+        'Huấn luyện trên ~2.400 giao dịch lịch sử toàn quận (2022–2026).',
+        'Biến số: diện tích, số tầng, chiều rộng hẻm, hướng nhà, khoảng cách trung tâm, tuổi công trình, mật độ tiện ích.',
+        'R² mô hình: 0.87 · Sai số trung bình (MAE): 4.2%.',
+      ],
+      inferenceText:
+        'Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc (vd. tổ hợp hướng nhà + chiều rộng hẻm). Sai số trung bình 4.2% trên tập dữ liệu khu vực tương tự cho thấy mô hình khá ổn định.',
+      sourceLabel: 'calculate_valuation — nhánh hedonic-ML (Valuation Agent)',
+    },
+    {
+      id: 'lc-method-cost',
+      methodKey: 'cost_approach',
+      label: 'Chi phí xây dựng',
+      estimatedValueLabel: '4.75 tỷ',
+      weightPct: 20,
+      contributionValueLabel: '0.95 tỷ',
+      methodConfidencePct: 70,
+      inputs: [
+        'Giá đất tham chiếu khu vực: ~68 triệu/m² (đã loại trừ phần công trình).',
+        'Đơn giá xây dựng: 7.5 triệu/m² (nhà 3 tầng, kết cấu BTCT), diện tích sàn 124m².',
+        'Khấu hao theo tuổi công trình: 12 năm, khấu hao 18%.',
+      ],
+      inferenceText:
+        'Cho giá trị thấp nhất trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá — phù hợp dùng làm giá sàn tham chiếu, hạn chế định giá vượt quá xa chi phí thay thế thực tế.',
+      sourceLabel: 'calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)',
+    },
   ],
-}
+  valuationWeightedInferenceText:
+    'Trọng số ưu tiên <b>So sánh trực tiếp (50%)</b> vì khu vực có đủ giao dịch gần đây và tương đồng cao với tài sản; <b>Hedonic/ML (30%)</b> giúp hiệu chỉnh đồng thời nhiều biến số; <b>Chi phí xây dựng (20%)</b> chỉ dùng làm giá sàn tham chiếu vì ít phản ánh yếu tố vị trí. Chênh lệch giữa giá trị cao nhất và thấp nhất trong 3 phương pháp chỉ <b>3.1%</b> (4.90 so với 4.75 tỷ) — mức đồng thuận cao giữa các phương pháp, củng cố cho độ tin cậy tổng 78%.',
 
-/* Kịch bản SSE mô phỏng — apiClient phát lại tuần tự khi USE_FIXTURE, để test đồng bộ
-   chat ↔ info panel (FR-011) mà không cần backend. */
-export const fixtureStepUpdates: StepUpdateEvent[] = [
-  { step_name: 'Tiếp nhận yêu cầu', active_tab: 1, chat_message: 'Đã nhận yêu cầu. Đang tra cứu dữ liệu khu vực (giao dịch so sánh, quy hoạch, pháp lý, dư luận...).' },
-  { step_name: 'Tra cứu song song', active_tab: 2, chat_message: '⏳ Đang gọi 7 adapter tra cứu song song…', status: 'processing' },
-  { step_name: 'Đã có kết quả tra cứu', active_tab: 2, chat_message: 'Đã có kết quả tra cứu — xem tab Kết quả tra cứu. Phát hiện 1 điểm cần lưu ý (tin đồn khu vực, chưa xác thực).' },
-  { step_name: 'Định giá hoàn tất', active_tab: 3, chat_message: 'Định giá đề xuất 4.85 tỷ, độ tin cậy 78% — xem tab Định giá.' },
-  { step_name: 'Chấm điểm rủi ro hoàn tất', active_tab: 4, chat_message: 'Điểm rủi ro BĐS 34/100 (Trung bình), LTV đề xuất 65% — xem tab Rủi ro.', status: 'completed' },
-]
+  confidenceFactors: [
+    { factorKey: 'comp_quantity_quality', label: 'Giao dịch so sánh (SL & chất lượng)', weightPct: 30, score: 85 },
+    { factorKey: 'method_consensus', label: 'Đồng thuận giữa 3 phương pháp', weightPct: 25, score: 80 },
+    { factorKey: 'legal_planning_completeness', label: 'Pháp lý & quy hoạch đầy đủ', weightPct: 20, score: 88 },
+    { factorKey: 'market_volatility', label: 'Biến động thị trường gần đây', weightPct: 15, score: 54 },
+    { factorKey: 'comp_similarity', label: 'Tương đồng giao dịch so sánh', weightPct: 10, score: 65 },
+  ],
+  confidenceInferenceText:
+    'Hai yếu tố đang kéo độ tin cậy tổng xuống 78% thay vì cao hơn: <b>biến động thị trường gần đây</b> (chỉ số giá tăng ~5%/quý, nhanh hơn trung bình dài hạn của khu vực) và <b>độ tương đồng giao dịch so sánh</b> (một số giao dịch chênh lệch diện tích &gt;15% so với tài sản thẩm định). Ba yếu tố còn lại (số lượng giao dịch, mức đồng thuận giữa các phương pháp, dữ liệu pháp lý/quy hoạch) đều ở mức tốt. Khuyến nghị bổ sung giao dịch so sánh mới nhất nếu cần nâng độ tin cậy trước khi ra quyết định cho vay.',
+
+  risk: { riskScore: 34, riskLabel: 'trung_binh', ltvProposedPct: 65 },
+  ltvPolicyBands: [
+    { minScore: 0, maxScore: 20, maxLtvPct: 75, label: '0–20 điểm → tối đa 75%' },
+    { minScore: 21, maxScore: 40, maxLtvPct: 65, label: '21–40 điểm → tối đa 65%' },
+    { minScore: 41, maxScore: 60, maxLtvPct: 55, label: '41–60 điểm → tối đa 55%' },
+    { minScore: 61, maxScore: null, maxLtvPct: 45, label: '>60 điểm → tối đa 45% hoặc cần thẩm định lại' },
+  ],
+  ltvPolicyInferenceText:
+    'Điểm rủi ro tài sản 34/100 rơi vào khung 21–40, nên LTV đề xuất 65%.',
+  riskGroups: [
+    {
+      id: 'rc-legal',
+      groupKey: 'legal',
+      label: 'Pháp lý',
+      weightPct: 30,
+      score: 15,
+      rawFindings: [
+        'Sổ hồng chính chủ, cấp 14/03/2019, không tranh chấp/kê biên.',
+        'Không đang thế chấp tại tổ chức tín dụng khác.',
+        'Không thuộc diện giải toả, thu hồi đất.',
+      ],
+      inferenceText:
+        'Nhóm rủi ro thấp nhất trong 5 nhóm nhờ hồ sơ pháp lý sạch, đã xác thực qua hệ thống liên thông sổ đỏ/sổ hồng — đóng góp tích cực lớn nhất giúp kéo điểm rủi ro tổng xuống mức Trung bình.',
+      sourceLabel: 'legal_status_lookup',
+      toolName: 'legal_status_lookup',
+    },
+    {
+      id: 'rc-liquidity',
+      groupKey: 'liquidity',
+      label: 'Thanh khoản',
+      weightPct: 25,
+      score: 30,
+      rawFindings: [
+        'Thời gian bán trung bình khu vực: 45 ngày · Tỷ lệ giao dịch thành công: 82%.',
+        'Số tin rao bán cùng phân khúc trong bán kính 1km: 14 tin.',
+      ],
+      inferenceText:
+        'Thanh khoản khá tốt so với mặt bằng chung phân khúc nhà phố hẻm (thường 60–90 ngày) nên điểm rủi ro ở mức thấp-trung bình — hỗ trợ khả năng xử lý tài sản bảo đảm khi cần thiết.',
+      sourceLabel: 'liquidity_stat_lookup',
+      toolName: 'liquidity_stat_lookup',
+    },
+    {
+      id: 'rc-volatility',
+      groupKey: 'price_volatility',
+      label: 'Biến động giá',
+      weightPct: 20,
+      score: 55,
+      rawFindings: [
+        'Chỉ số giá khu vực tăng từ 100.0 (2024-Q1) lên 118.3 (2026-Q2), tương đương ~5%/quý.',
+        'Biên độ giá giao dịch so sánh dao động rộng: 76.6–98.4 triệu/m² (chênh lệch 28%).',
+      ],
+      inferenceText:
+        'Tốc độ tăng giá nhanh hơn trung bình dài hạn và biên độ giao dịch rộng cho thấy thị trường khu vực đang biến động khá mạnh — nhóm có điểm cao thứ 2. Nếu thị trường điều chỉnh giảm, giá trị tài sản bảo đảm có thể biến động theo.',
+      sourceLabel: 'market_price_lookup',
+      toolName: 'market_price_lookup',
+    },
+    {
+      id: 'rc-environment',
+      groupKey: 'physical_environment',
+      label: 'Vật lý/môi trường',
+      weightPct: 15,
+      score: 30,
+      rawFindings: [
+        'Ghi nhận ngập nhẹ cục bộ mùa mưa 2022–2023 (<15cm, rút trong ngày).',
+        'Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp.',
+        'Công trình xây dựng 2016, kết cấu BTCT, chưa ghi nhận xuống cấp.',
+      ],
+      inferenceText:
+        'Rủi ro ở mức thấp-trung bình, chủ yếu do tình trạng ngập nhẹ cục bộ — không ảnh hưởng đáng kể đến kết cấu công trình. Khuyến nghị khách hàng mua bảo hiểm tài sản.',
+      sourceLabel: 'environmental_risk_lookup',
+      toolName: 'environmental_risk_lookup',
+    },
+    {
+      id: 'rc-reputation',
+      groupKey: 'reputation',
+      label: 'Danh tiếng/tâm linh',
+      weightPct: 10,
+      score: 60,
+      rawFindings: [
+        'Tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2019.',
+        'Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận.',
+        'Độ tin cậy nguồn tin: chỉ 30% (chưa kiểm chứng).',
+      ],
+      inferenceText:
+        'Điểm rủi ro cao nhất trong 5 nhóm (60/100) nhưng dựa trên nguồn tin có độ tin cậy thấp — chưa đủ cơ sở kết luận. Trọng số nhóm này chỉ 10% nên ảnh hưởng lên điểm tổng bị giới hạn. Cần xác minh thực địa trước khi đưa vào báo cáo chính thức.',
+      sourceLabel: 'stigma_reputation_lookup',
+      toolName: 'stigma_reputation_lookup',
+    },
+  ],
+  riskWeightedInferenceText:
+    '<b>Biến động giá</b> (20%) và <b>danh tiếng/tâm linh</b> (10%) là 2 nhóm có điểm cao nhất (55 và 60), nhưng danh tiếng/tâm linh chỉ chiếm trọng số nhỏ nên ảnh hưởng lên điểm tổng bị giới hạn. Ngược lại, <b>pháp lý</b> (30% — trọng số lớn nhất) có điểm rất thấp (15), là yếu tố kéo điểm rủi ro tổng xuống mức Trung bình thay vì cao hơn.',
+
+  riskFlags: [
+    {
+      id: 'legal',
+      severity: 'thap',
+      title: 'Pháp lý',
+      description: 'Sổ hồng hợp lệ, không tranh chấp ghi nhận.',
+      confidencePct: 95,
+      verifiedStatus: 'da_xac_thuc',
+    },
+    {
+      id: 'reputation',
+      severity: 'trung_binh',
+      title: 'Danh tiếng / tâm linh',
+      description: 'Tin đồn dân cư chưa xác thực về sự việc 2019 — <b>cần xác minh thực địa</b>.',
+      confidencePct: 35,
+      verifiedStatus: 'chua_xac_thuc',
+    },
+    {
+      id: 'environment',
+      severity: 'thap',
+      title: 'Môi trường',
+      description: 'Khu vực từng ngập nhẹ 2022–2023 — khuyến nghị mua bảo hiểm tài sản.',
+      confidencePct: 70,
+      verifiedStatus: 'da_xac_thuc',
+    },
+  ],
+
+  dashboardSteps: [
+    { stepNumber: 1, title: 'Nhập thông tin', summaryText: 'Hẻm 45 Nguyễn Văn A, Phường B, Quận C · 62 m² · Sổ hồng chính chủ.' },
+    { stepNumber: 2, title: 'Kết quả tra cứu', summaryText: '7 nguồn tra cứu hoàn tất · 1 điểm cần lưu ý (dư luận khu vực, chưa xác thực).' },
+    { stepNumber: 3, title: 'Định giá', summaryText: '4.85 tỷ (4.55–5.10 tỷ) · độ tin cậy 78%, kết hợp 3 phương pháp.' },
+    { stepNumber: 4, title: 'Rủi ro', summaryText: 'Điểm rủi ro tài sản 34/100 (Trung bình) · LTV đề xuất 65%.' },
+  ],
+
+  agentTrace: [
+    { id: 'te-1', secondsOffsetLabel: 't+0.0s', actor: 'Planner Agent', title: 'Hệ thống tiếp nhận yêu cầu', description: 'Từ hệ thống điều phối chung (Planner Agent)' },
+    { id: 'te-2', secondsOffsetLabel: 't+0.1–1.2s', actor: 'Research Agent', title: '7 nguồn tra cứu chạy song song', description: 'Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...' },
+    { id: 'te-3', secondsOffsetLabel: 't+1.4s', actor: 'Valuation Agent', title: 'Bộ máy định giá hoàn tất', description: 'Giá trị ước tính: 4.85 tỷ' },
+    { id: 'te-4', secondsOffsetLabel: 't+1.6s', actor: 'Risk Assessment Agent', title: 'Bộ máy chấm điểm rủi ro hoàn tất', description: 'Điểm rủi ro tài sản: 34/100 · Trung bình' },
+    { id: 'te-5', secondsOffsetLabel: 't+2.3s', actor: 'Advisory/Copilot Agent', title: 'Copilot tổng hợp báo cáo', description: 'Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận' },
+  ],
+};

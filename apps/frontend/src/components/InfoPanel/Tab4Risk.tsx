@@ -1,146 +1,155 @@
-/* Tab 4 — Rủi ro (mockup screen 4, dòng ~417-446).
-   2 meter (risk score, LTV), barchart 5 nhóm rủi ro, flag list. */
-import { useCaseStore } from '../../state/caseStore'
-import type { AssetRiskAssessment } from '../../types'
-import {
-  Badge,
-  formatPct,
-  NoData,
-  QMark,
-  riskColor,
-  severityBadge,
-  severityVi,
-  tierBadge,
-  tierVi,
-} from '../common/ui'
+import { Fragment } from 'react';
+import { getEditStatus, useCaseStore } from '../../state/caseStore';
+import { Badge, BarRow, Card, FlagRow, LookupDetailCard, Meter, Qmark } from '../common/ui';
+import { riskScoreTone, SEVERITY_LABEL, SEVERITY_TONE, TONE_COLOR } from '../../utils/severity';
 
-const GROUP_META: { key: keyof NonNullable<AssetRiskAssessment['risk_group_scores']>; label: string; weight: string }[] = [
-  { key: 'legal', label: 'Pháp lý', weight: '30%' },
-  { key: 'liquidity', label: 'Thanh khoản', weight: '25%' },
-  { key: 'price_volatility', label: 'Biến động giá', weight: '20%' },
-  { key: 'physical_environmental', label: 'Vật lý/môi trường', weight: '15%' },
-  { key: 'reputation_stigma', label: 'Danh tiếng/tâm linh', weight: '10%' },
-]
+function isCurrentBand(minScore: number, maxScore: number | null, score: number): boolean {
+  return score >= minScore && (maxScore === null || score <= maxScore);
+}
 
 export function Tab4Risk() {
-  const { caseData } = useCaseStore()
-  const r = caseData?.asset_risk
-  if (!r) return <NoData label="Chưa có kết quả chấm điểm rủi ro — hãy bắt đầu thẩm định." />
+  const risk = useCaseStore((s) => s.caseData.risk);
+  const ltvPolicyBands = useCaseStore((s) => s.caseData.ltvPolicyBands);
+  const ltvPolicyInferenceText = useCaseStore((s) => s.caseData.ltvPolicyInferenceText);
+  const riskGroups = useCaseStore((s) => s.caseData.riskGroups);
+  const riskWeightedInferenceText = useCaseStore((s) => s.caseData.riskWeightedInferenceText);
+  const riskFlags = useCaseStore((s) => s.caseData.riskFlags);
+  const valuationProposed = useCaseStore((s) => s.caseData.valuation.proposedValueLabel);
+  const pendingEdits = useCaseStore((s) => s.pendingEdits);
+  const confirmedKeys = useCaseStore((s) => s.confirmedKeys);
 
-  const score = r.asset_risk_score ?? 0
-  const ltvPct = r.recommended_ltv_cap != null ? Math.round(r.recommended_ltv_cap * 100) : null
+  const riskTone = SEVERITY_TONE[risk.riskLabel];
 
   return (
     <>
       <div className="grid c2">
-        <div className="card">
+        <Card>
           <div className="section-h">
             Điểm rủi ro bất động sản
-            <QMark why="Tổng hợp có trọng số từ 5 nhóm rủi ro của chính tài sản — không phải rủi ro tín dụng người vay." />
+            <Qmark text="Trung bình có trọng số của 5 nhóm rủi ro của chính tài sản — không phải rủi ro tín dụng người vay. Xem chi tiết cấu thành bên dưới." />
           </div>
-          <div className="meter-wrap">
-            <div className="meter-track">
-              <div className="meter-fill" style={{ width: `${score}%`, background: riskColor(score) }} />
-            </div>
-            <div className="meter-num">
-              {r.asset_risk_score ?? <NoData />}
-              <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>/100</span>
-            </div>
-          </div>
+          <Meter percent={risk.riskScore} color={TONE_COLOR[riskTone]} valueLabel={<>{risk.riskScore}<span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>/100</span></>} />
           <div style={{ marginTop: 9 }}>
-            <Badge kind={tierBadge(r.risk_tier)}>{tierVi(r.risk_tier)}</Badge>
+            <Badge tone={riskTone}>{SEVERITY_LABEL[risk.riskLabel].toUpperCase()}</Badge>
           </div>
-        </div>
-
-        <div className="card">
+        </Card>
+        <Card>
           <div className="section-h">
             LTV đề xuất
-            <QMark why="Trần cho vay trên giá trị định giá — dẫn xuất từ điểm rủi ro tài sản, không phải quyết định duyệt/từ chối." />
+            <Qmark text="LTV đề xuất được tính theo khung chính sách LTV gắn với điểm rủi ro tài sản, không phải điểm tín dụng người vay." />
           </div>
-          <div className="meter-wrap">
-            <div className="meter-track">
-              <div className="meter-fill" style={{ width: `${ltvPct ?? 0}%`, background: 'var(--navy-600)' }} />
-            </div>
-            <div className="meter-num">{ltvPct != null ? `${ltvPct}%` : <NoData />}</div>
-          </div>
+          <Meter percent={risk.ltvProposedPct} color="var(--navy-600)" valueLabel={`${risk.ltvProposedPct}%`} />
           <div className="sub" style={{ fontSize: 10.7, color: 'var(--text-muted)', marginTop: 9 }}>
-            Trần cho vay trên giá trị định giá.
+            Trần cho vay trên giá trị định giá {valuationProposed}.
           </div>
-        </div>
+          <div className="ld-inference" style={{ marginTop: 10 }}>
+            <div className="ld-label">💡 Khung chính sách LTV theo điểm rủi ro</div>
+            <p>
+              {ltvPolicyBands.map((b, i) => {
+                const active = isCurrentBand(b.minScore, b.maxScore, risk.riskScore);
+                return (
+                  <Fragment key={b.label}>
+                    {i > 0 && ' · '}
+                    {active ? <b>{b.label}</b> : b.label}
+                  </Fragment>
+                );
+              })}
+              {' '}
+              {ltvPolicyInferenceText}
+            </p>
+          </div>
+        </Card>
       </div>
 
-      <div className="card" style={{ marginBottom: 12 }}>
+      <Card style={{ marginBottom: 12 }}>
         <div className="section-h">5 nhóm rủi ro cấu thành</div>
         <div className="barchart">
-          {GROUP_META.map((g) => {
-            const val = r.risk_group_scores?.[g.key]
-            return (
-              <div className="barrow" key={g.key}>
-                <div className="rowlabel">
-                  {g.label} · {g.weight}
-                </div>
-                <div className="bartrack">
-                  <div className="barfill" style={{ width: `${val ?? 0}%`, background: riskColor(val ?? 0) }} />
-                </div>
-                <div className="rowvalue">{val ?? '—'}</div>
-              </div>
-            )
-          })}
+          {riskGroups.map((g) => (
+            <BarRow
+              key={g.id}
+              label={`${g.label} · ${g.weightPct}%`}
+              valueLabel={g.score}
+              percent={g.score}
+              color={TONE_COLOR[riskScoreTone(g.score)]}
+              status={getEditStatus(pendingEdits, confirmedKeys, 4, `risk.group.${g.groupKey}`)}
+            />
+          ))}
         </div>
-      </div>
+      </Card>
 
-      <div className="card">
-        <div className="section-h">Flags cần lưu ý</div>
-        {(r.flags ?? []).length === 0 ? (
-          <NoData label="Không có flag." />
-        ) : (
-          r.flags!.map((f, i) => {
-            const isStigma = f.type === 'stigma' || f.verified === false
-            return (
-              <div className="flag-row" key={i}>
-                <Badge kind={severityBadge(f.severity)}>{severityVi(f.severity)}</Badge>
-                <div>
-                  <b>{flagTitle(f.type)}</b>
-                  <p>{f.detail ?? <NoData />}</p>
-                  <div className="meta">
-                    {f.confidence != null && `Độ tin cậy ${formatPct(f.confidence)} · `}
-                    {isStigma ? 'Chưa xác thực' : 'Đã xác thực'}
-                    {f.action && ` · ${f.action}`}
-                  </div>
-                </div>
-              </div>
-            )
-          })
-        )}
-      </div>
-
-      {r.recommended_conditions && r.recommended_conditions.length > 0 && (
-        <div className="card">
-          <div className="section-h">Điều kiện khuyến nghị</div>
-          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            {r.recommended_conditions.map((c, i) => (
-              <li key={i}>{c}</li>
+      <Card style={{ marginBottom: 12 }}>
+        <div className="section-h">
+          Quy đổi điểm rủi ro tổng — trọng số 5 nhóm
+          <Qmark text="Risk Assessment Agent tính điểm rủi ro tổng bằng trung bình có trọng số của 5 nhóm rủi ro cấu thành." />
+        </div>
+        <table>
+          <tbody>
+            <tr>
+              <th>Nhóm rủi ro</th>
+              <th>Điểm</th>
+              <th>Trọng số</th>
+              <th>Đóng góp</th>
+            </tr>
+            {riskGroups.map((g) => (
+              <tr key={g.id}>
+                <td>{g.label}</td>
+                <td className="strong">{g.score}</td>
+                <td>{g.weightPct}%</td>
+                <td>{((g.score * g.weightPct) / 100).toFixed(1)}</td>
+              </tr>
             ))}
-          </ul>
+            <tr>
+              <td>
+                <b>Tổng (làm tròn)</b>
+              </td>
+              <td />
+              <td>
+                <b>100%</b>
+              </td>
+              <td className="strong">{risk.riskScore}/100</td>
+            </tr>
+          </tbody>
+        </table>
+        <div className="ld-inference" style={{ marginTop: 12 }}>
+          <div className="ld-label">💡 Nhận định của PAA</div>
+          {/* eslint-disable-next-line react/no-danger */}
+          <p dangerouslySetInnerHTML={{ __html: riskWeightedInferenceText }} />
         </div>
-      )}
-    </>
-  )
-}
+      </Card>
 
-function flagTitle(type?: string): string {
-  switch (type) {
-    case 'legal':
-      return 'Pháp lý'
-    case 'stigma':
-      return 'Danh tiếng / tâm linh'
-    case 'environmental':
-      return 'Môi trường'
-    case 'liquidity':
-      return 'Thanh khoản'
-    case 'price_volatility':
-      return 'Biến động giá'
-    default:
-      return type ?? 'Khác'
-  }
+      <div className="grid c2">
+        {riskGroups.map((g) => (
+          <LookupDetailCard
+            key={g.id}
+            id={g.id}
+            badge={<Badge tone={riskScoreTone(g.score)}>Điểm {g.score}/100</Badge>}
+            title={g.label}
+            qmark={`Nguồn: ${g.toolName} · Trọng số ${g.weightPct}% trong điểm rủi ro tổng.`}
+            rawFindings={g.rawFindings}
+            inferenceHtml={g.inferenceText}
+            metaText={`Nguồn: ${g.sourceLabel} · Trọng số ${g.weightPct}% · Điểm rủi ro ${g.score}/100`}
+            status={getEditStatus(pendingEdits, confirmedKeys, 4, `risk.group.${g.groupKey}`)}
+          />
+        ))}
+      </div>
+
+      <Card>
+        <div className="section-h">Flags cần lưu ý</div>
+        {riskFlags.map((f) => (
+          <FlagRow
+            key={f.id}
+            leading={
+              <span className={`badge ${SEVERITY_TONE[f.severity]}`} style={{ flex: 'none' }}>
+                {SEVERITY_LABEL[f.severity]}
+              </span>
+            }
+            title={f.title}
+            descriptionHtml={f.description}
+            meta={`Độ tin cậy ${f.confidencePct}% · ${f.verifiedStatus === 'da_xac_thuc' ? 'Đã xác thực' : 'Chưa xác thực'}`}
+            status={getEditStatus(pendingEdits, confirmedKeys, 4, `risk.flag.${f.id}`)}
+          />
+        ))}
+      </Card>
+    </>
+  );
 }
