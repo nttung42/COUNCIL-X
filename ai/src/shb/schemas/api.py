@@ -5,33 +5,6 @@ from typing import Any
 from pydantic import BaseModel
 
 
-class RegisterRequest(BaseModel):
-    """Request to register a new user."""
-
-    email: str
-
-
-class UserResponse(BaseModel):
-    """Response model for user details."""
-
-    id: str
-    email: str
-    is_active: bool
-    created_at: str
-
-    class Config:
-        from_attributes = True
-
-
-class RegisterResponse(UserResponse):
-    """Response from registration, including the one-time API key.
-
-    The API key is shown only once at creation; only its hash is stored.
-    """
-
-    api_key: str
-
-
 class PluginMetaResponse(BaseModel):
     """Response model for plugin metadata."""
 

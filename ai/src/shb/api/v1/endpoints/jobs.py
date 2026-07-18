@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shb.api.v1.dependencies import get_current_user, get_current_user_sse
+from shb.api.v1.dependencies import get_default_user
 from shb.core.db import AsyncSessionLocal, get_db
 from shb.db.models import JobStatus, User
 from shb.schemas import JobResponse
@@ -33,7 +33,6 @@ def _terminal_frame(status_value: str, result, error) -> str:
 @router.get("/{job_id}", response_model=JobResponse)
 async def get_job(
     job_id: str,
-    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> JobResponse:
     """Get job status and results."""
@@ -44,12 +43,6 @@ async def get_job(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Job not found",
-        )
-
-    if job.user_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this job",
         )
 
     return JobResponse(
@@ -69,7 +62,6 @@ async def get_job(
 @router.get("/{job_id}/stream")
 async def stream_job(
     job_id: str,
-    user: User = Depends(get_current_user_sse),
     db: AsyncSession = Depends(get_db),
 ) -> StreamingResponse:
     """Stream a job's progress in real time over SSE (no polling).
@@ -77,13 +69,11 @@ async def stream_job(
     Emits ``snapshot`` (current state) on connect, then ``progress`` events as the
     worker runs, and finally ``done`` (with ``result``) or ``error`` before closing.
     A ``:`` heartbeat comment is sent on idle to keep the connection alive through
-    proxies. Auth accepts ``?api_key=`` (for browser ``EventSource``) or the header.
+    proxies.
     """
     job = await JobService(db).get_job(job_id)
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
-    if job.user_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 
     # Capture state now — the request-scoped session closes once we return the
     # StreamingResponse; in-loop reads use their own short-lived sessions.
@@ -129,7 +119,7 @@ async def stream_job(
 async def list_jobs(
     limit: int = 10,
     offset: int = 0,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_default_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[JobResponse]:
     """List user's jobs with pagination."""
@@ -156,7 +146,6 @@ async def list_jobs(
 @router.delete("/{job_id}", status_code=204)
 async def cancel_job(
     job_id: str,
-    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """Cancel a pending job."""
@@ -167,12 +156,6 @@ async def cancel_job(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Job not found",
-        )
-
-    if job.user_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to cancel this job",
         )
 
     if job.status != JobStatus.PENDING:

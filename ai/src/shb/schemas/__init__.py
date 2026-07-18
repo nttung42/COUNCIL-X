@@ -7,9 +7,6 @@ from shb.schemas.api import (
     PluginRunAsyncResponse,
     PluginRunRequest,
     PluginRunResponse,
-    RegisterRequest,
-    RegisterResponse,
-    UserResponse,
 )
 
 __all__ = [
@@ -20,7 +17,4 @@ __all__ = [
     "PluginRunAsyncResponse",
     "JobResponse",
     "FileResponse",
-    "RegisterRequest",
-    "RegisterResponse",
-    "UserResponse",
 ]

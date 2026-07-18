@@ -6,11 +6,10 @@ import type {
   ApiPluginRunAsyncResponse,
   ApiPluginRunResponse,
   ApiPropertyIntakeOutput,
-  ApiRegisterResponse,
 } from './apiTypes';
 
 // Client cho backend thật ở ai/ (FastAPI, xem ai/src/shb/main.py + ai/src/shb/api/v1/api.py).
-// Hiện backend mới có route cho auth/upload-file/chạy-service-bất-đồng-bộ/SSE job — CHƯA có
+// Hiện backend mới có route cho upload-file/chạy-service-bất-đồng-bộ/SSE job — CHƯA có
 // route riêng cho case/lookup/valuation/risk/dashboard/chat (những bảng đó mới chỉ là ORM model,
 // xem models_paa.py). Vì vậy chỉ màn "Nhập thông tin" (property_intake) gọi API thật; các màn
 // 2-5 + chat + xác nhận chỉnh sửa vẫn dùng fixtureCase cho tới khi backend có endpoint tương ứng.
@@ -20,14 +19,6 @@ const API_BASE_URL = RAW_BASE_URL ? RAW_BASE_URL.replace(/\/+$/, '') : '';
 
 export function isApiConfigured(): boolean {
   return Boolean(API_BASE_URL);
-}
-
-const API_KEY_STORAGE = 'paa_api_key';
-const API_EMAIL_STORAGE = 'paa_api_email';
-
-function randomId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 async function parseErrorDetail(res: Response): Promise<string> {
@@ -43,39 +34,8 @@ async function parseErrorDetail(res: Response): Promise<string> {
   return res.statusText || `HTTP ${res.status}`;
 }
 
-let apiKeyPromise: Promise<string> | null = null;
-
-/** Đăng ký (1 lần, email ngẫu nhiên) hoặc tái sử dụng X-API-Key đã lưu ở localStorage. */
-async function ensureApiKey(): Promise<string> {
-  const cached = localStorage.getItem(API_KEY_STORAGE);
-  if (cached) return cached;
-
-  if (!apiKeyPromise) {
-    apiKeyPromise = (async () => {
-      let email = localStorage.getItem(API_EMAIL_STORAGE);
-      if (!email) {
-        email = `paa-frontend+${randomId()}@local.paa`;
-        localStorage.setItem(API_EMAIL_STORAGE, email);
-      }
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      if (!res.ok) throw new Error(`Không đăng ký được tài khoản API: ${await parseErrorDetail(res)}`);
-      const data = (await res.json()) as ApiRegisterResponse;
-      localStorage.setItem(API_KEY_STORAGE, data.api_key);
-      return data.api_key;
-    })();
-  }
-  return apiKeyPromise;
-}
-
-async function authedFetch(path: string, init: RequestInit = {}): Promise<Response> {
-  const apiKey = await ensureApiKey();
-  const headers = new Headers(init.headers);
-  headers.set('X-API-Key', apiKey);
-  const res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const res = await fetch(`${API_BASE_URL}${path}`, init);
   if (!res.ok) throw new Error(await parseErrorDetail(res));
   return res;
 }
@@ -83,7 +43,7 @@ async function authedFetch(path: string, init: RequestInit = {}): Promise<Respon
 export async function uploadFile(file: File): Promise<ApiFileResponse> {
   const form = new FormData();
   form.append('file', file);
-  const res = await authedFetch('/api/v1/files', { method: 'POST', body: form });
+  const res = await apiFetch('/api/v1/files', { method: 'POST', body: form });
   return (await res.json()) as ApiFileResponse;
 }
 
@@ -111,9 +71,9 @@ function parseSsePayload(event: MessageEvent<string>): SsePayload {
   }
 }
 
-function streamJob(jobId: string, apiKey: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
+function streamJob(jobId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
   return new Promise((resolve, reject) => {
-    const url = `${API_BASE_URL}/api/v1/jobs/${encodeURIComponent(jobId)}/stream?api_key=${encodeURIComponent(apiKey)}`;
+    const url = `${API_BASE_URL}/api/v1/jobs/${encodeURIComponent(jobId)}/stream`;
     const es = new EventSource(url);
     const timeout = window.setTimeout(() => {
       es.close();
@@ -148,7 +108,7 @@ function streamJob(jobId: string, apiKey: string, onProgress?: (progress: number
 
 /** Chạy plugin property_intake trên các file đã upload, nhận tiến độ qua SSE, trả kết quả trích xuất. */
 export async function runPropertyIntake(fileIds: string[], caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
-  const res = await authedFetch('/api/v1/services/property_intake/run', {
+  const res = await apiFetch('/api/v1/services/property_intake/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ input: { file_ids: fileIds, language: 'vi', case_id: caseId } }),
@@ -157,7 +117,7 @@ export async function runPropertyIntake(fileIds: string[], caseId: string, onPro
 
   if ('result' in body) return body.result as unknown as ApiPropertyIntakeOutput;
 
-  return streamJob(body.job_id, await ensureApiKey(), onProgress);
+  return streamJob(body.job_id, onProgress);
 }
 
 export interface ExtractionResult {
