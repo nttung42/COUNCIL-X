@@ -10,7 +10,7 @@ import type {
 } from './apiTypes';
 
 // Client cho backend thật ở ai/ (FastAPI, xem ai/src/shb/main.py + ai/src/shb/api/v1/api.py).
-// Hiện backend mới có route cho auth/upload-file/chạy-service-bất-đồng-bộ/poll-job — CHƯA có
+// Hiện backend mới có route cho auth/upload-file/chạy-service-bất-đồng-bộ/SSE job — CHƯA có
 // route riêng cho case/lookup/valuation/risk/dashboard/chat (những bảng đó mới chỉ là ORM model,
 // xem models_paa.py). Vì vậy chỉ màn "Nhập thông tin" (property_intake) gọi API thật; các màn
 // 2-5 + chat + xác nhận chỉnh sửa vẫn dùng fixtureCase cho tới khi backend có endpoint tương ứng.
@@ -99,32 +99,55 @@ function toAttachedDocument(file: ApiFileResponse): AttachedDocument {
   };
 }
 
-const POLL_TIMEOUT_MS = 120_000;
+const SSE_TIMEOUT_MS = 120_000;
 
-/** Trích xuất bằng LLM thường mất 10–60s — poll nhanh lúc đầu, giãn dần để đỡ dồn request. */
-function nextPollDelayMs(elapsedMs: number): number {
-  if (elapsedMs < 10_000) return 1500;
-  if (elapsedMs < 30_000) return 3000;
-  return 5000;
-}
+type SsePayload = { status?: ApiJobResponse['status']; progress?: number; result?: unknown; error?: string };
 
-async function pollJob(jobId: string): Promise<ApiJobResponse> {
-  const startedAt = Date.now();
-  for (;;) {
-    const res = await authedFetch(`/api/v1/jobs/${jobId}`);
-    const job = (await res.json()) as ApiJobResponse;
-    if (job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled') return job;
-    const elapsed = Date.now() - startedAt;
-    if (elapsed > POLL_TIMEOUT_MS) {
-      throw new Error('Quá thời gian chờ trích xuất dữ liệu (2 phút) — vui lòng thử lại.');
-    }
-    // eslint-disable-next-line no-await-in-loop
-    await new Promise((resolve) => setTimeout(resolve, nextPollDelayMs(elapsed)));
+function parseSsePayload(event: MessageEvent<string>): SsePayload {
+  try {
+    return JSON.parse(event.data) as SsePayload;
+  } catch {
+    return {};
   }
 }
 
-/** Chạy plugin property_intake trên các file đã upload, đợi job xong, trả kết quả trích xuất. */
-export async function runPropertyIntake(fileIds: string[], caseId: string): Promise<ApiPropertyIntakeOutput> {
+function streamJob(jobId: string, apiKey: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
+  return new Promise((resolve, reject) => {
+    const url = `${API_BASE_URL}/api/v1/jobs/${encodeURIComponent(jobId)}/stream?api_key=${encodeURIComponent(apiKey)}`;
+    const es = new EventSource(url);
+    const timeout = window.setTimeout(() => {
+      es.close();
+      reject(new Error('Quá thời gian chờ trích xuất dữ liệu (2 phút) — vui lòng thử lại.'));
+    }, SSE_TIMEOUT_MS);
+
+    function finish(fn: () => void) {
+      window.clearTimeout(timeout);
+      es.close();
+      fn();
+    }
+
+    es.addEventListener('snapshot', (event) => {
+      const progress = parseSsePayload(event as MessageEvent<string>).progress;
+      if (typeof progress === 'number') onProgress?.(progress);
+    });
+    es.addEventListener('progress', (event) => {
+      const progress = parseSsePayload(event as MessageEvent<string>).progress;
+      if (typeof progress === 'number') onProgress?.(progress);
+    });
+    es.addEventListener('done', (event) => {
+      const result = parseSsePayload(event as MessageEvent<string>).result as ApiPropertyIntakeOutput | undefined;
+      finish(() => (result ? resolve(result) : reject(new Error('SSE done không có kết quả trích xuất.'))));
+    });
+    es.addEventListener('error', (event) => {
+      if (!('data' in event)) return; // Rớt mạng/proxy tạm thời — để EventSource tự nối lại, timeout vẫn chặn treo vô hạn.
+      const message = parseSsePayload(event as MessageEvent<string>).error;
+      finish(() => reject(new Error(message ?? 'Trích xuất dữ liệu thất bại.')));
+    });
+  });
+}
+
+/** Chạy plugin property_intake trên các file đã upload, nhận tiến độ qua SSE, trả kết quả trích xuất. */
+export async function runPropertyIntake(fileIds: string[], caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
   const res = await authedFetch('/api/v1/services/property_intake/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -134,9 +157,7 @@ export async function runPropertyIntake(fileIds: string[], caseId: string): Prom
 
   if ('result' in body) return body.result as unknown as ApiPropertyIntakeOutput;
 
-  const job = await pollJob(body.job_id);
-  if (job.status !== 'completed') throw new Error(job.error ?? 'Trích xuất dữ liệu thất bại.');
-  return job.result as unknown as ApiPropertyIntakeOutput;
+  return streamJob(body.job_id, await ensureApiKey(), onProgress);
 }
 
 export interface ExtractionResult {

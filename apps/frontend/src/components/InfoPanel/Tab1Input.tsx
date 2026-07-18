@@ -54,6 +54,7 @@ function DataSourceAccordion() {
   const apiMode = useCaseStore((s) => s.apiMode);
   const isUploading = useCaseStore((s) => s.isUploading);
   const isExtracting = useCaseStore((s) => s.isExtracting);
+  const extractionProgress = useCaseStore((s) => s.extractionProgress);
   const uploadRealFiles = useCaseStore((s) => s.uploadRealFiles);
   const runExtraction = useCaseStore((s) => s.runExtraction);
   const fillSampleData = useCaseStore((s) => s.fillSampleData);
@@ -139,7 +140,7 @@ function DataSourceAccordion() {
                   disabled={!documents.length || isExtracting}
                   onClick={() => void runExtraction()}
                 >
-                  {isExtracting ? '⏳ PAA đang trích xuất dữ liệu…' : '🔎 Yêu cầu PAA trích xuất dữ liệu'}
+                  {isExtracting ? `⏳ PAA đang trích xuất dữ liệu… ${extractionProgress ?? 0}%` : '🔎 Yêu cầu PAA trích xuất dữ liệu'}
                 </button>
                 <button
                   type="button"

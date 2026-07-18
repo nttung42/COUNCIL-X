@@ -121,6 +121,7 @@ interface CaseStoreState {
   apiMode: boolean;
   isUploading: boolean;
   isExtracting: boolean;
+  extractionProgress: number | null;
   /** Cảnh báo từ lần trích xuất gần nhất (vd. loại tài liệu chưa hỗ trợ) — hiện thành banner riêng, không chỉ chìm trong chat. */
   extractionWarnings: string[];
 
@@ -186,6 +187,7 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
   apiMode: isApiConfigured(),
   isUploading: false,
   isExtracting: false,
+  extractionProgress: null,
   extractionWarnings: [],
 
   dvCurrentKey: 'so-hong',
@@ -470,11 +472,12 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
   runExtraction: async () => {
     const s = get();
     if (!s.apiMode || s.isExtracting || !s.documents.length) return;
-    set({ isExtracting: true, chatStarted: true, extractionWarnings: [] });
+    set({ isExtracting: true, chatStarted: true, extractionProgress: 0, extractionWarnings: [] });
     try {
       const output = await runPropertyIntake(
         s.documents.map((d) => d.id),
         s.caseData.caseId,
+        (progress) => set({ extractionProgress: progress }),
       );
       const { tab1Fields: extractedFields, docPages: extractedPages } = mapPropertyIntakeOutput(output);
 
@@ -499,7 +502,7 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
     } catch (err) {
       get().pushMessage('status', `⚠ Trích xuất dữ liệu thất bại: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
-      set({ isExtracting: false });
+      set({ isExtracting: false, extractionProgress: null });
     }
   },
 

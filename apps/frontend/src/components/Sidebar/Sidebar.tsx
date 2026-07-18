@@ -21,7 +21,7 @@ export function Sidebar() {
   return (
     <div className="sidebar">
       <div className="sb-brand">
-        <div className="mark">SHB</div>
+        <img className="mark" src="/logo.png" alt="COUNCIL-X" />
         <div className="name txt-hide">
           PAA Workspace
           <small>Digital Expert Agent</small>
