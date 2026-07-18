@@ -11,6 +11,7 @@ calls an LLM; these are pure data-access tools.
 
 from __future__ import annotations
 
+import logging
 from decimal import Decimal
 
 from pydantic import BaseModel, Field
@@ -18,6 +19,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shb.db.models_paa import LookupCategory, LookupFinding
+
+logger = logging.getLogger(__name__)
 
 
 def _num(value: Decimal | float | None) -> float | None:
@@ -62,7 +65,12 @@ class LookupAdapter:
         stmt = select(LookupFinding).where(
             LookupFinding.case_id == case_id, LookupFinding.category == self.category
         )
-        return (await session.execute(stmt)).scalar_one_or_none()
+        finding = (await session.execute(stmt)).scalar_one_or_none()
+        logger.info(
+            f"lookup[{self.key}]: case_id={case_id!r} category={self.category.value!r} "
+            f"found={finding is not None}"
+        )
+        return finding
 
     def _to_result(self, finding: LookupFinding | None) -> AdapterResult:
         if finding is None:
