@@ -65,6 +65,9 @@ storage/
 # Generated demo seed (regenerate with scripts/transform_seed.py / load_seed.sh)
 scripts/paa_seed_data.ai.sql
 
+# Sample property PDFs — real documents, PII, never commit
+samples/
+
 # Databases
 *.db
 *.sqlite
