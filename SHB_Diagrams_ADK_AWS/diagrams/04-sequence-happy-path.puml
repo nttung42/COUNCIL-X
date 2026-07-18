@@ -1,0 +1,60 @@
+@startuml 04-sequence-happy-path
+title Luong tham dinh vay von - Happy Path (khong co ngoai le)
+autonumber
+
+actor "RM" as RM
+participant "CreditAppraisalPipeline\n(SequentialAgent)" as ROOT
+participant "LegalAgent" as LEGAL
+participant "FinancialCreditAgent" as FIN
+participant "CollateralAgent" as COL
+participant "ScoringAgent" as SCORE
+participant "ComplianceAMLAgent" as COMP
+participant "ReportingAgent" as REPORT
+participant "SessionService" as SESSION
+actor "Credit Officer /\nHoi dong tin dung" as CO
+
+RM -> ROOT : submit(ho_so_vay, khach_hang_id)
+ROOT -> ROOT : Document Preprocessing\n(OCR + extract fields)
+ROOT -> SESSION : init session state
+
+par Parallel Stage (ParallelAgent)
+  ROOT -> LEGAL : run(legal_docs)
+  LEGAL -> LEGAL : tra cuu DKKD + RAG phap ly
+  LEGAL -> SESSION : write legal_status
+else
+  ROOT -> FIN : run(bctc, sao_ke)
+  FIN -> FIN : tinh DSCR, ty so,\ndoi chieu dong tien
+  FIN -> SESSION : write financial_ratios
+else
+  ROOT -> COL : run(tsbd_docs)
+  COL -> COL : tra dang ky GDBD +\ndinh gia so bo
+  COL -> SESSION : write collateral_value
+end
+
+ROOT -> SCORE : run(legal_status, ratios, collateral_value)
+SCORE -> SESSION : read inputs
+SCORE -> SCORE : cham diem xep hang noi bo
+SCORE -> SESSION : write credit_score, risk_tier
+
+ROOT -> COMP : run(khach_hang_id, related_parties)
+COMP -> COMP : tra CIC
+COMP -> COMP : sang loc AML/sanction
+COMP -> COMP : kiem tra gioi han cap tin dung
+note right of COMP
+  Khong co canh bao khop ten
+  -> khong can Human Review
+  (xem sequence 05 cho luong ngoai le)
+end note
+COMP -> SESSION : write compliance_result (clear)
+
+ROOT -> REPORT : run(tat ca ket qua)
+REPORT -> SESSION : read all
+REPORT -> REPORT : soan thao to trinh\n(kem trich dan nguon du lieu)
+REPORT --> ROOT : draft_report
+
+ROOT --> RM : draft_report san sang review
+RM -> CO : trinh to trinh
+CO -> CO : xem xet, ra quyet dinh\n(duyet/tu choi/dieu kien)
+CO --> RM : quyet dinh + chu ky
+
+@enduml

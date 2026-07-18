@@ -1,0 +1,33 @@
+{
+  "_disclaimer": "DỮ LIỆU MÔ PHỎNG (MOCK) — thống kê thanh khoản dưới đây là synthetic cho demo, không phải dữ liệu sàn giao dịch thật.",
+  "liquidity_records": [
+    {
+      "ward": "Phường B, Quận C",
+      "property_segment": "nha_pho",
+      "avg_days_on_market": 45,
+      "success_rate_pct": 82,
+      "source_type": "mock", "confidence": 0.8
+    },
+    {
+      "ward": "Phường B, Quận C",
+      "property_segment": "dat_nen",
+      "avg_days_on_market": 68,
+      "success_rate_pct": 70,
+      "source_type": "mock", "confidence": 0.75
+    },
+    {
+      "ward": "Phường Tân Định, Quận 1",
+      "property_segment": "nha_pho",
+      "avg_days_on_market": 32,
+      "success_rate_pct": 88,
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "ward": "Phường Tân Định, Quận 1",
+      "property_segment": "chung_cu",
+      "avg_days_on_market": 40,
+      "success_rate_pct": 80,
+      "source_type": "mock", "confidence": 0.8
+    }
+  ]
+}

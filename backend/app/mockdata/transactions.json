@@ -1,0 +1,305 @@
+{
+  "_disclaimer": "DỮ LIỆU MÔ PHỎNG (MOCK) — toàn bộ giao dịch dưới đây là synthetic, dùng cho demo hackathon, không phải giao dịch bất động sản thật.",
+  "transactions": [
+    {
+      "transaction_id": "TXN-000123",
+      "address": "Hẻm 45 Nguyễn Văn A, Phường B, Quận C",
+      "lat": 10.7756, "long": 106.7019,
+      "area_m2": 60, "frontage_m": 4, "alley_width_m": 3.5, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 4600000000, "price_per_m2": 76666667,
+      "transaction_date": "2025-11-10", "distance_from_subject_km": 0.6,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000101",
+      "address": "Hẻm 40 Nguyễn Văn A, Phường B, Quận C",
+      "lat": 10.7758, "long": 106.7016,
+      "area_m2": 58, "frontage_m": 3.6, "alley_width_m": 3.0, "floors": 2,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 4442800000, "price_per_m2": 76600000,
+      "transaction_date": "2025-11-10", "distance_from_subject_km": 0.3,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000102",
+      "address": "Đường Nguyễn Văn A, Phường B, Quận C",
+      "lat": 10.7762, "long": 106.7024,
+      "area_m2": 65, "frontage_m": 4.5, "alley_width_m": null, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 5148000000, "price_per_m2": 79200000,
+      "transaction_date": "2025-09-15", "distance_from_subject_km": 0.6,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000103",
+      "address": "Hẻm 12 Trần Văn B, Phường B, Quận C",
+      "lat": 10.7749, "long": 106.7010,
+      "area_m2": 60, "frontage_m": 4.0, "alley_width_m": 4.0, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 5286000000, "price_per_m2": 88100000,
+      "transaction_date": "2025-06-20", "distance_from_subject_km": 0.8,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000104",
+      "address": "Hẻm 45 Nguyễn Văn A (kế bên), Phường B, Quận C",
+      "lat": 10.7755, "long": 106.7020,
+      "area_m2": 64, "frontage_m": 4.0, "alley_width_m": 3.5, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "listed", "price_total": 6297600000, "price_per_m2": 98400000,
+      "transaction_date": "2026-02-01", "distance_from_subject_km": 0.1,
+      "source_type": "mock", "confidence": 0.7
+    },
+    {
+      "transaction_id": "TXN-000105",
+      "address": "Đường Lê Văn C, Phường B, Quận C",
+      "lat": 10.7770, "long": 106.7031,
+      "area_m2": 70, "frontage_m": 5.0, "alley_width_m": null, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 6650000000, "price_per_m2": 95000000,
+      "transaction_date": "2026-01-12", "distance_from_subject_km": 1.1,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000106",
+      "address": "Hẻm 20 Nguyễn Văn A, Phường B, Quận C",
+      "lat": 10.7760, "long": 106.7014,
+      "area_m2": 55, "frontage_m": 3.5, "alley_width_m": 3.0, "floors": 2,
+      "property_type": "nha_pho", "legal_status": "so_do",
+      "transaction_type": "sold", "price_total": 3740000000, "price_per_m2": 68000000,
+      "transaction_date": "2025-03-05", "distance_from_subject_km": 0.4,
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "transaction_id": "TXN-000107",
+      "address": "Hẻm 8 Trần Văn B, Phường B, Quận C",
+      "lat": 10.7745, "long": 106.7008,
+      "area_m2": 62, "frontage_m": 4.0, "alley_width_m": 3.2, "floors": 2,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 4433000000, "price_per_m2": 71500000,
+      "transaction_date": "2024-12-18", "distance_from_subject_km": 0.9,
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "transaction_id": "TXN-000108",
+      "address": "Đường Nguyễn Văn A số 88, Phường B, Quận C",
+      "lat": 10.7765, "long": 106.7027,
+      "area_m2": 80, "frontage_m": 6.0, "alley_width_m": null, "floors": 4,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 8160000000, "price_per_m2": 102000000,
+      "transaction_date": "2025-10-02", "distance_from_subject_km": 0.7,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000110",
+      "address": "Đất nền Khu dân cư X, Phường B, Quận C",
+      "lat": 10.7790, "long": 106.7055,
+      "area_m2": 100, "frontage_m": 5.0, "alley_width_m": null, "floors": 0,
+      "property_type": "dat_nen", "legal_status": "so_do",
+      "transaction_type": "sold", "price_total": 3500000000, "price_per_m2": 35000000,
+      "transaction_date": "2025-08-01", "distance_from_subject_km": 1.5,
+      "source_type": "mock", "confidence": 0.8
+    },
+    {
+      "transaction_id": "TXN-000111",
+      "address": "Đất nền hẻm nhỏ, Phường B, Quận C",
+      "lat": 10.7795, "long": 106.7061,
+      "area_m2": 90, "frontage_m": 4.0, "alley_width_m": 3.0, "floors": 0,
+      "property_type": "dat_nen", "legal_status": "so_do",
+      "transaction_type": "listed", "price_total": 2880000000, "price_per_m2": 32000000,
+      "transaction_date": "2026-01-20", "distance_from_subject_km": 1.8,
+      "source_type": "mock", "confidence": 0.65
+    },
+    {
+      "transaction_id": "TXN-000112",
+      "address": "Hẻm 55 Nguyễn Văn A, Phường B, Quận C",
+      "lat": 10.7757, "long": 106.7017,
+      "area_m2": 58, "frontage_m": 3.8, "alley_width_m": 3.2, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 5858000000, "price_per_m2": 101000000,
+      "transaction_date": "2026-03-01", "distance_from_subject_km": 0.2,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000113",
+      "address": "Hẻm 30 Trần Văn B, Phường B, Quận C",
+      "lat": 10.7742, "long": 106.7005,
+      "area_m2": 65, "frontage_m": 4.0, "alley_width_m": 3.5, "floors": 2,
+      "property_type": "nha_pho", "legal_status": "giay_tay",
+      "transaction_type": "sold", "price_total": 3575000000, "price_per_m2": 55000000,
+      "transaction_date": "2024-05-12", "distance_from_subject_km": 1.0,
+      "source_type": "mock", "confidence": 0.6
+    },
+    {
+      "transaction_id": "TXN-000114",
+      "address": "Đường Lê Văn C số 10, Phường B, Quận C",
+      "lat": 10.7772, "long": 106.7034,
+      "area_m2": 75, "frontage_m": 5.5, "alley_width_m": null, "floors": 4,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 7425000000, "price_per_m2": 99000000,
+      "transaction_date": "2026-04-10", "distance_from_subject_km": 1.2,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000115",
+      "address": "Hẻm 42 Nguyễn Văn A, Phường B, Quận C",
+      "lat": 10.7754, "long": 106.7018,
+      "area_m2": 61, "frontage_m": 4.0, "alley_width_m": 3.5, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "listed", "price_total": 6130500000, "price_per_m2": 100500000,
+      "transaction_date": "2026-05-01", "distance_from_subject_km": 0.15,
+      "source_type": "mock", "confidence": 0.7
+    },
+    {
+      "transaction_id": "TXN-000116",
+      "address": "Hẻm 15 Trần Văn B, Phường B, Quận C",
+      "lat": 10.7747, "long": 106.7012,
+      "area_m2": 58, "frontage_m": 3.5, "alley_width_m": 3.0, "floors": 2,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 3770000000, "price_per_m2": 65000000,
+      "transaction_date": "2024-08-22", "distance_from_subject_km": 0.85,
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "transaction_id": "TXN-000117",
+      "address": "Đường Nguyễn Văn A số 88B, Phường B, Quận C",
+      "lat": 10.7764, "long": 106.7026,
+      "area_m2": 70, "frontage_m": 5.0, "alley_width_m": null, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 5180000000, "price_per_m2": 74000000,
+      "transaction_date": "2025-02-14", "distance_from_subject_km": 0.5,
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "transaction_id": "TXN-000118",
+      "address": "Hẻm 45 Nguyễn Văn A (căn góc), Phường B, Quận C",
+      "lat": 10.7757, "long": 106.7021,
+      "area_m2": 63, "frontage_m": 4.2, "alley_width_m": 3.5, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 6489000000, "price_per_m2": 103000000,
+      "transaction_date": "2026-06-15", "distance_from_subject_km": 0.08,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000201",
+      "address": "12 Trần Hưng Đạo, Phường Tân Định, Quận 1",
+      "lat": 10.7909, "long": 106.6899,
+      "area_m2": 45, "frontage_m": 4.0, "alley_width_m": null, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 6525000000, "price_per_m2": 145000000,
+      "transaction_date": "2025-09-01", "distance_from_subject_km": 0.2,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000202",
+      "address": "Hẻm 8 Hai Bà Trưng, Phường Tân Định, Quận 1",
+      "lat": 10.7913, "long": 106.6906,
+      "area_m2": 50, "frontage_m": 3.5, "alley_width_m": 2.5, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 6400000000, "price_per_m2": 128000000,
+      "transaction_date": "2025-11-20", "distance_from_subject_km": 0.4,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000203",
+      "address": "Đường Trần Quang Khải, Phường Tân Định, Quận 1",
+      "lat": 10.7918, "long": 106.6911,
+      "area_m2": 55, "frontage_m": 4.5, "alley_width_m": null, "floors": 4,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 8360000000, "price_per_m2": 152000000,
+      "transaction_date": "2026-01-05", "distance_from_subject_km": 0.6,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000204",
+      "address": "Chung cư Copac Square, Phường Tân Định, Quận 1",
+      "lat": 10.7921, "long": 106.6890,
+      "area_m2": 68, "frontage_m": null, "alley_width_m": null, "floors": 1,
+      "property_type": "chung_cu", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 4216000000, "price_per_m2": 62000000,
+      "transaction_date": "2025-12-10", "distance_from_subject_km": 0.9,
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "transaction_id": "TXN-000205",
+      "address": "Chung cư Botanica Premier, gần Phường Tân Định, Quận 1",
+      "lat": 10.7930, "long": 106.6880,
+      "area_m2": 72, "frontage_m": null, "alley_width_m": null, "floors": 1,
+      "property_type": "chung_cu", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 4176000000, "price_per_m2": 58000000,
+      "transaction_date": "2025-07-01", "distance_from_subject_km": 1.3,
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "transaction_id": "TXN-000206",
+      "address": "Hẻm 20 Hai Bà Trưng, Phường Tân Định, Quận 1",
+      "lat": 10.7905, "long": 106.6902,
+      "area_m2": 48, "frontage_m": 3.5, "alley_width_m": 2.8, "floors": 2,
+      "property_type": "nha_pho", "legal_status": "so_do",
+      "transaction_type": "sold", "price_total": 5280000000, "price_per_m2": 110000000,
+      "transaction_date": "2024-10-15", "distance_from_subject_km": 0.5,
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "transaction_id": "TXN-000207",
+      "address": "Đường Nguyễn Hữu Cầu, Phường Tân Định, Quận 1",
+      "lat": 10.7922, "long": 106.6915,
+      "area_m2": 60, "frontage_m": 4.0, "alley_width_m": null, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 9480000000, "price_per_m2": 158000000,
+      "transaction_date": "2026-02-28", "distance_from_subject_km": 0.7,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000208",
+      "address": "Hẻm 5 Trần Hưng Đạo, Phường Tân Định, Quận 1",
+      "lat": 10.7911, "long": 106.6895,
+      "area_m2": 42, "frontage_m": 3.2, "alley_width_m": 2.5, "floors": 3,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "listed", "price_total": 6258000000, "price_per_m2": 149000000,
+      "transaction_date": "2026-05-10", "distance_from_subject_km": 0.25,
+      "source_type": "mock", "confidence": 0.7
+    },
+    {
+      "transaction_id": "TXN-000209",
+      "address": "Chung cư The Prince Residence, gần Phường Tân Định, Quận 1",
+      "lat": 10.7935, "long": 106.6875,
+      "area_m2": 65, "frontage_m": null, "alley_width_m": null, "floors": 1,
+      "property_type": "chung_cu", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 3900000000, "price_per_m2": 60000000,
+      "transaction_date": "2026-03-15", "distance_from_subject_km": 1.6,
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "transaction_id": "TXN-000210",
+      "address": "Đường Hai Bà Trưng số 200, Phường Tân Định, Quận 1",
+      "lat": 10.7898, "long": 106.6908,
+      "area_m2": 58, "frontage_m": 4.5, "alley_width_m": null, "floors": 4,
+      "property_type": "nha_pho", "legal_status": "so_hong",
+      "transaction_type": "sold", "price_total": 8120000000, "price_per_m2": 140000000,
+      "transaction_date": "2025-04-18", "distance_from_subject_km": 0.8,
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "transaction_id": "TXN-000211",
+      "address": "Hẻm 12 Trần Quang Khải, Phường Tân Định, Quận 1",
+      "lat": 10.7916, "long": 106.6913,
+      "area_m2": 50, "frontage_m": 3.5, "alley_width_m": 3.0, "floors": 2,
+      "property_type": "nha_pho", "legal_status": "giay_tay",
+      "transaction_type": "sold", "price_total": 4750000000, "price_per_m2": 95000000,
+      "transaction_date": "2024-06-01", "distance_from_subject_km": 0.35,
+      "source_type": "mock", "confidence": 0.6
+    },
+    {
+      "transaction_id": "TXN-000212",
+      "address": "Chung cư Icon 56, gần Phường Tân Định, Quận 1",
+      "lat": 10.7940, "long": 106.6870,
+      "area_m2": 70, "frontage_m": null, "alley_width_m": null, "floors": 1,
+      "property_type": "chung_cu", "legal_status": "so_hong",
+      "transaction_type": "listed", "price_total": 4480000000, "price_per_m2": 64000000,
+      "transaction_date": "2026-06-01", "distance_from_subject_km": 2.0,
+      "source_type": "mock", "confidence": 0.65
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+/* ============================================================================
+   SHB brand tokens — copied verbatim from PAA_Mockup_SHB.html (:root, lines 8-39)
+   Validated: white-on-navy >= 9.8:1, white-on-orange600 4.78:1, ink-on-white 17.2:1
+   NGUỒN SỰ THẬT màu sắc — không sáng tạo bảng màu khác.
+   ============================================================================ */
+:root {
+  --navy-900: #101B42;   /* sidebar / dark chrome */
+  --navy-800: #182658;   /* hover on dark chrome */
+  --navy-700: #1E2F66;   /* strong headings/accents on light surfaces */
+  --navy-600: #2A3F82;   /* links, secondary accent, chart hue */
+  --navy-300: #8C9BC7;   /* muted label on dark chrome */
+  --navy-100: #E4E8F4;   /* light tint — agent chat bubble, highlight bg */
+  --navy-050: #F1F3FA;
+
+  --orange-600: #C24E0E; /* CTA buttons w/ white text (4.78:1) */
+  --orange-500: #F2701C; /* vivid accent — icons/badges on dark bg only */
+  --orange-100: #FBDCC4; /* light tint — user chat bubble bg */
+  --orange-050: #FEF1E7;
+
+  --white: #FFFFFF;
+  --page-bg: #F7F5F2;
+  --ink: #151A2E;
+  --text-secondary: #5B6478;
+  --text-muted: #8A93A8;
+  --border: rgba(16,27,66,0.10);
+  --gridline: #ECE9E3;
+
+  --good: #0ca30c;
+  --warning: #fab219;
+  --serious: #ec835a;
+  --critical: #d03b3b;
+  --good-tint: rgba(12,163,12,0.12);
+  --warning-tint: rgba(250,178,25,0.18);
+  --serious-tint: rgba(236,131,90,0.16);
+  --critical-tint: rgba(208,59,59,0.12);
+}

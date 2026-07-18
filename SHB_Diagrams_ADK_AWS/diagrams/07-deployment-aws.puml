@@ -1,0 +1,86 @@
+@startuml 07-deployment-aws
+title Deployment Diagram - AWS (kien truc don gian, chi phi thap cho demo)
+skinparam componentStyle rectangle
+skinparam node {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+}
+skinparam database {
+  BackgroundColor #E1F5FE
+}
+skinparam queue {
+  BackgroundColor #FCE4EC
+}
+
+actor "RM / Tham dinh vien /\nCompliance Officer / Credit Officer" as USER
+
+cloud "Internet" as INTERNET
+
+node "AWS Account - VPC (2 AZ)" {
+
+  node "Public Subnet" {
+    component "Application Load Balancer\n(internal-facing, qua VPN/Direct Connect\nhoac SSO qua Cognito)" as ALB
+    component "NAT Gateway" as NAT
+  }
+
+  node "Private Subnet - Compute" {
+    node "ECS Fargate Service\n\"adk-orchestrator-svc\"\n(chay `adk api_server`,\nauto-scaling 2-6 tasks)" as ADK_SVC
+    node "ECS Fargate Service\n\"omnirouter-svc\"\n(self-hosted OpenAI-compatible\nrouter)" as ROUTER_SVC
+  }
+
+  node "Private Subnet - Data" {
+    database "Aurora PostgreSQL\nServerless v2 + pgvector\n(RAG vector store)" as AURORA
+    database "DynamoDB\n(ADK session/state store)" as DDB
+  }
+
+  component "S3: raw-documents" as S3_RAW
+  component "S3: knowledge-corpus" as S3_KB
+  component "S3: reports" as S3_REPORT
+
+  queue "SQS: aml-review-queue" as SQS_AML
+  queue "SQS: credit-approval-queue" as SQS_APPROVE
+  component "SNS Notifications" as SNS
+
+  component "Secrets Manager\n(DB creds, Omnirouter/LLM API keys)" as SECRETS
+  component "CloudWatch + X-Ray\n(logs, agent trace dashboard)" as CW
+  component "ECR (container images)" as ECR
+}
+
+cloud "Upstream LLM Provider(s)\n(OpenAI-compatible endpoint)" as LLM_UPSTREAM
+
+USER --> ALB
+ALB --> ADK_SVC
+ADK_SVC --> ROUTER_SVC : internal call\n(Cloud Map / internal DNS)
+ADK_SVC --> AURORA : RAG queries (pgvector)
+ADK_SVC --> DDB : session state
+ADK_SVC --> S3_RAW : doc ho so
+ADK_SVC --> S3_KB : ingest RAG corpus
+ADK_SVC --> S3_REPORT : ghi to trinh
+ADK_SVC --> SQS_AML : enqueue task (HITL)
+ADK_SVC --> SQS_APPROVE : enqueue task (HITL)
+SQS_AML --> SNS
+SQS_APPROVE --> SNS
+SNS --> USER : email/Slack
+
+ROUTER_SVC --> NAT
+NAT --> INTERNET
+INTERNET --> LLM_UPSTREAM
+
+ADK_SVC ..> SECRETS : doc credentials
+ROUTER_SVC ..> SECRETS : doc API key upstream
+ADK_SVC ..> CW : logs/traces
+ROUTER_SVC ..> CW : logs/traces
+
+ECR --> ADK_SVC : pull image
+ECR --> ROUTER_SVC : pull image
+
+note bottom of ROUTER_SVC
+  Gia dinh: Omnirouter (tu host) chi la lop routing/proxy,
+  KHONG tu chua model weights -> can egress internet
+  toi upstream LLM provider qua NAT Gateway.
+  Neu Omnirouter cung tu host model (can GPU),
+  can them EC2 (g5/p4d) hoac SageMaker endpoint
+  trong private subnet - bao minh de cap nhat diagram.
+end note
+
+@enduml

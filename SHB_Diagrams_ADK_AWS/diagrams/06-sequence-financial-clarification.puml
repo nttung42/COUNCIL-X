@@ -1,0 +1,42 @@
+@startuml 06-sequence-financial-clarification
+title Luong ngoai le - Bat thuong tai chinh can bo sung giai trinh (LoopAgent)
+autonumber
+
+participant "CreditAppraisalPipeline" as ROOT
+participant "FinancialCreditAgent" as FIN
+participant "bank_statement_reconciler\n(Tool)" as TOOL
+participant "SessionService" as SESSION
+actor "RM" as RM
+actor "Khach hang" as KH
+
+ROOT -> FIN : run(bctc, sao_ke)
+FIN -> TOOL : reconcile(doanh_thu_khai_bao, dong_tien_sao_ke)
+TOOL --> FIN : chenh lech > nguong cho phep\n(vd. > 20%)
+
+note right of FIN
+  Agent khong tu quyet dinh chap nhan/tu choi
+  giai trinh chenh lech - can RM/chuyen vien
+  danh gia tinh hop ly theo boi canh nganh.
+end note
+
+FIN -> SESSION : write financial_ratios\n(status=NEEDS_CLARIFICATION)
+FIN --> ROOT : request_more_info
+
+loop LoopAgent: cho bo sung (max_iterations=3)
+  ROOT -> RM : yeu cau giai trinh chenh lech
+  RM -> KH : lien he khach hang
+  KH --> RM : cung cap giai trinh/bo sung chung tu
+  RM -> ROOT : nop bo sung
+  ROOT -> FIN : re-run(bctc, sao_ke, giai_trinh)
+  FIN -> TOOL : reconcile lai
+
+  alt Da hop ly (trong nguong hoac giai trinh duoc chap nhan)
+    FIN -> SESSION : write financial_ratios (status=OK)
+    FIN --> ROOT : proceed
+  else Van bat thuong & het so lan lap
+    FIN -> SESSION : write financial_ratios\n(status=UNRESOLVED)
+    FIN --> ROOT : escalate to Credit Officer\n(quyet dinh thu cong)
+  end
+end
+
+@enduml

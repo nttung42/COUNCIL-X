@@ -1,0 +1,24 @@
+# PAA backend dependencies.
+# NOTE: file tối thiểu do agent Advisory & RAG khởi tạo (superset an toàn). Các
+# agent khác / Orchestrator hãy MERGE thêm dep còn thiếu (google-adk, ...) thay vì
+# ghi đè để tránh mất dependency.
+
+# --- Web / API ---
+fastapi>=0.110
+uvicorn[standard]>=0.29
+
+# --- Config / validation ---
+pydantic>=2.6
+pydantic-settings>=2.2
+python-dotenv>=1.0
+
+# --- LLM / Embedding (OpenAI-compatible) ---
+openai>=1.30
+
+# --- Database + pgvector (RAG) ---
+SQLAlchemy>=2.0
+pgvector>=0.2.5
+psycopg[binary]>=3.1
+
+# --- Test ---
+pytest>=8.0

@@ -1,0 +1,72 @@
+{
+  "_disclaimer": "DỮ LIỆU MÔ PHỎNG (MOCK) — tiện ích/POI dưới đây là synthetic cho demo.",
+  "amenity_records": [
+    {
+      "address_id": "ADDR-88291",
+      "amenities": [
+        {"type": "school", "name": "Trường Tiểu học Phường B", "distance_m": 300},
+        {"type": "market", "name": "Chợ Phường B", "distance_m": 450},
+        {"type": "transit", "name": "Trạm xe buýt số 12", "distance_m": 200},
+        {"type": "hospital", "name": "Bệnh viện Quận C", "distance_m": 1200}
+      ],
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "address_id": "ADDR-88292",
+      "amenities": [
+        {"type": "market", "name": "Chợ Phường B", "distance_m": 200},
+        {"type": "transit", "name": "Trạm xe buýt số 12", "distance_m": 350}
+      ],
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "address_id": "ADDR-88293",
+      "amenities": [
+        {"type": "school", "name": "Trường THCS Phường B", "distance_m": 500},
+        {"type": "retail", "name": "Cửa hàng tiện lợi mặt tiền", "distance_m": 50}
+      ],
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "address_id": "ADDR-88294",
+      "amenities": [
+        {"type": "transit", "name": "Trạm xe buýt số 8", "distance_m": 200},
+        {"type": "market", "name": "Chợ tạm Trần Văn B", "distance_m": 400}
+      ],
+      "source_type": "mock", "confidence": 0.8
+    },
+    {
+      "address_id": "ADDR-88295",
+      "amenities": [
+        {"type": "hospital", "name": "Bệnh viện Quận C", "distance_m": 1200},
+        {"type": "transit", "name": "Ga metro số 3 (dự kiến)", "distance_m": 600}
+      ],
+      "source_type": "mock", "confidence": 0.75
+    },
+    {
+      "address_id": "ADDR-71001",
+      "amenities": [
+        {"type": "market", "name": "Chợ Tân Định", "distance_m": 250},
+        {"type": "school", "name": "Trường Quốc tế ABC", "distance_m": 400},
+        {"type": "hospital", "name": "Bệnh viện Đa khoa Quận 1", "distance_m": 900}
+      ],
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "address_id": "ADDR-71002",
+      "amenities": [
+        {"type": "school", "name": "Trường Quốc tế ABC", "distance_m": 300},
+        {"type": "security", "name": "Khu vực có camera an ninh phường", "distance_m": 100}
+      ],
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "address_id": "ADDR-71003",
+      "amenities": [
+        {"type": "market", "name": "Chợ Tân Định", "distance_m": 500},
+        {"type": "retail", "name": "Khu thương mại Trần Quang Khải", "distance_m": 150}
+      ],
+      "source_type": "mock", "confidence": 0.85
+    }
+  ]
+}

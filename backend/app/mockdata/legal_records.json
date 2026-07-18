@@ -1,0 +1,77 @@
+{
+  "_disclaimer": "DỮ LIỆU MÔ PHỎNG (MOCK) — hồ sơ pháp lý dưới đây là synthetic cho demo, không phải dữ liệu văn phòng đăng ký đất đai thật.",
+  "legal_records": [
+    {
+      "address_id": "ADDR-88291",
+      "legal_status": "so_hong",
+      "owner_name_masked": "Nguyễn T. A.",
+      "has_dispute": false,
+      "mortgaged_elsewhere": false,
+      "notes": "Sổ hồng chính chủ, không tranh chấp, không thế chấp nơi khác tại thời điểm tra cứu.",
+      "source_type": "mock", "confidence": 0.95
+    },
+    {
+      "address_id": "ADDR-88292",
+      "legal_status": "so_hong",
+      "owner_name_masked": "Trần V. B.",
+      "has_dispute": false,
+      "mortgaged_elsewhere": false,
+      "notes": "Không ghi nhận tranh chấp.",
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "address_id": "ADDR-88293",
+      "legal_status": "so_hong",
+      "owner_name_masked": "Lê C. D.",
+      "has_dispute": false,
+      "mortgaged_elsewhere": true,
+      "notes": "Đang thế chấp tại 1 TCTD khác — cần giải chấp trước khi nhận làm tài sản bảo đảm mới.",
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "address_id": "ADDR-88294",
+      "legal_status": "so_hong",
+      "owner_name_masked": "Phạm D. E.",
+      "has_dispute": false,
+      "mortgaged_elsewhere": false,
+      "notes": "Từng có tranh chấp ranh giới với thửa liền kề, đã hoà giải và ghi nhận giải quyết xong năm 2021.",
+      "source_type": "mock", "confidence": 0.85
+    },
+    {
+      "address_id": "ADDR-88295",
+      "legal_status": "so_hong",
+      "owner_name_masked": "Vũ E. F.",
+      "has_dispute": false,
+      "mortgaged_elsewhere": false,
+      "notes": "Hồ sơ pháp lý đầy đủ, không phát sinh bất thường.",
+      "source_type": "mock", "confidence": 0.95
+    },
+    {
+      "address_id": "ADDR-71001",
+      "legal_status": "so_hong",
+      "owner_name_masked": "Hoàng F. G.",
+      "has_dispute": false,
+      "mortgaged_elsewhere": false,
+      "notes": "Ghi nhận phần cơi nới tầng thượng chưa hoàn công — cần bổ sung giấy phép xây dựng/hoàn công.",
+      "source_type": "mock", "confidence": 0.8
+    },
+    {
+      "address_id": "ADDR-71002",
+      "legal_status": "so_hong",
+      "owner_name_masked": "Đặng G. H.",
+      "has_dispute": false,
+      "mortgaged_elsewhere": false,
+      "notes": "Không ghi nhận tranh chấp hay thế chấp.",
+      "source_type": "mock", "confidence": 0.9
+    },
+    {
+      "address_id": "ADDR-71003",
+      "legal_status": "so_hong",
+      "owner_name_masked": "Bùi H. I.",
+      "has_dispute": false,
+      "mortgaged_elsewhere": false,
+      "notes": "Hồ sơ pháp lý đầy đủ.",
+      "source_type": "mock", "confidence": 0.95
+    }
+  ]
+}
