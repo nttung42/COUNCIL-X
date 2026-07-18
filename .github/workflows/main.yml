@@ -1,0 +1,34 @@
+name: Deploy AI backend to EC2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ai/**'
+      - '.github/workflows/main.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ec2
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          script_stop: true
+          script: |
+            cd "${{ secrets.EC2_APP_DIR }}"
+            git fetch origin main
+            git reset --hard origin/main
+            cd ai
+            docker compose pull || true
+            docker compose up -d --build
+            docker compose ps
