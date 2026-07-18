@@ -20,16 +20,16 @@ export function InfoPanel() {
   const confirmAndNext = useCaseStore((s) => s.confirmAndNext);
 
   const isLastTab = activeTab === 5;
-  const nextLabel = isLastTab ? (isCaseFinalized ? '✓ Đã hoàn tất' : '✓ Hoàn tất hồ sơ') : '✓ Xác nhận & Tiếp theo →';
+  const nextLabel = isLastTab ? (isCaseFinalized ? 'Đã hoàn tất' : 'Hoàn tất hồ sơ') : 'Xác nhận & tiếp theo →';
   const hint = isLoadingTab
     ? 'Đang tải dữ liệu cho bước này…'
     : isLastTab
       ? isCaseFinalized
         ? 'Hồ sơ đã hoàn tất rà soát.'
-        : 'Đây là bước cuối — rà soát tổng quan & trace thực thi, có thể xuất báo cáo, rồi bấm Hoàn tất để đóng hồ sơ.'
+        : 'Rà soát tổng quan và trace thực thi, xuất báo cáo nếu cần, rồi hoàn tất hồ sơ.'
       : pendingCount
-        ? `Có ${pendingCount} thay đổi đang chờ xác nhận ở tab "${APPRAISAL_STAGE_LABELS[activeTab]}" — bấm Xác nhận để áp dụng (đánh dấu xanh lá) và qua bước tiếp theo.`
-        : `Rà soát thông tin ở tab "${APPRAISAL_STAGE_LABELS[activeTab]}". Sửa qua form hoặc chat nếu cần, rồi bấm Xác nhận để qua bước tiếp theo.`;
+        ? `Có ${pendingCount} thay đổi đang chờ xác nhận ở tab "${APPRAISAL_STAGE_LABELS[activeTab]}". Xác nhận để áp dụng và chuyển bước.`
+        : `Rà soát thông tin ở tab "${APPRAISAL_STAGE_LABELS[activeTab]}". Sửa trên form hoặc assistant nếu cần, rồi xác nhận để chuyển bước.`;
 
   return (
     <div className="info-pane">
@@ -54,9 +54,8 @@ export function InfoPanel() {
 
       {!isLastTab && (
         <div className="review-banner">
-          <span className="ic">💬</span>
-          Chưa đúng? Sửa trực tiếp trên form (nếu có) hoặc chat với PAA — thay đổi sẽ hiện màu xanh lá sau khi bạn
-          bấm Xác nhận.
+          <span className="ic">•</span>
+          Rà soát dữ liệu trên form hoặc assistant. Thay đổi chỉ áp dụng sau khi bấm Xác nhận.
         </div>
       )}
 
@@ -83,7 +82,7 @@ export function InfoPanel() {
         <div className="footer-hint">{hint}</div>
         <div className="footer-btns">
           <button type="button" className="footer-back-btn" disabled={activeTab <= 1 || isLoadingTab} onClick={goBack}>
-            ← Quay lại
+            Quay lại
           </button>
           <button
             type="button"

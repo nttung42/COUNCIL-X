@@ -28,24 +28,27 @@ export function ChatPane() {
   return (
     <div className="chat-pane">
       <div className="pane-head">
-        <div className="title">Trò chuyện với PAA</div>
+        <div className="title">Collateral Assistant</div>
         <div className="sub">{address}</div>
       </div>
 
       {!chatStarted && (
         <div className="chat-welcome">
-          <div className="welcome-avatar">🏠</div>
-          <div className="welcome-title">Xin chào, tôi là PAA 👋</div>
-          <div className="welcome-text">
-            Trợ lý thẩm định bất động sản. Tôi có thể tra cứu dữ liệu khu vực, định giá và đánh giá rủi ro giúp bạn.
-            Bạn có thể sửa trực tiếp trên form hoặc nhờ tôi sửa qua chat — mọi thay đổi sẽ hiện màu xanh lá sau khi
-            bạn bấm Xác nhận ở từng bước.
+          <div className="agent-summary-card">
+            <div className="agent-summary-top">
+              <span className="welcome-avatar">CO</span>
+              <div>
+                <div className="welcome-title">Sẵn sàng thẩm định tài sản bảo đảm</div>
+                <div className="welcome-text">
+                  Tra cứu khu vực, pháp lý, định giá và rủi ro tài sản. Thay đổi chỉ áp dụng sau khi bấm Xác nhận ở từng bước.
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="suggest-label">Câu hỏi gợi ý</div>
+          <div className="suggest-label">Suggested actions</div>
           <div className="suggest-chips">
             {CHAT_CHIPS.map((chip) => (
               <button key={chip.flow} type="button" className="chip" onClick={() => void selectChip(chip.flow)}>
-                <span className="ic">{chip.icon}</span>
                 {chip.label}
               </button>
             ))}

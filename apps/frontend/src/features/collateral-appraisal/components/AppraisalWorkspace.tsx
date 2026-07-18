@@ -20,16 +20,16 @@ export function AppraisalWorkspace() {
   const confirmAndNext = useCaseStore((s) => s.confirmAndNext);
 
   const isLastStage = activeStage === 5;
-  const nextLabel = isLastStage ? (isCaseFinalized ? '✓ Đã hoàn tất' : '✓ Hoàn tất hồ sơ') : '✓ Xác nhận & Tiếp theo →';
+  const nextLabel = isLastStage ? (isCaseFinalized ? 'Đã hoàn tất' : 'Hoàn tất hồ sơ') : 'Xác nhận & tiếp theo →';
   const hint = isLoadingStage
     ? 'Đang tải dữ liệu cho bước này…'
     : isLastStage
       ? isCaseFinalized
         ? 'Hồ sơ đã hoàn tất rà soát.'
-        : 'Đây là bước cuối — rà soát tổng quan & trace thực thi, có thể xuất báo cáo, rồi bấm Hoàn tất để đóng hồ sơ.'
+        : 'Rà soát tổng quan và trace thực thi, xuất báo cáo nếu cần, rồi hoàn tất hồ sơ.'
       : pendingCount
-        ? `Có ${pendingCount} thay đổi đang chờ xác nhận ở tab "${APPRAISAL_STAGE_LABELS[activeStage]}" — bấm Xác nhận để áp dụng (đánh dấu xanh lá) và qua bước tiếp theo.`
-        : `Rà soát thông tin ở tab "${APPRAISAL_STAGE_LABELS[activeStage]}". Sửa qua form hoặc chat nếu cần, rồi bấm Xác nhận để qua bước tiếp theo.`;
+        ? `Có ${pendingCount} thay đổi đang chờ xác nhận ở tab "${APPRAISAL_STAGE_LABELS[activeStage]}". Xác nhận để áp dụng và chuyển bước.`
+        : `Rà soát thông tin ở tab "${APPRAISAL_STAGE_LABELS[activeStage]}". Sửa trên form hoặc assistant nếu cần, rồi xác nhận để chuyển bước.`;
 
   return (
     <div className="info-pane">
@@ -52,12 +52,6 @@ export function AppraisalWorkspace() {
         })}
       </div>
 
-      {!isLastStage && (
-        <div className="review-banner">
-          <span className="ic">•</span>
-          Rà soát dữ liệu trên form hoặc trao đổi với PAA. Thay đổi chỉ áp dụng sau khi bấm Xác nhận.
-        </div>
-      )}
 
       <div className="info-content">
         {isLoadingStage ? (
@@ -82,7 +76,7 @@ export function AppraisalWorkspace() {
         <div className="footer-hint">{hint}</div>
         <div className="footer-btns">
           <button type="button" className="footer-back-btn" disabled={activeStage <= 1 || isLoadingStage} onClick={goBack}>
-            ← Quay lại
+            Quay lại
           </button>
           <button
             type="button"

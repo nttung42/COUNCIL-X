@@ -5,7 +5,7 @@ export function CasePortalPage() {
   return (
     <div className="portal-body">
       <div className="portal-topbar">
-        <div className="mark">SHB</div>
+        <img className="mark" src="/logo.png" alt="SHB" />
         <div className="ptitle">
           Hệ thống Thẩm định Tín dụng AI
           <small>Digital Credit Appraisal Suite — chọn vai trò để vào đúng màn hình làm việc</small>

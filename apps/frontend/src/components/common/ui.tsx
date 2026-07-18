@@ -221,7 +221,7 @@ export function LookupDetailCard({
         </ul>
       </div>
       <div className="ld-inference">
-        <div className="ld-label">💡 Nhận định của PAA</div>
+        <div className="ld-label">Nhận định nghiệp vụ</div>
         {/* eslint-disable-next-line react/no-danger */}
         <p dangerouslySetInnerHTML={{ __html: inferenceHtml }} />
       </div>

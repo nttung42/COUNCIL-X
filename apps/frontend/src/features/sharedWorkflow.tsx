@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { WorkflowPageLayout } from '../app/layout/AppLayout';
 import { navigate, type RouteId } from '../app/routes';
 import { DEMO_CASE_ID } from '../app/workflowSteps';
@@ -26,6 +26,15 @@ export interface WorkflowTable {
   title: string;
   columns: string[];
   rows: string[][];
+}
+
+function tableCellClass(cell: string, index: number): string | undefined {
+  const normalized = cell.toLowerCase();
+  if (index === 0) return 'strong';
+  if (['pass', 'received', 'complete', 'completed'].includes(normalized)) return 'cell-status good';
+  if (['missing', 'blocked', 'critical', 'reject'].includes(normalized)) return 'cell-status critical';
+  if (['watch', 'explain', 'warning', 'review needed'].includes(normalized)) return 'cell-status warning';
+  return undefined;
 }
 
 export interface WorkflowPageConfig {
@@ -119,6 +128,37 @@ function SimpleChat({ config }: { config: WorkflowPageConfig }) {
 
 export function WorkflowAgentPage({ config, caseId = DEMO_CASE_ID }: { config: WorkflowPageConfig; caseId?: string }) {
   const [selectedCard, setSelectedCard] = useState<WorkflowCard | null>(null);
+  const drawerCloseRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!selectedCard) return undefined;
+    drawerCloseRef.current?.focus();
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setSelectedCard(null);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusable = drawerRef.current?.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable?.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedCard]);
 
   return (
     <WorkflowPageLayout chat={<SimpleChat config={config} />}>
@@ -177,7 +217,7 @@ export function WorkflowAgentPage({ config, caseId = DEMO_CASE_ID }: { config: W
                   <tbody>
                     {config.table.rows.map((row) => (
                       <tr key={row.join('|')}>
-                        {row.map((cell, index) => <td key={`${cell}-${index}`} className={index === 0 ? 'strong' : undefined}>{cell}</td>)}
+                        {row.map((cell, index) => <td key={`${cell}-${index}`} className={tableCellClass(cell, index)}>{cell}</td>)}
                       </tr>
                     ))}
                   </tbody>
@@ -217,10 +257,10 @@ export function WorkflowAgentPage({ config, caseId = DEMO_CASE_ID }: { config: W
         </div>
         {selectedCard && (
           <div className="drawer-backdrop" onClick={() => setSelectedCard(null)}>
-            <aside className="evidence-drawer" onClick={(event) => event.stopPropagation()}>
-              <button type="button" className="drawer-close" onClick={() => setSelectedCard(null)}>×</button>
+            <aside ref={drawerRef} className="evidence-drawer" role="dialog" aria-modal="true" aria-labelledby="evidence-drawer-title" onClick={(event) => event.stopPropagation()}>
+              <button ref={drawerCloseRef} type="button" className="drawer-close" aria-label="Đóng evidence drawer" onClick={() => setSelectedCard(null)}>×</button>
               <Badge tone={selectedCard.tone ?? 'good'} />
-              <h2>{selectedCard.title}</h2>
+              <h2 id="evidence-drawer-title">{selectedCard.title}</h2>
               <p>{selectedCard.description}</p>
               <div className="drawer-section">
                 <b>Evidence</b>

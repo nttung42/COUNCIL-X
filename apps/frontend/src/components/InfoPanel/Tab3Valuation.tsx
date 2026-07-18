@@ -104,7 +104,7 @@ export function Tab3Valuation() {
       <Card style={{ marginBottom: 12 }}>
         <div className="section-h">
           Quy đổi giá trị đề xuất — trọng số kết hợp 3 phương pháp
-          <Qmark text="Trọng số do Valuation Agent gán theo độ tin cậy riêng của từng phương pháp trong bối cảnh dữ liệu hiện có của tài sản này." />
+          <Qmark text="Trọng số được tính theo độ tin cậy riêng của từng phương pháp trong bối cảnh dữ liệu hiện có của tài sản này." />
         </div>
         <table>
           <tbody>
@@ -135,7 +135,7 @@ export function Tab3Valuation() {
           </tbody>
         </table>
         <div className="ld-inference" style={{ marginTop: 12 }}>
-          <div className="ld-label">💡 Nhận định của PAA</div>
+          <div className="ld-label">Nhận định nghiệp vụ</div>
           {/* eslint-disable-next-line react/no-danger */}
           <p dangerouslySetInnerHTML={{ __html: valuationWeightedInferenceText }} />
         </div>
@@ -180,7 +180,7 @@ export function Tab3Valuation() {
           ))}
         </div>
         <div className="ld-inference" style={{ marginTop: 12 }}>
-          <div className="ld-label">💡 Nhận định của PAA</div>
+          <div className="ld-label">Nhận định nghiệp vụ</div>
           {/* eslint-disable-next-line react/no-danger */}
           <p dangerouslySetInnerHTML={{ __html: confidenceInferenceText }} />
         </div>

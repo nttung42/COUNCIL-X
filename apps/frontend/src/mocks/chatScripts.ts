@@ -31,17 +31,17 @@ export const LOADING_TEXT: Record<StepNumber, string> = {
 };
 
 export const NEXT_USER_MSG: Partial<Record<StepNumber, string>> = {
-  1: 'Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.',
-  2: 'Kết quả tra cứu ổn, nhờ định giá giúp tôi.',
-  3: 'Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.',
-  4: 'Rủi ro chấp nhận được, cho tôi xem tổng hợp trace xử lý.',
+  1: 'Thông tin tài sản đã sẵn sàng, chuyển sang tra cứu dữ liệu khu vực.',
+  2: 'Kết quả tra cứu đã rà soát, chuyển sang định giá.',
+  3: 'Định giá đã rà soát, chuyển sang đánh giá rủi ro.',
+  4: 'Rủi ro chấp nhận được, mở tổng hợp trace xử lý.',
 };
 
 export const APPRAISAL_STEP_MSG: Partial<Record<StepNumber, string>> = {
-  2: 'Đã có kết quả tra cứu khu vực — phát hiện 1 điểm cần lưu ý (tin đồn khu vực, chưa xác thực). Bạn xem kỹ rồi bấm <b>Xác nhận</b> khi ổn nhé.',
+  2: 'Hoàn tất tra cứu khu vực — phát hiện 1 điểm cần lưu ý về tin đồn chưa xác thực. Rà soát trước khi xác nhận.',
   3: 'Định giá đề xuất <b>4.85 tỷ</b>, độ tin cậy 78%.',
   4: 'Điểm rủi ro BĐS <b>34/100 (Trung bình)</b>, LTV đề xuất 65%.',
-  5: 'Đây là toàn bộ trace xử lý của PAA cho hồ sơ này.',
+  5: 'Trace xử lý của hồ sơ đã sẵn sàng.',
 };
 
 export const DEMO_EDIT_REPLIES: Record<DemoEditKey, string> = {
@@ -67,19 +67,19 @@ export function matchDemoEdit(text: string): DemoEditKey | null {
 export type ChipFlow = 'appraise' | 'market' | 'legal' | 'process' | 'edit-demo';
 
 export const CHAT_CHIPS: { flow: ChipFlow; icon: string; label: string }[] = [
-  { flow: 'appraise', icon: '🏠', label: 'Thẩm định căn nhà tôi vừa nhập thông tin' },
-  { flow: 'market', icon: '📈', label: 'Giá thị trường khu vực này hiện nay thế nào?' },
-  { flow: 'legal', icon: '📄', label: 'Kiểm tra tính pháp lý của tài sản' },
-  { flow: 'process', icon: '❓', label: 'Quy trình thẩm định BĐS thế chấp gồm những bước nào?' },
-  { flow: 'edit-demo', icon: '✏️', label: 'Diện tích đất tôi khai chưa đúng, sửa lại giúp tôi' },
+  { flow: 'appraise', icon: 'CO', label: 'Thẩm định tài sản vừa nhập' },
+  { flow: 'market', icon: 'MK', label: 'Xem giá thị trường khu vực' },
+  { flow: 'legal', icon: 'LG', label: 'Kiểm tra pháp lý tài sản' },
+  { flow: 'process', icon: 'PR', label: 'Xem quy trình thẩm định TSBĐ' },
+  { flow: 'edit-demo', icon: 'ED', label: 'Sửa diện tích đất đã nhập' },
 ];
 
 export const DEMO_FLOWS: Record<ChipFlow, ChatStep[]> = {
   appraise: [
-    { type: 'user', text: 'Thẩm định giúp căn nhà tôi vừa nhập thông tin.' },
+    { type: 'user', text: 'Thẩm định tài sản vừa nhập.' },
     {
       type: 'agent',
-      text: 'Được, bạn rà soát kỹ thông tin ở tab <b>Nhập thông tin</b> nhé — chỗ nào cần sửa cứ sửa ngay trên form hoặc chat trực tiếp cho tôi. Khi ổn rồi bấm <b>Xác nhận &amp; Tiếp theo</b> ở dưới để tôi bắt đầu tra cứu dữ liệu khu vực giúp bạn.',
+      text: 'Rà soát thông tin ở tab <b>Nhập thông tin</b>. Nếu dữ liệu đúng, bấm <b>Xác nhận &amp; Tiếp theo</b> để chuyển sang tra cứu khu vực.',
       delay: 1000,
     },
   ],
@@ -108,7 +108,7 @@ export const DEMO_FLOWS: Record<ChipFlow, ChatStep[]> = {
     },
   ],
   'edit-demo': [
-    { type: 'user', text: 'Diện tích đất tôi khai chưa đúng, số thực tế là 65m², sửa lại giúp tôi.' },
+    { type: 'user', text: 'Diện tích đất đã nhập chưa đúng, số thực tế là 65m².' },
     { type: 'agent', text: DEMO_EDIT_REPLIES.area, delay: 900, applyKey: 'area' },
   ],
 };

@@ -140,7 +140,7 @@ function DataSourceAccordion() {
                   disabled={!documents.length || isExtracting}
                   onClick={() => void runExtraction()}
                 >
-                  {isExtracting ? `⏳ PAA đang trích xuất dữ liệu… ${extractionProgress ?? 0}%` : '🔎 Yêu cầu PAA trích xuất dữ liệu'}
+                  {isExtracting ? `Đang trích xuất dữ liệu… ${extractionProgress ?? 0}%` : 'Trích xuất dữ liệu từ tài liệu'}
                 </button>
                 <button
                   type="button"
@@ -148,7 +148,7 @@ function DataSourceAccordion() {
                   title="Điền nhanh dữ liệu giả để test giao diện, không phải dữ liệu thật"
                   onClick={fillSampleData}
                 >
-                  🎲 Điền dữ liệu mẫu
+Điền dữ liệu mẫu
                 </button>
               </div>
             )}
@@ -163,7 +163,7 @@ function DataSourceAccordion() {
                 }}
               >
                 <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6100', marginBottom: 4 }}>
-                  ⚠ {extractionWarnings.length} cảnh báo từ lần trích xuất gần nhất
+{extractionWarnings.length} cảnh báo từ lần trích xuất gần nhất
                 </div>
                 <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: 'var(--ink)', lineHeight: 1.55 }}>
                   {extractionWarnings.map((w, i) => (
@@ -193,7 +193,7 @@ function DocViewerCard() {
     return (
       <Card className="doc-viewer-card">
         <div className="dv-toolbar">
-          <div className="dv-title">🗂️ Tài liệu &amp; vùng trích xuất</div>
+          <div className="dv-title">Tài liệu &amp; vùng trích xuất</div>
         </div>
         <div className="dv-hint">Chưa có tài liệu nào được xử lý — tải tài liệu lên ở khối phía trên để bắt đầu.</div>
       </Card>
@@ -206,7 +206,7 @@ function DocViewerCard() {
   return (
     <Card className="doc-viewer-card">
       <div className="dv-toolbar">
-        <div className="dv-title">🗂️ Tài liệu &amp; vùng trích xuất</div>
+        <div className="dv-title">Tài liệu &amp; vùng trích xuất</div>
         <div className="dv-files">
           {docPages.map((page) => (
             <span
@@ -251,8 +251,8 @@ function DocViewerCard() {
       <div className="dv-hint">
         {dvHintOverride ?? (
           <>
-            Ô màu = vùng PAA trích xuất được, kèm <b>% độ tin cậy</b> ngay trên tài liệu. Di chuột vào ô để xem trường
-            + giá trị. Bấm chip <b>📄 nguồn</b> ở mỗi trường bên dưới để nhảy tới đúng vùng.
+            Ô màu là vùng trích xuất, kèm <b>% độ tin cậy</b> ngay trên tài liệu. Di chuột vào ô để xem trường
+            + giá trị. Bấm chip <b>nguồn</b> ở mỗi trường bên dưới để nhảy tới đúng vùng.
           </>
         )}
       </div>
@@ -293,12 +293,11 @@ export function Tab1Input() {
       <DocViewerCard />
 
       <p className="extract-caption">
-        <span>🔎</span>
+        <span>•</span>
         <span>
-          Trường có chip <b>📄 nguồn</b> là PAA trích được <b>trực tiếp từ tài liệu</b> — bấm chip để đối chiếu vùng
-          gốc. Trường không có nguồn (SĐT, khoản vay...) cứ <b>gõ tay trực tiếp</b> vào ô; PAA{' '}
-          <b>không tự suy đoán</b> những trường này.
-          {apiMode && ' Có thể gõ tay toàn bộ form ngay, hoặc tải tài liệu lên rồi bấm "Yêu cầu PAA trích xuất dữ liệu" để PAA tự điền giúp.'}
+          Trường có chip <b>nguồn</b> được trích trực tiếp từ tài liệu — bấm chip để đối chiếu vùng gốc. Trường không có nguồn
+          (SĐT, khoản vay...) cần nhập tay; hệ thống không suy đoán các trường này.
+          {apiMode && ' Có thể nhập tay toàn bộ form, hoặc tải tài liệu lên rồi bấm "Trích xuất dữ liệu từ tài liệu".'}
         </span>
       </p>
 

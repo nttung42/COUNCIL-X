@@ -43,7 +43,7 @@ export function Tab4Risk() {
             Trần cho vay trên giá trị định giá {valuationProposed}.
           </div>
           <div className="ld-inference" style={{ marginTop: 10 }}>
-            <div className="ld-label">💡 Khung chính sách LTV theo điểm rủi ro</div>
+            <div className="ld-label">Khung chính sách LTV theo điểm rủi ro</div>
             <p>
               {ltvPolicyBands.map((b, i) => {
                 const active = isCurrentBand(b.minScore, b.maxScore, risk.riskScore);
@@ -80,7 +80,7 @@ export function Tab4Risk() {
       <Card style={{ marginBottom: 12 }}>
         <div className="section-h">
           Quy đổi điểm rủi ro tổng — trọng số 5 nhóm
-          <Qmark text="Risk Assessment Agent tính điểm rủi ro tổng bằng trung bình có trọng số của 5 nhóm rủi ro cấu thành." />
+          <Qmark text="Điểm rủi ro tổng được tính bằng trung bình có trọng số của 5 nhóm rủi ro cấu thành." />
         </div>
         <table>
           <tbody>
@@ -111,7 +111,7 @@ export function Tab4Risk() {
           </tbody>
         </table>
         <div className="ld-inference" style={{ marginTop: 12 }}>
-          <div className="ld-label">💡 Nhận định của PAA</div>
+          <div className="ld-label">Nhận định nghiệp vụ</div>
           {/* eslint-disable-next-line react/no-danger */}
           <p dangerouslySetInnerHTML={{ __html: riskWeightedInferenceText }} />
         </div>

@@ -401,7 +401,7 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
     } else {
       steps.push({
         type: 'agent',
-        text: 'Đã ghi nhận. Đây là bản demo tĩnh — trong hệ thống thật, PAA sẽ điều phối các agent chuyên trách để xử lý yêu cầu này.',
+        text: 'Đã ghi nhận. Trong hệ thống thật, yêu cầu này được chuyển tới luồng xử lý thẩm định phù hợp.',
         delay: 900,
       });
     }
@@ -413,7 +413,7 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
     downloadStandaloneReport(s.caseData);
     set({ chatStarted: true });
     await get().runSteps([
-      { type: 'status', text: `📄 Đã xuất báo cáo: BienBan_ThamDinh_${s.caseData.caseId}.html`, delay: 400 },
+      { type: 'status', text: `Đã xuất báo cáo: BienBan_ThamDinh_${s.caseData.caseId}.html`, delay: 400 },
     ]);
   },
 
@@ -455,7 +455,7 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
         const doc: AttachedDocument = {
           id: uploaded.id,
           fileName: uploaded.original_name,
-          icon: isPdf ? '📜' : isImage ? '📷' : '📄',
+          icon: isPdf ? 'PDF' : isImage ? 'IMG' : 'DOC',
           docCategory: 'khac',
           uploadedAtLabel: 'vừa xong',
         };
@@ -463,7 +463,7 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
       }
     } catch (err) {
       set({ chatStarted: true });
-      get().pushMessage('status', `⚠ Tải tệp lên thất bại: ${err instanceof Error ? err.message : String(err)}`);
+      get().pushMessage('status', `Tải tệp lên thất bại: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       set({ isUploading: false });
     }
@@ -496,11 +496,11 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
       });
       get().pushMessage(
         'status',
-        `✅ Đã trích xuất ${extractedFields.length} trường từ ${extractedPages.length} tài liệu.` +
+        `Đã trích xuất ${extractedFields.length} trường từ ${extractedPages.length} tài liệu.` +
           (output.warnings?.length ? ` Có ${output.warnings.length} cảnh báo — xem chi tiết ở khối tài liệu.` : ''),
       );
     } catch (err) {
-      get().pushMessage('status', `⚠ Trích xuất dữ liệu thất bại: ${err instanceof Error ? err.message : String(err)}`);
+      get().pushMessage('status', `Trích xuất dữ liệu thất bại: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       set({ isExtracting: false, extractionProgress: null });
     }
@@ -512,7 +512,7 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
 
   jumpToSource: (docKey, boxId) => {
     if (!docKey || docKey === 'suy-luan') {
-      set({ dvHintOverride: 'Trường này do PAA suy luận hoặc nhập tay — không có vùng nguồn trực tiếp trên tài liệu.' });
+      set({ dvHintOverride: 'Trường này được suy luận hoặc nhập tay — không có vùng nguồn trực tiếp trên tài liệu.' });
       return;
     }
     set((s) => ({

@@ -7,7 +7,7 @@ export function WorkflowNav() {
   return (
     <div className="workflow-topnav">
       <button type="button" className="workflow-brand" onClick={() => navigate('casePortal')}>
-        <span className="brand-mark">SHB</span>
+        <img className="brand-logo" src="/logo.png" alt="SHB" />
         <span>
           Credit AI
           <small>Digital appraisal suite</small>

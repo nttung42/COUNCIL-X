@@ -43,7 +43,7 @@ export function Tab2Lookup() {
           </tbody>
         </table>
         <div className="ld-inference" style={{ marginTop: 12 }}>
-          <div className="ld-label">💡 Nhận định của PAA</div>
+          <div className="ld-label">Nhận định nghiệp vụ</div>
           <p>{marketInferenceText}</p>
         </div>
       </Card>

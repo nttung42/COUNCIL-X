@@ -10,7 +10,7 @@ const STATUS_LABEL: Record<CaseStatus, string> = {
 
 const STATUS_COLOR: Record<CaseStatus, string> = {
   dang_xu_ly: 'var(--warning)',
-  hoan_tat: 'var(--good)',
+  hoan_tat: 'var(--success)',
   huy: 'var(--text-muted)',
 };
 
@@ -20,23 +20,23 @@ export function Sidebar() {
 
   return (
     <div className="sidebar">
-      <div className="sb-brand">
+      {/* <div className="sb-brand">
         <img className="mark" src="/logo.png" alt="COUNCIL-X" />
         <div className="name txt-hide">
-          PAA Workspace
-          <small>Digital Expert Agent</small>
+          Collateral Workspace
+          <small>SHB Appraisal</small>
         </div>
-      </div>
+      </div> */}
       <div className="sb-section" style={{ paddingBottom: 0 }}>
         <div className="nav-item active">
-          <span className="ic">🏠</span>
-          <span className="txt-hide">Thẩm định BĐS</span>
+          <span className="ic">CO</span>
+          <span className="txt-hide">Thẩm định Tài sản bảo đảm</span>
         </div>
       </div>
       <div className="sb-divider" />
       <div className="sb-section" style={{ paddingBottom: 0 }}>
         <button type="button" className="new-req-btn">
-          ＋ <span className="txt-hide">Yêu cầu thẩm định mới</span>
++ <span className="txt-hide">Yêu cầu thẩm định mới</span>
         </button>
         <div className="sb-label txt-hide">Lịch sử hồ sơ</div>
       </div>

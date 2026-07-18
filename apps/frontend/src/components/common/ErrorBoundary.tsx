@@ -17,7 +17,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     // eslint-disable-next-line no-console
-    console.error('PAA workspace crashed:', error, info.componentStack);
+    console.error('Collateral workspace crashed:', error, info.componentStack);
   }
 
   render() {
@@ -37,8 +37,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: 32 }}>⚠️</div>
-          <div style={{ fontWeight: 700, fontSize: 15 }}>PAA Workspace gặp lỗi không mong muốn.</div>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>Collateral Workspace gặp lỗi không mong muốn.</div>
           <div style={{ fontSize: 12.5, color: '#5B6478', maxWidth: 420 }}>{this.state.error.message}</div>
           <button
             type="button"

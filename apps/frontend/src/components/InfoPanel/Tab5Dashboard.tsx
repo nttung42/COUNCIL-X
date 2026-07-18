@@ -27,7 +27,7 @@ export function Tab5Dashboard() {
         <div className="section-h">
           Tổng quan hồ sơ — {caseId}
           <button type="button" className="primary-btn" onClick={() => void exportReport()}>
-            📄 Xuất báo cáo thẩm định
+Xuất báo cáo thẩm định
           </button>
         </div>
         <div className="grid c4">
@@ -58,7 +58,7 @@ export function Tab5Dashboard() {
       </Card>
 
       <Card>
-        <div className="section-h">Trace thực thi PAA — {caseId}</div>
+        <div className="section-h">Trace thực thi — {caseId}</div>
         <Timeline>
           {agentTrace.map((event) => (
             <TimelineItem key={event.id} time={event.secondsOffsetLabel} title={event.title} description={event.description} />
