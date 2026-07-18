@@ -12,11 +12,23 @@ export function Tab2Lookup() {
   const marketComparables = useCaseStore((s) => s.caseData.marketComparables);
   const marketInferenceText = useCaseStore((s) => s.caseData.marketInferenceText);
   const lookupFindings = useCaseStore((s) => s.caseData.lookupFindings);
+  const lookupWarnings = useCaseStore((s) => s.lookupWarnings);
   const pendingEdits = useCaseStore((s) => s.pendingEdits);
   const confirmedKeys = useCaseStore((s) => s.confirmedKeys);
 
   return (
     <>
+      {lookupWarnings.length > 0 && (
+        <Card style={{ marginBottom: 12, background: 'var(--warning-tint)', border: '1px solid rgba(250,178,25,0.4)' }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6100', marginBottom: 4 }}>{lookupWarnings.length} cảnh báo tra cứu</div>
+          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: 'var(--ink)', lineHeight: 1.55 }}>
+            {lookupWarnings.map((w, i) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </Card>
+      )}
       <Card className="" status={undefined}>
         <div className="section-h">
           Giao dịch so sánh khu vực
@@ -31,15 +43,21 @@ export function Tab2Lookup() {
               <th>Ngày GD</th>
               <th>Giá/m²</th>
             </tr>
-            {marketComparables.map((mc) => (
-              <tr key={mc.id}>
-                <td>{mc.compAddress}</td>
-                <td>{mc.distanceKmLabel}</td>
-                <td>{mc.areaSqmLabel}</td>
-                <td>{mc.transactionDateLabel}</td>
-                <td className="strong">{mc.pricePerSqmLabel}</td>
+            {marketComparables.length ? (
+              marketComparables.map((mc) => (
+                <tr key={mc.id}>
+                  <td>{mc.compAddress}</td>
+                  <td>{mc.distanceKmLabel}</td>
+                  <td>{mc.areaSqmLabel}</td>
+                  <td>{mc.transactionDateLabel}</td>
+                  <td className="strong">{mc.pricePerSqmLabel}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5}>Chưa có giao dịch so sánh.</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
         <div className="ld-inference" style={{ marginTop: 12 }}>

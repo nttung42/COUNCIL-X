@@ -1,5 +1,7 @@
+import type { ConfidenceFactorKey, LookupBadge, LookupCategory, ValuationMethodKey } from '../types';
+
 // Kiểu dữ liệu "trên dây" (wire types) — khớp nguyên văn các Pydantic schema của backend thật
-// tại ai/src/shb/schemas/api.py và ai/src/shb/ai/plugins/property_intake/schema.py.
+// tại ai/src/shb/schemas/api.py và ai/src/shb/ai/plugins/*/schema.py.
 // Không dùng trực tiếp trong UI — src/services/apiClient.ts map sang các type camelCase ở
 // src/types.ts (Tab1Field, DocPage, AttachedDocument...) trước khi đưa vào store.
 
@@ -40,6 +42,86 @@ export interface ApiPropertyIntakeOutput {
   case_id?: string | null;
   documents: ApiDocumentInfo[];
   fields: ApiFormField[];
+  warnings: string[];
+}
+
+export interface ApiMarketComparable {
+  address: string;
+  distance_km: number | null;
+  area_sqm: number | null;
+  transaction_date: string | null;
+  price_per_sqm_vnd: number;
+}
+
+export interface ApiLookupFinding {
+  category: LookupCategory;
+  tool_name: string;
+  title: string;
+  status_badge: LookupBadge;
+  raw_findings: string[];
+  inference_text: string | null;
+  source_label: string | null;
+  confidence_pct: number | null;
+}
+
+export interface ApiPropertyLookupOutput {
+  case_id: string;
+  findings: ApiLookupFinding[];
+  market_comparables: ApiMarketComparable[];
+  warnings: string[];
+}
+
+export interface ApiValuationSummary {
+  proposed_value_vnd: number;
+  value_range_low_vnd: number;
+  value_range_high_vnd: number;
+  price_per_sqm_vnd: number;
+  confidence_pct: number;
+  comparable_count: number;
+  price_index_period: string | null;
+  price_index_value: number | null;
+  price_index_base: number | null;
+  confidence_inference_text: string | null;
+}
+
+export interface ApiValuationMethod {
+  method_key: ValuationMethodKey;
+  estimated_value_vnd: number;
+  weight_pct: number;
+  contribution_value_vnd: number;
+  method_confidence_pct: number | null;
+  inputs: string[];
+  inference_text: string | null;
+  source_label: string | null;
+}
+
+export interface ApiValuationConfidenceFactor {
+  factor_key: ConfidenceFactorKey;
+  label: string;
+  weight_pct: number;
+  score: number;
+}
+
+export interface ApiPriceIndexPoint {
+  period_label: string;
+  index_value: number;
+  display_order: number;
+}
+
+export interface ApiSubjectiveAdjustment {
+  value_pct: number;
+  reason: string;
+  source: string;
+  bound_pct: number;
+}
+
+export interface ApiPropertyValuationOutput {
+  case_id: string;
+  valuation: ApiValuationSummary | null;
+  methods: ApiValuationMethod[];
+  confidence_factors: ApiValuationConfidenceFactor[];
+  price_index_series: ApiPriceIndexPoint[];
+  subjective_adjustment: ApiSubjectiveAdjustment | null;
   warnings: string[];
 }
 

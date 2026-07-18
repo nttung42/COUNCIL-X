@@ -61,10 +61,10 @@ tới `VITE_API_BASE_URL`.
 | Màn hình | Ở `apiMode`? | Ghi chú |
 |---|---|---|
 | 1. Nhập thông tin | ✅ Thật | Tải tài liệu lên → gọi `property_intake` (job bất đồng bộ, tự poll tới khi xong) → kết quả được **gộp** vào form theo `key` của từng trường. Trường nào trích xuất không trả về (hoặc trước khi trích xuất lần nào) vẫn hiện trống và gõ tay được bình thường — toàn bộ bộ trường của mockup luôn hiển thị đủ, trích xuất chỉ điền thêm được phần nào hay phần đó. Có nút "🎲 Điền dữ liệu mẫu" để điền nhanh dữ liệu giả, tiện kiểm tra giao diện mà không cần tài liệu thật. |
-| 2. Kết quả tra cứu | ❌ Mẫu | Backend hiện đã có plugin `property_lookup` trả đúng shape cần thiết (`POST /services/property_lookup/run`, đồng bộ) — **chưa nối vào frontend**, đây là việc tiếp theo dễ làm nhất nếu DB đã có dữ liệu `lookup_finding`/`market_comparable`. |
-| 3. Định giá | ❌ Mẫu | Backend chưa có endpoint cho bước này. |
-| 4. Rủi ro | ❌ Mẫu | Backend chưa có endpoint cho bước này. |
-| 5. Dashboard | ❌ Mẫu (nhưng vẫn phản ứng thời gian thực) | Số liệu tự cập nhật theo mọi chỉnh sửa ở các màn 2-4 (vì cùng đọc từ 1 store), nhưng bản thân dữ liệu gốc vẫn là mẫu, không phải từ backend. |
+| 2. Kết quả tra cứu | ✅ Thật nếu backend có dữ liệu | Gọi `property_lookup` qua `/services/property_lookup/run`; hỗ trợ cả response đồng bộ `{ result }` và job bất đồng bộ + SSE. Nếu DB chưa có `lookup_finding`/`market_comparable` hoặc service lỗi, giữ dữ liệu demo và hiện cảnh báo. |
+| 3. Định giá | ✅ Thật nếu backend đủ Màn 1 + Màn 2 | Gọi `property_valuation` qua `/services/property_valuation/run`; map kết quả backend sang UI định giá. Nếu backend trả `valuation = null` hoặc lỗi, giữ dữ liệu demo và hiện cảnh báo. |
+| 4. Rủi ro | ❌ Mẫu | Backend chưa có service `property_risk`, nên vẫn dùng fixture. |
+| 5. Dashboard | ⚠️ Lai thật/mẫu | Số liệu tra cứu/định giá tự cập nhật theo dữ liệu thật trong store; rủi ro/trace vẫn là mẫu cho tới khi backend có service tương ứng. |
 | Chat / luồng chờ-xác-nhận→xác-nhận | ❌ Kịch bản dựng sẵn | `src/mocks/chatScripts.ts` — các câu trả lời soạn sẵn cùng vài chỉnh sửa demo kích hoạt theo từ khoá (diện tích, môi trường, định giá, rủi ro). Backend `ai/` chưa có endpoint `/chat` nào. |
 
 Khi tắt `apiMode`, màn 1 được điền sẵn đầy đủ từ `fixtureCase.ts` (đúng hồ sơ demo của
@@ -80,10 +80,12 @@ src/
     fixtureCase.ts            Dữ liệu hồ sơ demo (trường màn 1, kết quả tra cứu, định giá, rủi ro...)
     chatScripts.ts            Kịch bản trả lời chat + từ khoá kích hoạt chỉnh sửa demo
   services/
-    apiClient.ts               Gọi backend thật: xác thực, tải file, property_intake + poll job
+    apiClient.ts               Gọi backend thật: xác thực, tải file, property_intake/lookup/valuation + SSE job
     apiTypes.ts                 Kiểu "trên dây" khớp nguyên văn schema Pydantic của ai/ (snake_case)
   utils/
     mapPropertyIntake.ts        Map response của property_intake -> Tab1Field[]/DocPage[]
+    mapPropertyLookup.ts        Map response của property_lookup -> marketComparables/lookupFindings
+    mapPropertyValuation.ts     Map response của property_valuation -> valuation/methods/confidenceFactors
     tab1Field.ts                 Suy ra nhãn/tooltip chip "nguồn" từ trạng thái 1 Tab1Field
     severity.ts, format.ts, exportReport.ts   Định dạng hiển thị + xuất báo cáo HTML độc lập
   components/

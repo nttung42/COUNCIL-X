@@ -236,9 +236,11 @@ export function WorkflowAgentPage({ config, caseId = DEMO_CASE_ID }: { config: W
                     if (event.key === 'Enter' || event.key === ' ') setSelectedCard(card);
                   }}
                 >
-                  <Badge tone={card.tone ?? 'good'} />
                   <div>
-                    <b>{card.title}</b>
+                    <div className="workflow-card-title">
+                      <b>{card.title}</b>
+                      <Badge tone={card.tone ?? 'good'} />
+                    </div>
                     <p>{card.description}</p>
                     {(card.evidence || card.rule || card.action || card.confidence) && (
                       <div className="evidence-grid">

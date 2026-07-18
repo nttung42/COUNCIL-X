@@ -77,7 +77,7 @@ function streamJob(jobId: string, onProgress?: (progress: number) => void): Prom
     const es = new EventSource(url);
     const timeout = window.setTimeout(() => {
       es.close();
-      reject(new Error('Quá thời gian chờ trích xuất dữ liệu (2 phút) — vui lòng thử lại.'));
+      reject(new Error('Quá thời gian chờ xử lý (2 phút) — vui lòng thử lại.'));
     }, SSE_TIMEOUT_MS);
 
     function finish(fn: () => void) {
@@ -95,13 +95,13 @@ function streamJob(jobId: string, onProgress?: (progress: number) => void): Prom
       if (typeof progress === 'number') onProgress?.(progress);
     });
     es.addEventListener('done', (event) => {
-      const result = parseSsePayload(event as MessageEvent<string>).result as ApiPropertyIntakeOutput | undefined;
-      finish(() => (result ? resolve(result) : reject(new Error('SSE done không có kết quả trích xuất.'))));
+      const result = parseSsePayload(event as MessageEvent<string>).result as T | undefined;
+      finish(() => (result ? resolve(result) : reject(new Error('SSE done không có kết quả.'))));
     });
     es.addEventListener('error', (event) => {
       if (!('data' in event)) return; // Rớt mạng/proxy tạm thời — để EventSource tự nối lại, timeout vẫn chặn treo vô hạn.
       const message = parseSsePayload(event as MessageEvent<string>).error;
-      finish(() => reject(new Error(message ?? 'Trích xuất dữ liệu thất bại.')));
+      finish(() => reject(new Error(message ?? 'Xử lý dữ liệu thất bại.')));
     });
   });
 }
@@ -111,7 +111,7 @@ export async function runPropertyIntake(fileIds: string[], caseId: string, onPro
   const res = await apiFetch('/api/v1/services/property_intake/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ input: { file_ids: fileIds, language: 'vi', case_id: caseId } }),
+    body: JSON.stringify({ input }),
   });
   const body = (await res.json()) as ApiPluginRunAsyncResponse | ApiPluginRunResponse;
 
