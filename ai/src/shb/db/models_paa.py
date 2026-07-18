@@ -32,18 +32,26 @@ from enum import Enum
 
 from sqlalchemy import (
     JSON,
+)
+from sqlalchemy import BigInteger as BigInt
+from sqlalchemy import (
     Boolean,
     CheckConstraint,
     Date,
     DateTime,
+)
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import (
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     SmallInteger,
+    String,
+    Text,
+    UniqueConstraint,
+    text,
 )
-from sqlalchemy import BigInteger as BigInt
-from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import Integer, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from shb.db.models import Base
@@ -662,7 +670,7 @@ class RiskGroup(Base):
 
 
 class RiskFlag(Base):
-    """"Flags cần lưu ý" — danh sách cảnh báo rút gọn hiển thị cuối màn 4."""
+    """ "Flags cần lưu ý" — danh sách cảnh báo rút gọn hiển thị cuối màn 4."""
 
     __tablename__ = "risk_flag"
     __table_args__ = (
@@ -700,7 +708,7 @@ class RiskFlag(Base):
 
 
 class DashboardStepSummary(Base):
-    """"Tổng hợp theo từng bước" — 4 dòng tóm tắt, mỗi dòng nhảy về đúng subtab."""
+    """ "Tổng hợp theo từng bước" — 4 dòng tóm tắt, mỗi dòng nhảy về đúng subtab."""
 
     __tablename__ = "dashboard_step_summary"
     __table_args__ = (
@@ -720,7 +728,7 @@ class DashboardStepSummary(Base):
 
 
 class AgentTraceEvent(Base):
-    """"Trace thực thi PAA" — timeline agent trace hiển thị ở tab Dashboard."""
+    """ "Trace thực thi PAA" — timeline agent trace hiển thị ở tab Dashboard."""
 
     __tablename__ = "agent_trace_event"
     __table_args__ = (Index("idx_agent_trace_event_case_id", "case_id"),)

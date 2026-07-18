@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 
-from shb.ai.plugins.property_intake.documents import classify_by_keywords
+from shb.ai.plugins.property_intake.classify import classify_document
 from shb.ai.plugins.property_intake.schema import DocumentInfo
 from shb.ai.plugins.property_intake.state import IngestedDoc, IntakeState
 from shb.core.config import get_settings
@@ -56,7 +56,7 @@ async def ingest_node(state: IntakeState) -> dict:
             warnings.append(f"Không đọc được tệp '{file_rec.original_name}': {exc}")
             continue
 
-        doc_type = classify_by_keywords(parsed.text)
+        doc_type = await classify_document(parsed.text)
         docs.append(
             IngestedDoc(
                 file_id=file_id,
@@ -69,8 +69,8 @@ async def ingest_node(state: IntakeState) -> dict:
             DocumentInfo(
                 file_id=file_id,
                 file_name=file_rec.original_name,
-                doc_type=doc_type,
-                is_scanned=parsed.is_scanned,
+                detected_doc_type=doc_type,
+                is_scan=parsed.is_scanned,
                 page_count=parsed.page_count,
             )
         )

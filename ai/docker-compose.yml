@@ -34,6 +34,11 @@ services:
       context: .
       target: api
     container_name: shb-app
+    # .env provides LLM_BASE_URL / LLM_API_KEY / LLM_MODEL / STORAGE_DIR etc.
+    # The explicit `environment:` below overrides .env for infra URLs that must
+    # point at the compose service names (postgres/redis), not localhost.
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://shb:shb-password@postgres:5432/shb
       CELERY_BROKER_URL: redis://redis:6379/0
@@ -47,6 +52,7 @@ services:
       - "8888:8000"
     volumes:
       - ./src:/app/src
+      - storage_data:/app/storage   # shared with worker so async plugins can read uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -59,6 +65,8 @@ services:
       context: .
       target: api
     container_name: shb-celery-worker
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://shb:shb-password@postgres:5432/shb
       CELERY_BROKER_URL: redis://redis:6379/0
@@ -68,6 +76,9 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       LLM_PROVIDER: openai
       WHISPER_PROVIDER: openai
+    volumes:
+      - ./src:/app/src               # pick up plugin code changes on restart
+      - storage_data:/app/storage    # same uploads volume as the app
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,3 +89,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  storage_data:

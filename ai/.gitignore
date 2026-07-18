@@ -62,6 +62,9 @@ Thumbs.db
 # Application Storage
 storage/
 
+# Generated demo seed (regenerate with scripts/transform_seed.py / load_seed.sh)
+scripts/paa_seed_data.ai.sql
+
 # Databases
 *.db
 *.sqlite

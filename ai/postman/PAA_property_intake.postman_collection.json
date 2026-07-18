@@ -1,0 +1,255 @@
+{
+  "info": {
+    "_postman_id": "b1a7c0de-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+    "name": "SHB AI - property_intake (Chức năng 1 / Màn 1)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Test luồng trích xuất hồ sơ BĐS (property_intake) qua API.\n\nCHẠY THEO THỨ TỰ:\n0. Health (kiểm tra server)\n1. Register → tự lưu {{api_key}}\n2a-2d. Upload 4 file → tự lưu {{file_id_1..4}} (BẤM chọn file thật ở tab Body → form-data → 'file')\n3. Run property_intake → tự lưu {{job_id}}\n4. Get job (poll) → bấm lại nhiều lần tới khi status = completed, đọc result\n\nFile mẫu có sẵn trong repo: ai/samples/01_so_hong.pdf, 02_to_khai_lptb.pdf, 03_bien_ban_ban_giao.pdf, 04_thong_bao_thue_dat.pdf\n\nGhi chú: Mọi request (trừ Register/Health) cần header X-API-Key = {{api_key}} (đã set sẵn). Base mặc định http://localhost:8888 (Docker). Nếu chạy uvicorn thủ công, đổi {{host}} sang http://localhost:8000."
+  },
+  "variable": [
+    { "key": "host", "value": "http://localhost:8888" },
+    { "key": "base_url", "value": "http://localhost:8888/api/v1" },
+    { "key": "email", "value": "pm_test@shb.vn" },
+    { "key": "api_key", "value": "" },
+    { "key": "file_id_1", "value": "" },
+    { "key": "file_id_2", "value": "" },
+    { "key": "file_id_3", "value": "" },
+    { "key": "file_id_4", "value": "" },
+    { "key": "job_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Health",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('server ok', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{host}}/health", "host": ["{{host}}"], "path": ["health"] },
+        "description": "Kiểm tra server sống. Không cần API key."
+      }
+    },
+    {
+      "name": "1. Register (lấy API key)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('registered', () => pm.response.to.have.status(201));",
+              "const j = pm.response.json();",
+              "if (j.api_key) {",
+              "  pm.collectionVariables.set('api_key', j.api_key);",
+              "  console.log('Saved api_key:', j.api_key);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" },
+        "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] },
+        "description": "Tạo user, trả về api_key MỘT LẦN. Test script tự lưu vào {{api_key}}.\nNếu email đã tồn tại (409), đổi biến {{email}} sang email khác rồi gửi lại."
+      }
+    },
+    {
+      "name": "2a. Upload file 1 (sổ hồng)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('uploaded', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('file_id_1', pm.response.json().id);",
+              "console.log('file_id_1 =', pm.response.json().id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }] },
+        "url": { "raw": "{{base_url}}/files", "host": ["{{base_url}}"], "path": ["files"] },
+        "description": "Body → form-data → key 'file' (kiểu File) → chọn ai/samples/01_so_hong.pdf. Tự lưu {{file_id_1}}."
+      }
+    },
+    {
+      "name": "2b. Upload file 2 (tờ khai LPTB)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('uploaded', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('file_id_2', pm.response.json().id);",
+              "console.log('file_id_2 =', pm.response.json().id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }] },
+        "url": { "raw": "{{base_url}}/files", "host": ["{{base_url}}"], "path": ["files"] },
+        "description": "Chọn ai/samples/02_to_khai_lptb.pdf. Tự lưu {{file_id_2}}."
+      }
+    },
+    {
+      "name": "2c. Upload file 3 (biên bản bàn giao)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('uploaded', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('file_id_3', pm.response.json().id);",
+              "console.log('file_id_3 =', pm.response.json().id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }] },
+        "url": { "raw": "{{base_url}}/files", "host": ["{{base_url}}"], "path": ["files"] },
+        "description": "Chọn ai/samples/03_bien_ban_ban_giao.pdf. Tự lưu {{file_id_3}}."
+      }
+    },
+    {
+      "name": "2d. Upload file 4 (thông báo thuế đất)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('uploaded', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('file_id_4', pm.response.json().id);",
+              "console.log('file_id_4 =', pm.response.json().id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }] },
+        "url": { "raw": "{{base_url}}/files", "host": ["{{base_url}}"], "path": ["files"] },
+        "description": "Chọn ai/samples/04_thong_bao_thue_dat.pdf. Tự lưu {{file_id_4}}.\n(File này ghi diện tích 80 m2 vs sổ hồng 62 m2 → sinh trạng thái mau_thuan để demo.)"
+      }
+    },
+    {
+      "name": "3. Run property_intake (async → job_id)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('accepted', () => pm.response.to.have.status(200));",
+              "const j = pm.response.json();",
+              "if (j.job_id) {",
+              "  pm.collectionVariables.set('job_id', j.job_id);",
+              "  console.log('job_id =', j.job_id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "X-API-Key", "value": "{{api_key}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"input\": {\n    \"file_ids\": [\n      \"{{file_id_1}}\",\n      \"{{file_id_2}}\",\n      \"{{file_id_3}}\",\n      \"{{file_id_4}}\"\n    ],\n    \"case_id\": \"REQ-2026-0001\"\n  }\n}"
+        },
+        "url": { "raw": "{{base_url}}/services/property_intake/run", "host": ["{{base_url}}"], "path": ["services", "property_intake", "run"] },
+        "description": "Chạy trích xuất (service async) → trả {job_id, status:'pending'}. Tự lưu {{job_id}}.\nCó thể bỏ bớt file_id nếu chỉ test 1 tài liệu."
+      }
+    },
+    {
+      "name": "4. Get job (poll kết quả)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.test('job reachable', () => pm.response.to.have.status(200));",
+              "console.log('status =', j.status, '| progress =', j.progress);",
+              "if (j.status === 'completed' && j.result) {",
+              "  const r = j.result;",
+              "  const rows = r.fields.filter(f => f.value !== null || f.status !== 'nhap_tay').map(f => ({label:f.label, value:(f.value===null?'':f.value), normalized:(f.normalized===null?'':f.normalized), status:f.status, confidence_pct:f.confidence_pct, alt:(f.alternatives||[]).map(a=>a.value).join(', ')}));",
+              "  console.log('=== KET QUA (' + rows.length + ' o co gia tri) ===');",
+              "  rows.forEach(x => console.log('[' + x.status + '] ' + x.label + ' = ' + x.value + (x.alt ? (' | khac: ' + x.alt) : '')));",
+              "  (r.warnings||[]).forEach(w => console.log('! ' + w));",
+              "  pm.visualizer.set('<h3>Case {{case_id}} — {{n}} tài liệu</h3><table border=1 cellpadding=5 cellspacing=0><tr><th>Trường</th><th>Giá trị</th><th>Chuẩn hoá</th><th>Trạng thái</th><th>%</th><th>Giá trị khác</th></tr>{{#each rows}}<tr><td>{{label}}</td><td>{{value}}</td><td>{{normalized}}</td><td>{{status}}</td><td>{{confidence_pct}}</td><td>{{alt}}</td></tr>{{/each}}</table><h4>Cảnh báo</h4><ul>{{#each warnings}}<li>{{this}}</li>{{/each}}</ul>', {case_id:r.case_id, n:r.documents.length, rows:rows, warnings:r.warnings});",
+              "} else if (j.status === 'failed') {",
+              "  console.log('JOB FAILED:', j.error);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "url": { "raw": "{{base_url}}/jobs/{{job_id}}", "host": ["{{base_url}}"], "path": ["jobs", "{{job_id}}"] },
+        "description": "Bấm Send nhiều lần tới khi status = completed (nguồn sự thật là 'status', không phải 'progress'). Khi completed, 'result' = PropertyIntakeOutput (documents / fields / warnings)."
+      }
+    },
+    {
+      "name": "(phụ) List services",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "url": { "raw": "{{base_url}}/services", "host": ["{{base_url}}"], "path": ["services"] },
+        "description": "Liệt kê service + input_schema. Kiểm tra property_intake đã đăng ký."
+      }
+    },
+    {
+      "name": "(phụ) Get service property_intake",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "url": { "raw": "{{base_url}}/services/property_intake", "host": ["{{base_url}}"], "path": ["services", "property_intake"] },
+        "description": "Chi tiết metadata + JSON schema input của property_intake."
+      }
+    },
+    {
+      "name": "(phụ) List jobs",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "url": {
+          "raw": "{{base_url}}/jobs?limit=10&offset=0",
+          "host": ["{{base_url}}"],
+          "path": ["jobs"],
+          "query": [{ "key": "limit", "value": "10" }, { "key": "offset", "value": "0" }]
+        },
+        "description": "Danh sách job của user (phân trang)."
+      }
+    }
+  ]
+}
