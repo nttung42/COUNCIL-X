@@ -1,0 +1,121 @@
+{
+  "info": {
+    "_postman_id": "d3c9e2f0-3c4d-5e6f-a0b1-2c3d4e5f6071",
+    "name": "SHB AI - property_valuation (Chức năng 3 / Màn 3)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Định giá (property_valuation) — ASYNC + SSE. Engine TÍNH theo công thức minh bạch (docs/valuation-methodology.md); LLM chỉ lo hệ số cảm tính ±5%, tách bạch.\n\nCHẠY: 0 Health → 1 Register → 2 List services → 3 Run → 4 Stream (SSE) hoặc 5 Get job (poll + Visualize).\n\nCASE MẪU: giàu dữ liệu REQ-2026-2000, 2001, 2002 (48/60 case có định giá); thiếu dữ liệu → warning.\n\nPrerequisite: đã nạp seed (ai/scripts/load_seed.sh)."
+  },
+  "variable": [
+    { "key": "host", "value": "http://localhost:8888" },
+    { "key": "base_url", "value": "http://localhost:8888/api/v1" },
+    { "key": "email", "value": "valuation_test@shb.vn" },
+    { "key": "api_key", "value": "" },
+    { "key": "case_id", "value": "REQ-2026-2000" },
+    { "key": "job_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{host}}/health", "host": ["{{host}}"], "path": ["health"] }
+      }
+    },
+    {
+      "name": "1. Register (lấy API key)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('registered', () => pm.response.to.have.status(201));",
+              "const j = pm.response.json();",
+              "if (j.api_key) { pm.collectionVariables.set('api_key', j.api_key); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" },
+        "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] },
+        "description": "409 (email trùng) → đổi biến {{email}}."
+      }
+    },
+    {
+      "name": "2. List services",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "url": { "raw": "{{base_url}}/services", "host": ["{{base_url}}"], "path": ["services"] }
+      }
+    },
+    {
+      "name": "3. Run property_valuation (async → job_id)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('202/200', () => pm.expect(pm.response.code).to.be.oneOf([200, 202]));",
+              "const j = pm.response.json();",
+              "if (j.job_id) { pm.collectionVariables.set('job_id', j.job_id); console.log('job_id =', j.job_id); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "X-API-Key", "value": "{{api_key}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"input\": {\n    \"case_id\": \"{{case_id}}\"\n  }\n}" },
+        "url": { "raw": "{{base_url}}/services/property_valuation/run", "host": ["{{base_url}}"], "path": ["services", "property_valuation", "run"] }
+      }
+    },
+    {
+      "name": "4. Stream (SSE) — tiến độ real-time",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{job_id}}/stream?api_key={{api_key}}",
+          "host": ["{{base_url}}"],
+          "path": ["jobs", "{{job_id}}", "stream"],
+          "query": [{ "key": "api_key", "value": "{{api_key}}" }]
+        },
+        "description": "Postman v10+ hiển thị event stream: snapshot → progress (40/75/100) → done (kèm result). Không hỗ trợ SSE thì dùng request 5 hoặc curl -N."
+      }
+    },
+    {
+      "name": "5. Get job (poll + Visualize)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "console.log('status', j.status, '| progress', j.progress);",
+              "if (j.status === 'completed' && j.result && j.result.valuation) {",
+              "  const r = j.result; const v = r.valuation; const sa = r.subjective_adjustment || {};",
+              "  pm.visualizer.set('<h3>Định giá {{case_id}}</h3><table border=1 cellpadding=6 cellspacing=0><tr><td>Giá trị đề xuất</td><td><b>{{proposed}}</b> ({{low}} – {{high}})</td></tr><tr><td>Giá/m²</td><td>{{ppm}}</td></tr><tr><td>Độ tin cậy</td><td>{{conf}}% ({{n}} giao dịch)</td></tr><tr><td>Kỳ chỉ số giá</td><td>{{period}} · {{idx}}</td></tr></table><h4>3 phương pháp</h4><table border=1 cellpadding=6 cellspacing=0><tr><th>Phương pháp</th><th>Giá trị</th><th>Trọng số</th></tr>{{#each methods}}<tr><td>{{source_label}}</td><td>{{estimated_value_vnd}}</td><td>{{weight_pct}}%</td></tr>{{/each}}</table><h4>Độ tin cậy (5 yếu tố)</h4><table border=1 cellpadding=6 cellspacing=0><tr><th>Yếu tố</th><th>Trọng số</th><th>Điểm</th></tr>{{#each factors}}<tr><td>{{label}}</td><td>{{weight_pct}}%</td><td>{{score}}</td></tr>{{/each}}</table><h4>Điều chỉnh cảm tính (LLM, tách bạch)</h4><p><b>{{sapct}}%</b> · nguồn: {{sasrc}} · {{sareason}}</p>', { proposed: v.proposed_value_vnd, low: v.value_range_low_vnd, high: v.value_range_high_vnd, ppm: v.price_per_sqm_vnd, conf: v.confidence_pct, n: v.comparable_count, period: v.price_index_period, idx: v.price_index_value, methods: r.methods, factors: r.confidence_factors, sapct: sa.value_pct, sasrc: sa.source, sareason: sa.reason });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "url": { "raw": "{{base_url}}/jobs/{{job_id}}", "host": ["{{base_url}}"], "path": ["jobs", "{{job_id}}"] },
+        "description": "Bấm Send tới khi status=completed → xem bảng ở tab Visualize (định giá + 3 phương pháp + 5 yếu tố + phần cảm tính LLM tách bạch)."
+      }
+    }
+  ]
+}
