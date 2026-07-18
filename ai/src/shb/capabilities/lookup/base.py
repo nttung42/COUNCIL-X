@@ -20,9 +20,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from shb.db.models_paa import LookupCategory, LookupFinding
 
-logger = logging.getLogger(__name__)
-
-
 def _num(value: Decimal | float | None) -> float | None:
     """Convert a Decimal (Numeric column) to float for JSON-friendly tool output."""
     if value is None:
@@ -65,12 +62,7 @@ class LookupAdapter:
         stmt = select(LookupFinding).where(
             LookupFinding.case_id == case_id, LookupFinding.category == self.category
         )
-        finding = (await session.execute(stmt)).scalar_one_or_none()
-        logger.info(
-            f"lookup[{self.key}]: case_id={case_id!r} category={self.category.value!r} "
-            f"found={finding is not None}"
-        )
-        return finding
+        return (await session.execute(stmt)).scalar_one_or_none()
 
     def _to_result(self, finding: LookupFinding | None) -> AdapterResult:
         if finding is None:

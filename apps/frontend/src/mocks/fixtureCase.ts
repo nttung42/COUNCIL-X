@@ -679,6 +679,19 @@ export const fixtureCase: AppraisalCaseFull = {
     { stepNumber: 4, title: 'Rủi ro', summaryText: 'Điểm rủi ro tài sản 34/100 (Trung bình) · LTV đề xuất 65%.' },
   ],
 
+  verdict: {
+    decision: 'de_xuat_cho_vay',
+    headline: 'Đề xuất cho vay theo mức LTV chuẩn',
+    maxLoanVndLabel: '3.15 tỷ',
+    downgraded: false,
+    reasons: [
+      "Nhãn rủi ro 'trung_binh' → kết luận cơ sở 'de_xuat_cho_vay'.",
+      'Hạn mức tối đa = 4.85 tỷ × 65% = 3.15 tỷ đồng.',
+    ],
+  },
+  overallNarrative:
+    'Hồ sơ đủ điều kiện đề xuất cho vay: giá trị định giá 4.85 tỷ (độ tin cậy 78%), điểm rủi ro tài sản 34/100 ở mức Trung bình, LTV đề xuất 65% tương ứng hạn mức tối đa 3.15 tỷ.',
+
   agentTrace: [
     { id: 'te-1', secondsOffsetLabel: 't+0.0s', actor: 'System', title: 'Hệ thống tiếp nhận yêu cầu', description: 'Từ hệ thống điều phối hồ sơ.' },
     { id: 'te-2', secondsOffsetLabel: 't+0.1–1.2s', actor: 'Market data', title: '7 nguồn tra cứu chạy song song', description: 'Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...' },
