@@ -18,14 +18,21 @@ from app.config import settings
 Base = declarative_base()
 
 # `future=True` để dùng API SQLAlchemy 2.0 style.
-# `connect_timeout=3`: khi Postgres chưa chạy (quick-start path không Docker),
-# fail nhanh trong vài giây thay vì để hệ điều hành chờ hết TCP timeout mặc
-# định (có thể >10s trên Windows) — giữ đúng ngân sách <15s của SC-001.
+# Timeout kết nối nhanh khi Postgres chưa chạy (quick-start path không Docker) —
+# fail trong vài giây thay vì để hệ điều hành chờ hết TCP timeout mặc định (có
+# thể >10s trên Windows), giữ đúng ngân sách <15s của SC-001. Tham số này CHỈ
+# hợp lệ với driver psycopg/psycopg2 (Postgres) — sqlite3 (dùng trong test/dev
+# nhẹ, xem docstring module) không nhận `connect_timeout` nên phải áp dụng
+# có điều kiện theo dialect, tránh vỡ khả năng chạy trên SQLite.
+_connect_args: dict = {}
+if settings.database_url.startswith("postgresql"):
+    _connect_args["connect_timeout"] = 3
+
 engine = create_engine(
     settings.database_url,
     future=True,
     pool_pre_ping=True,
-    connect_args={"connect_timeout": 3},
+    connect_args=_connect_args,
 )
 
 SessionLocal = sessionmaker(

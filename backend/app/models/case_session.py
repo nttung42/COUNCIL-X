@@ -55,7 +55,12 @@ class CaseSession(Base):
         DateTime(timezone=True), nullable=False, default=_utcnow, onupdate=_utcnow
     )
 
-    trace_events: Mapped[list] = relationship(
+    # NOTE: annotation PHẢI parameterize generic (`list["TraceEvent"]`, không chỉ
+    # `list` trơn) — thiếu tham số kiểu khiến SQLAlchemy 2.0 Declarative (dựa vào
+    # `Mapped[...]` để suy ra uselist) hiểu nhầm đây là quan hệ scalar thay vì
+    # collection, dẫn tới `case.trace_events` trả về 1 `TraceEvent` thay vì list
+    # (lỗi runtime "'TraceEvent' object is not iterable" ở case_store.get_case).
+    trace_events: Mapped[list["TraceEvent"]] = relationship(  # noqa: F821
         "TraceEvent",
         back_populates="case",
         cascade="all, delete-orphan",
