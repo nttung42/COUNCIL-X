@@ -2,8 +2,14 @@
 
 from functools import lru_cache
 
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Populate os.environ from .env so raw os.getenv() fallbacks (e.g. shb.ai.llm's
+# LLM_API_KEY resolution) see it too — pydantic-settings' own env_file= only
+# feeds its own fields, it never writes back to os.environ.
+load_dotenv()
 
 
 class LLMSettings(BaseModel):

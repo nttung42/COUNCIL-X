@@ -194,16 +194,11 @@ class RiskGroupKey(str, Enum):
     REPUTATION = "reputation"
 
 
-def _pg_enum(enum_cls: type[Enum], name: str) -> SQLEnum:
-    """Build an enum column that persists the enum *value* (lowercase domain code).
-
-    Without ``values_callable`` SQLAlchemy binds the enum member *name*
-    ("MARKET_PRICE"), but the Postgres ENUM labels created by Alembic 002 and the
-    demo seed use the lowercase *value* ("market_price") — so ORM reads/writes
-    fail with ``invalid input value for enum``. Persisting the value keeps ORM,
-    Alembic, and the seed consistent. (Same fix as ``models.JobStatus``.)
+def _pg_enum(enum_cls: type[Enum], *, name: str) -> SQLEnum:
+    """SQLEnum bound by ``.value`` (not member name) — matches the lowercase DB values
+    ``alembic/versions/002_paa_schema.py`` used to ``CREATE TYPE``.
     """
-    return SQLEnum(enum_cls, name=name, values_callable=lambda e: [m.value for m in e])
+    return SQLEnum(enum_cls, name=name, values_callable=lambda obj: [e.value for e in obj])
 
 
 def _uuid() -> str:

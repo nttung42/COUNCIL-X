@@ -53,10 +53,7 @@ class Job(Base):
     user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), nullable=False)
     plugin_id: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[JobStatus] = mapped_column(
-        # Persist the enum *values* ("pending", ...) not the member names ("PENDING").
-        # The Postgres `jobstatus` type is defined with lowercase labels; without
-        # values_callable SQLAlchemy binds the uppercase name and Postgres rejects it.
-        SQLEnum(JobStatus, values_callable=lambda enum: [m.value for m in enum]),
+        SQLEnum(JobStatus, values_callable=lambda obj: [e.value for e in obj]),
         default=JobStatus.PENDING,
     )
     input: Mapped[dict] = mapped_column(JSON, nullable=False)

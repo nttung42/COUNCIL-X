@@ -1,8 +1,9 @@
-import type { CaseField } from '../../types';
-import { getEditStatus, Tab1Section, useCaseStore } from '../../state/caseStore';
+import { useRef } from 'react';
+import type { Tab1Field, Tab1SectionKey } from '../../types';
+import { getEditStatus, useCaseStore } from '../../state/caseStore';
 import { Card, EditedBadge, SourceChip } from '../common/ui';
+import { getSourceChip, TAB1_STATUS_TOOLTIP } from '../../utils/tab1Field';
 
-const DV_ORDER = ['so-hong', 'to-khai', 'bien-ban', 'tb-thue'];
 const DV_LINES = ['t', 'm', '', 's', '', 'm', '', 's', 'm', '', 's', '', 'm', 's', '', 'm', '', 's'];
 
 function dvTier(conf: number): 'high' | 'mid' | 'low' {
@@ -11,26 +12,33 @@ function dvTier(conf: number): 'high' | 'mid' | 'low' {
   return 'low';
 }
 
-function FormField({ section, field, label, cf }: { section: Tab1Section; field: string; label: string; cf: CaseField }) {
-  const key = `${section}.${field}`;
-  const status = useCaseStore((s) => getEditStatus(s.pendingEdits, s.confirmedKeys, 1, key));
+function FormField({ field }: { field: Tab1Field }) {
+  const status = useCaseStore((s) => getEditStatus(s.pendingEdits, s.confirmedKeys, 1, field.key));
+  const docPages = useCaseStore((s) => s.caseData.docPages);
   const editTab1Field = useCaseStore((s) => s.editTab1Field);
   const jumpToSource = useCaseStore((s) => s.jumpToSource);
 
+  const chip = getSourceChip(field, docPages);
+
   return (
     <div className={'field' + (status === 'pending' ? ' pending-edit' : status === 'confirmed' ? ' edited' : '')}>
-      <label>
-        {label}
+      <label title={TAB1_STATUS_TOOLTIP[field.status]}>
+        {field.label}
         <EditedBadge status={status} />
       </label>
       <input
         className="fake-input"
-        value={cf.value}
-        onChange={(e) => editTab1Field(section, field, e.target.value)}
+        value={field.value}
+        onChange={(e) => editTab1Field(field.key, e.target.value)}
       />
-      {cf.source && (
+      {chip && (
         <div className="field-meta">
-          <SourceChip source={cf.source} onClick={() => jumpToSource(cf.source!.docKey, cf.source!.boxId)} />
+          <SourceChip
+            label={chip.label}
+            warn={chip.warn}
+            tooltip={field.sourceSnippet}
+            onClick={() => jumpToSource(field.sourceDocKey ?? '', field.key)}
+          />
         </div>
       )}
     </div>
@@ -43,6 +51,25 @@ function DataSourceAccordion() {
   const documents = useCaseStore((s) => s.documents);
   const addMockUpload = useCaseStore((s) => s.addMockUpload);
   const removeUpload = useCaseStore((s) => s.removeUpload);
+  const apiMode = useCaseStore((s) => s.apiMode);
+  const isUploading = useCaseStore((s) => s.isUploading);
+  const isExtracting = useCaseStore((s) => s.isExtracting);
+  const uploadRealFiles = useCaseStore((s) => s.uploadRealFiles);
+  const runExtraction = useCaseStore((s) => s.runExtraction);
+  const fillSampleData = useCaseStore((s) => s.fillSampleData);
+  const extractionWarnings = useCaseStore((s) => s.extractionWarnings);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handleDropzoneClick() {
+    if (apiMode) fileInputRef.current?.click();
+    else addMockUpload();
+  }
+
+  function handleFilesSelected(fileList: FileList | null) {
+    if (!fileList || !fileList.length) return;
+    void uploadRealFiles(Array.from(fileList));
+  }
 
   return (
     <div className="ds-persistent" style={{ padding: '0 0 12px' }}>
@@ -57,10 +84,29 @@ function DataSourceAccordion() {
         </div>
         {dsOpen && (
           <div className="ds-body">
-            <div className="dropzone" onClick={addMockUpload}>
-              <div className="dz-icon">📤</div>
+            {apiMode && (
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".pdf,.jpg,.jpeg,.png"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  handleFilesSelected(e.target.files);
+                  e.target.value = '';
+                }}
+              />
+            )}
+            <div className="dropzone" onClick={handleDropzoneClick} style={isUploading ? { opacity: 0.6, pointerEvents: 'none' } : undefined}>
+              <div className="dz-icon">{isUploading ? '⏳' : '📤'}</div>
               <div className="dz-text">
-                Kéo thả tệp vào đây hoặc <span>chọn tệp để tải lên</span>
+                {isUploading ? (
+                  'Đang tải lên…'
+                ) : (
+                  <>
+                    Kéo thả tệp vào đây hoặc <span>chọn tệp để tải lên</span>
+                  </>
+                )}
               </div>
               <div className="dz-hint">
                 Hỗ trợ PDF, JPG, PNG · tối đa 20MB/tệp — ví dụ: sổ đỏ/sổ hồng, CMND/CCCD, hợp đồng, ảnh hiện trạng...
@@ -84,6 +130,48 @@ function DataSourceAccordion() {
                 ))
               )}
             </div>
+            {apiMode && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="primary-btn"
+                  style={{ flex: 1 }}
+                  disabled={!documents.length || isExtracting}
+                  onClick={() => void runExtraction()}
+                >
+                  {isExtracting ? '⏳ PAA đang trích xuất dữ liệu…' : '🔎 Yêu cầu PAA trích xuất dữ liệu'}
+                </button>
+                <button
+                  type="button"
+                  className="footer-back-btn"
+                  title="Điền nhanh dữ liệu giả để test giao diện, không phải dữ liệu thật"
+                  onClick={fillSampleData}
+                >
+                  🎲 Điền dữ liệu mẫu
+                </button>
+              </div>
+            )}
+            {extractionWarnings.length > 0 && (
+              <div
+                style={{
+                  marginTop: 12,
+                  background: 'var(--warning-tint)',
+                  border: '1px solid rgba(250,178,25,0.4)',
+                  borderRadius: 8,
+                  padding: '9px 11px',
+                }}
+              >
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6100', marginBottom: 4 }}>
+                  ⚠ {extractionWarnings.length} cảnh báo từ lần trích xuất gần nhất
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: 'var(--ink)', lineHeight: 1.55 }}>
+                  {extractionWarnings.map((w, i) => (
+                    // eslint-disable-next-line react/no-array-index-key
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </Card>
@@ -93,31 +181,41 @@ function DataSourceAccordion() {
 
 function DocViewerCard() {
   const docPages = useCaseStore((s) => s.caseData.docPages);
+  const tab1Fields = useCaseStore((s) => s.caseData.tab1Fields);
   const dvCurrentKey = useCaseStore((s) => s.dvCurrentKey);
   const dvPulseBoxId = useCaseStore((s) => s.dvPulseBoxId);
   const dvPulseToken = useCaseStore((s) => s.dvPulseToken);
   const dvHintOverride = useCaseStore((s) => s.dvHintOverride);
   const setDvCurrent = useCaseStore((s) => s.setDvCurrent);
 
+  if (!docPages.length) {
+    return (
+      <Card className="doc-viewer-card">
+        <div className="dv-toolbar">
+          <div className="dv-title">🗂️ Tài liệu &amp; vùng trích xuất</div>
+        </div>
+        <div className="dv-hint">Chưa có tài liệu nào được xử lý — tải tài liệu lên ở khối phía trên để bắt đầu.</div>
+      </Card>
+    );
+  }
+
   const doc = docPages.find((d) => d.key === dvCurrentKey) ?? docPages[0];
+  const boxes = tab1Fields.filter((f) => f.sourceDocKey === doc.key && f.bbox);
 
   return (
     <Card className="doc-viewer-card">
       <div className="dv-toolbar">
         <div className="dv-title">🗂️ Tài liệu &amp; vùng trích xuất</div>
         <div className="dv-files">
-          {DV_ORDER.filter((k) => docPages.some((d) => d.key === k)).map((k) => {
-            const page = docPages.find((d) => d.key === k)!;
-            return (
-              <span
-                key={k}
-                className={'dv-file' + (k === dvCurrentKey ? ' active' : '')}
-                onClick={() => setDvCurrent(k)}
-              >
-                {page.label}
-              </span>
-            );
-          })}
+          {docPages.map((page) => (
+            <span
+              key={page.key}
+              className={'dv-file' + (page.key === dvCurrentKey ? ' active' : '')}
+              onClick={() => setDvCurrent(page.key)}
+            >
+              {page.label}
+            </span>
+          ))}
         </div>
       </div>
       <div className="dv-stage">
@@ -129,19 +227,20 @@ function DocViewerCard() {
               <div key={i} className={'ln' + (c ? ' ' + c : '')} />
             ))}
           </div>
-          {doc.boxes.map((b) => {
-            const isPulsing = b.id === dvPulseBoxId;
+          {boxes.map((f) => {
+            const isPulsing = f.key === dvPulseBoxId;
+            const conf = f.confidencePct ?? 0;
             return (
               <div
-                key={isPulsing ? `${doc.key}-${b.id}-${dvPulseToken}` : `${doc.key}-${b.id}`}
-                className={'dv-box ' + dvTier(b.conf) + (isPulsing ? ' pulse' : '')}
-                style={{ top: `${b.top}%`, left: `${b.left}%`, width: `${b.w}%`, height: `${b.h}%` }}
+                key={isPulsing ? `${f.key}-${dvPulseToken}` : f.key}
+                className={'dv-box ' + dvTier(conf) + (isPulsing ? ' pulse' : '')}
+                style={{ top: `${f.bbox!.top}%`, left: `${f.bbox!.left}%`, width: `${f.bbox!.w}%`, height: `${f.bbox!.h}%` }}
               >
-                <span className="dv-conf">{b.conf}%</span>
+                <span className="dv-conf">{conf}%</span>
                 <span className="dv-tip">
-                  <b>{b.field}</b>
+                  <b>{f.label}</b>
                   <br />
-                  {b.value}
+                  {f.value}
                 </span>
               </div>
             );
@@ -160,11 +259,32 @@ function DocViewerCard() {
   );
 }
 
+const SECTION_TITLE: Record<Tab1SectionKey, string> = {
+  A: 'A. Thông tin bên vay / chủ sở hữu',
+  B: 'B. Thông tin pháp lý tài sản',
+  C: 'C. Vị trí & đặc điểm tài sản',
+  D: 'D. Thông tin khoản vay',
+};
+
+function FormSection({ section, fields }: { section: Tab1SectionKey; fields: Tab1Field[] }) {
+  if (!fields.length) return null;
+  return (
+    <Card className="form-section">
+      <div className="section-h">{SECTION_TITLE[section]}</div>
+      <div className="grid c2">
+        {fields.map((f) => (
+          <FormField key={f.key} field={f} />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export function Tab1Input() {
-  const borrower = useCaseStore((s) => s.caseData.borrower);
-  const legal = useCaseStore((s) => s.caseData.legal);
-  const physical = useCaseStore((s) => s.caseData.physical);
-  const loan = useCaseStore((s) => s.caseData.loan);
+  const tab1Fields = useCaseStore((s) => s.caseData.tab1Fields);
+  const apiMode = useCaseStore((s) => s.apiMode);
+
+  const bySection = (section: Tab1SectionKey) => tab1Fields.filter((f) => f.section === section);
 
   return (
     <>
@@ -174,78 +294,17 @@ export function Tab1Input() {
       <p className="extract-caption">
         <span>🔎</span>
         <span>
-          Mỗi trường bên dưới chỉ điền khi trích được <b>trực tiếp từ tài liệu</b> — bấm chip <b>📄 nguồn</b> để đối
-          chiếu vùng gốc. Trường không có nguồn (SĐT, khoản vay) để nhập tay; PAA <b>không suy đoán</b>.
+          Trường có chip <b>📄 nguồn</b> là PAA trích được <b>trực tiếp từ tài liệu</b> — bấm chip để đối chiếu vùng
+          gốc. Trường không có nguồn (SĐT, khoản vay...) cứ <b>gõ tay trực tiếp</b> vào ô; PAA{' '}
+          <b>không tự suy đoán</b> những trường này.
+          {apiMode && ' Có thể gõ tay toàn bộ form ngay, hoặc tải tài liệu lên rồi bấm "Yêu cầu PAA trích xuất dữ liệu" để PAA tự điền giúp.'}
         </span>
       </p>
 
-      <Card className="form-section">
-        <div className="section-h">A. Thông tin bên vay / chủ sở hữu</div>
-        <div className="grid c2">
-          <FormField section="borrower" field="fullName" label="Họ và tên" cf={borrower.fullName} />
-          <FormField section="borrower" field="nationalId" label="Số CMND/CCCD" cf={borrower.nationalId} />
-          <FormField section="borrower" field="phoneNumber" label="Số điện thoại" cf={borrower.phoneNumber} />
-          <FormField
-            section="borrower"
-            field="relationshipToAsset"
-            label="Mối quan hệ với tài sản"
-            cf={borrower.relationshipToAsset}
-          />
-        </div>
-      </Card>
-
-      <Card className="form-section">
-        <div className="section-h">
-          B. Thông tin pháp lý tài sản
-          <span
-            className="qmark"
-            data-why="Các trường này đối chiếu trực tiếp với dữ liệu trên Giấy chứng nhận quyền sử dụng đất / quyền sở hữu nhà (sổ đỏ/sổ hồng)."
-          >
-            ?
-          </span>
-        </div>
-        <div className="grid c2">
-          <FormField section="legal" field="certificateType" label="Loại giấy chứng nhận" cf={legal.certificateType} />
-          <FormField section="legal" field="certificateNumber" label="Số giấy chứng nhận" cf={legal.certificateNumber} />
-          <FormField section="legal" field="issueDateAuthority" label="Ngày cấp / Cơ quan cấp" cf={legal.issueDateAuthority} />
-          <FormField section="legal" field="landPlotMapSheet" label="Số thửa / Số tờ bản đồ" cf={legal.landPlotMapSheet} />
-          <FormField section="legal" field="landUsePurpose" label="Mục đích sử dụng đất" cf={legal.landUsePurpose} />
-          <FormField section="legal" field="useTerm" label="Thời hạn sử dụng" cf={legal.useTerm} />
-          <FormField section="legal" field="ownershipForm" label="Hình thức sở hữu" cf={legal.ownershipForm} />
-          <FormField
-            section="legal"
-            field="currentMortgageStatus"
-            label="Tình trạng thế chấp hiện tại"
-            cf={legal.currentMortgageStatus}
-          />
-        </div>
-      </Card>
-
-      <Card className="form-section">
-        <div className="section-h">C. Vị trí &amp; đặc điểm tài sản</div>
-        <div className="grid c2">
-          <FormField section="physical" field="address" label="Địa chỉ" cf={physical.address} />
-          <FormField section="physical" field="propertyType" label="Loại BĐS" cf={physical.propertyType} />
-          <FormField section="physical" field="landAreaSqm" label="Diện tích đất" cf={physical.landAreaSqm} />
-          <FormField section="physical" field="floorAreaSqm" label="Diện tích sàn xây dựng" cf={physical.floorAreaSqm} />
-          <FormField section="physical" field="frontageDepth" label="Kích thước mặt tiền × chiều sâu" cf={physical.frontageDepth} />
-          <FormField section="physical" field="numFloorsDesc" label="Số tầng" cf={physical.numFloorsDesc} />
-          <FormField section="physical" field="constructionYear" label="Năm xây dựng" cf={physical.constructionYear} />
-          <FormField section="physical" field="structureMaterial" label="Kết cấu / vật liệu" cf={physical.structureMaterial} />
-          <FormField section="physical" field="houseDirection" label="Hướng nhà" cf={physical.houseDirection} />
-          <FormField section="physical" field="roadTypeDesc" label="Loại đường / độ rộng hẻm" cf={physical.roadTypeDesc} />
-          <FormField section="physical" field="currentUsageStatus" label="Tình trạng sử dụng hiện tại" cf={physical.currentUsageStatus} />
-        </div>
-      </Card>
-
-      <Card className="form-section">
-        <div className="section-h">D. Thông tin khoản vay</div>
-        <div className="grid c2">
-          <FormField section="loan" field="loanAmountVnd" label="Số tiền vay" cf={loan.loanAmountVnd} />
-          <FormField section="loan" field="loanPurpose" label="Mục đích vay" cf={loan.loanPurpose} />
-          <FormField section="loan" field="loanTermYears" label="Thời hạn vay" cf={loan.loanTermYears} />
-        </div>
-      </Card>
+      <FormSection section="A" fields={bySection('A')} />
+      <FormSection section="B" fields={bySection('B')} />
+      <FormSection section="C" fields={bySection('C')} />
+      <FormSection section="D" fields={bySection('D')} />
     </>
   );
 }

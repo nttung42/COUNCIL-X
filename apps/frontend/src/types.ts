@@ -39,62 +39,40 @@ export interface AppraisalCaseSummary {
   updatedAtLabel: string; // vd. "hôm nay", "hôm qua", "3 ngày trước" — hiển thị ở sidebar
 }
 
-/** Tham chiếu tới vùng trích xuất trên tài liệu gốc — hiển thị dạng chip "📄 nguồn" dưới mỗi trường. */
-export interface SourceRef {
-  /** key của DocPage trong docPages, hoặc 'suy-luan' nếu PAA suy luận / không có nguồn trực tiếp. */
-  docKey: string;
-  /** id của DocBox trong DocPage tương ứng, nếu có vùng khoanh trên tài liệu. */
-  boxId?: string;
-  /** Nhãn hiển thị trên chip, vd. "📄 Sổ hồng ↗" hoặc "✍️ Nhập tay (không có nguồn)". */
+// Trạng thái 1 trường trích xuất ở màn "Nhập thông tin" — khớp 1:1 với FieldStatus (StrEnum)
+// trả về bởi plugin property_intake ở ai/src/shb/ai/plugins/property_intake/schema.py.
+export type Tab1FieldStatus = 'da_xac_thuc' | 'can_xac_minh' | 'mau_thuan' | 'nhap_tay' | 'suy_luan';
+
+/** Khớp 4 khối A/B/C/D ở màn "Nhập thông tin" — cũng là giá trị FormField.section từ API thật. */
+export type Tab1SectionKey = 'A' | 'B' | 'C' | 'D';
+
+/** Vùng khoanh trên trang tài liệu, đơn vị % kích thước trang (0-100) — quy đổi từ BBox (0-1) của API. */
+export interface FieldBBox {
+  top: number;
+  left: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * 1 trường ở màn "Nhập thông tin". Shape này bám theo FormField của plugin property_intake
+ * (ai/src/shb/ai/plugins/property_intake/schema.py) thay vì object lồng nhau theo tên trường —
+ * vì API thật trả về danh sách phẳng, không có shape cố định borrower/legal/physical/loan.
+ */
+export interface Tab1Field {
+  /** id ổn định dùng làm key React + key theo dõi pending/confirmed — khớp key của FormField từ API thật, vd. 'land_area_sqm'. */
+  key: string;
+  section: Tab1SectionKey;
   label: string;
-  /** Nội dung tooltip khi hover — trích dẫn nguyên văn từ tài liệu / lý do suy luận. */
-  srcText: string;
-  /** true nếu là cảnh báo (mâu thuẫn giữa các nguồn, chưa đủ căn cứ...) — hiển thị màu đỏ. */
-  warn?: boolean;
-}
-
-export interface CaseField<T = string> {
-  value: T;
-  source?: SourceRef;
-}
-
-export interface CaseBorrower {
-  id: string;
-  fullName: CaseField;
-  nationalId: CaseField;
-  phoneNumber: CaseField;
-  relationshipToAsset: CaseField;
-}
-
-export interface PropertyLegalInfo {
-  certificateType: CaseField;
-  certificateNumber: CaseField;
-  issueDateAuthority: CaseField;
-  landPlotMapSheet: CaseField;
-  landUsePurpose: CaseField;
-  useTerm: CaseField;
-  ownershipForm: CaseField;
-  currentMortgageStatus: CaseField;
-}
-
-export interface PropertyPhysicalInfo {
-  address: CaseField;
-  propertyType: CaseField;
-  landAreaSqm: CaseField;
-  floorAreaSqm: CaseField;
-  frontageDepth: CaseField;
-  numFloorsDesc: CaseField;
-  constructionYear: CaseField;
-  structureMaterial: CaseField;
-  houseDirection: CaseField;
-  roadTypeDesc: CaseField;
-  currentUsageStatus: CaseField;
-}
-
-export interface LoanInfo {
-  loanAmountVnd: CaseField;
-  loanPurpose: CaseField;
-  loanTermYears: CaseField;
+  value: string;
+  /** 0-100, null nếu trường nhập tay/suy luận không có điểm tin cậy OCR. */
+  confidencePct: number | null;
+  status: Tab1FieldStatus;
+  /** key của DocPage trong docPages, null nếu không có vùng nguồn trực tiếp (nhập tay/suy luận). */
+  sourceDocKey: string | null;
+  /** trích dẫn nguyên văn từ tài liệu (FormField.source_snippet), hoặc ghi chú lý do suy luận/nhập tay. */
+  sourceSnippet: string | null;
+  bbox: FieldBBox | null;
 }
 
 export interface AttachedDocument {
@@ -105,23 +83,11 @@ export interface AttachedDocument {
   uploadedAtLabel: string;
 }
 
-/** Một ô khoanh vùng trích xuất trên trang tài liệu, kèm % độ tin cậy OCR/extraction. */
-export interface DocBox {
-  id: string;
-  top: number;
-  left: number;
-  w: number;
-  h: number;
-  conf: number;
-  field: string;
-  value: string;
-}
-
+/** 1 tài liệu đã xử lý, hiển thị trong khung "Tài liệu & vùng trích xuất" — khớp DocumentInfo của API. */
 export interface DocPage {
   key: string;
   label: string;
   scan?: boolean;
-  boxes: DocBox[];
 }
 
 export interface MarketComparable {
@@ -240,10 +206,7 @@ export interface ChatMessage {
 export interface AppraisalCaseFull {
   caseId: string;
   status: CaseStatus;
-  borrower: CaseBorrower;
-  legal: PropertyLegalInfo;
-  physical: PropertyPhysicalInfo;
-  loan: LoanInfo;
+  tab1Fields: Tab1Field[];
   documents: AttachedDocument[];
   docPages: DocPage[];
   marketComparables: MarketComparable[];

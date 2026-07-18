@@ -2,6 +2,7 @@ import { TAB_NAMES } from '../../mocks/chatScripts';
 import { useCaseStore } from '../../state/caseStore';
 import { Card, StatTile, Timeline, TimelineItem } from '../common/ui';
 import { SEVERITY_LABEL } from '../../utils/severity';
+import { getFieldValue } from '../../utils/tab1Field';
 import type { StepNumber } from '../../types';
 
 export function Tab5Dashboard() {
@@ -9,10 +10,12 @@ export function Tab5Dashboard() {
   const switchTab = useCaseStore((s) => s.switchTab);
   const exportReport = useCaseStore((s) => s.exportReport);
 
-  const { caseId, physical, valuation, risk, agentTrace, dashboardSteps } = caseData;
+  const { caseId, tab1Fields, valuation, risk, agentTrace, dashboardSteps } = caseData;
+  const address = getFieldValue(tab1Fields, 'address');
+  const landArea = getFieldValue(tab1Fields, 'land_area_sqm');
 
   const stepSummaries: Record<1 | 2 | 3 | 4, string> = {
-    1: `${physical.address.value} · ${physical.landAreaSqm.value} · Sổ hồng chính chủ.`,
+    1: address ? `${address} · ${landArea} · Sổ hồng chính chủ.` : 'Chưa có dữ liệu — hoàn thành màn Nhập thông tin trước.',
     2: dashboardSteps.find((d) => d.stepNumber === 2)?.summaryText ?? '',
     3: `${valuation.proposedValueLabel} (${valuation.valueRangeLabel}) · độ tin cậy ${valuation.confidencePct}%, kết hợp 3 phương pháp.`,
     4: `Điểm rủi ro tài sản ${risk.riskScore}/100 (${SEVERITY_LABEL[risk.riskLabel]}) · LTV đề xuất ${risk.ltvProposedPct}%.`,

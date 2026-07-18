@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { EditStatusFlag } from '../../state/caseStore';
-import type { SourceRef } from '../../types';
 
 function statusClass(status?: EditStatusFlag): string {
   if (status === 'pending') return ' pending-edit';
@@ -158,16 +157,26 @@ export function TimelineItem({ time, title, description }: { time: string; title
   );
 }
 
-export function SourceChip({ source, onClick }: { source: SourceRef; onClick?: () => void }) {
+export function SourceChip({
+  label,
+  warn,
+  tooltip,
+  onClick,
+}: {
+  label: string;
+  warn?: boolean;
+  tooltip?: string | null;
+  onClick?: () => void;
+}) {
   return (
     <span
-      className={'src-ref' + (source.warn ? ' warn' : '')}
-      data-src={source.srcText}
+      className={'src-ref' + (warn ? ' warn' : '')}
+      data-src={tooltip ?? ''}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onClick={onClick}
     >
-      {source.label}
+      {label}
     </span>
   );
 }

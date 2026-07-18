@@ -13,6 +13,8 @@ import {
   matchDemoEdit,
 } from '../mocks/chatScripts';
 import { downloadStandaloneReport } from '../utils/exportReport';
+import { isApiConfigured, runPropertyIntake, uploadFile } from '../services/apiClient';
+import { mapPropertyIntakeOutput } from '../utils/mapPropertyIntake';
 
 // Store trung tâm cho toàn bộ workspace thẩm định — chuyển thể hành vi từ khối <script>
 // trong ai/PAA_Mockup_SHB_8.html (khoá/mở tab, luồng "sửa -> chờ xác nhận -> xác nhận",
@@ -24,7 +26,32 @@ export type EditStatusFlag = 'none' | 'pending' | 'confirmed';
 const STEP_NUMBERS: StepNumber[] = [1, 2, 3, 4, 5];
 
 function cloneFixture(): AppraisalCaseFull {
-  return JSON.parse(JSON.stringify(fixtureCase)) as AppraisalCaseFull;
+  const clone = JSON.parse(JSON.stringify(fixtureCase)) as AppraisalCaseFull;
+  // Ở apiMode, màn "Nhập thông tin" vẫn hiện ĐỦ bộ trường như mockup (cùng key/section/label với
+  // fixture) để thẩm định viên luôn gõ tay được ngay cả khi chưa/không trích xuất tài liệu nào —
+  // chỉ xoá giá trị + nguồn trích xuất (dữ liệu demo), không xoá cả danh sách trường. Khi bấm
+  // "Yêu cầu PAA trích xuất dữ liệu" (runExtraction), kết quả thật được GỘP vào đúng trường theo
+  // key thay vì thay thế toàn bộ. Các màn 2-5 vẫn dùng dữ liệu mẫu vì ai/ backend chưa có endpoint
+  // cho lookup/valuation/risk/dashboard.
+  if (isApiConfigured()) {
+    clone.tab1Fields = clone.tab1Fields.map((f) => ({
+      ...f,
+      value: '',
+      status: 'nhap_tay',
+      confidencePct: null,
+      sourceDocKey: null,
+      sourceSnippet: null,
+      bbox: null,
+    }));
+    clone.docPages = [];
+  }
+  return clone;
+}
+
+function mergeByKey<T extends { key: string }>(base: T[], updates: T[]): T[] {
+  const map = new Map(base.map((item) => [item.key, item]));
+  updates.forEach((item) => map.set(item.key, item));
+  return Array.from(map.values());
 }
 
 function wait(ms: number) {
@@ -37,26 +64,16 @@ function nextId(prefix: string) {
   return `${prefix}-${idSeq}`;
 }
 
-const TAB1_SECTIONS = ['borrower', 'legal', 'physical', 'loan'] as const;
-export type Tab1Section = (typeof TAB1_SECTIONS)[number];
-
 function buildFieldBaseline(caseData: AppraisalCaseFull): Record<string, string> {
   const baseline: Record<string, string> = {};
-  TAB1_SECTIONS.forEach((section) => {
-    const obj = caseData[section] as unknown as Record<string, unknown>;
-    Object.entries(obj).forEach(([field, cf]) => {
-      if (cf && typeof cf === 'object' && 'value' in (cf as Record<string, unknown>)) {
-        baseline[`${section}.${field}`] = (cf as { value: string }).value;
-      }
-    });
+  caseData.tab1Fields.forEach((f) => {
+    baseline[f.key] = f.value;
   });
   return baseline;
 }
 
 function readFieldValue(caseData: AppraisalCaseFull, key: string): string {
-  const [section, field] = key.split('.') as [Tab1Section, string];
-  const obj = caseData[section] as unknown as Record<string, { value: string }>;
-  return obj[field]?.value ?? '';
+  return caseData.tab1Fields.find((f) => f.key === key)?.value ?? '';
 }
 
 function emptyPerStep<T>(fill: () => T): Record<StepNumber, T> {
@@ -100,6 +117,13 @@ interface CaseStoreState {
   mockFileIdx: number;
   dsOpen: boolean;
 
+  /** true khi VITE_API_BASE_URL được cấu hình — màn Nhập thông tin dùng upload/trích xuất thật thay vì demo. */
+  apiMode: boolean;
+  isUploading: boolean;
+  isExtracting: boolean;
+  /** Cảnh báo từ lần trích xuất gần nhất (vd. loại tài liệu chưa hỗ trợ) — hiện thành banner riêng, không chỉ chìm trong chat. */
+  extractionWarnings: string[];
+
   dvCurrentKey: string;
   dvPulseBoxId: string | null;
   dvPulseToken: number;
@@ -107,7 +131,7 @@ interface CaseStoreState {
 
   markPending: (screen: StepNumber, key: string) => void;
   confirmScreen: (screen: StepNumber) => void;
-  editTab1Field: (section: Tab1Section, field: string, value: string) => void;
+  editTab1Field: (key: string, value: string) => void;
   applyDemoEdit: (key: DemoEditKey) => void;
 
   pushMessage: (role: ChatRole, html: string) => void;
@@ -124,7 +148,10 @@ interface CaseStoreState {
   exportReport: () => Promise<void>;
 
   toggleDs: () => void;
+  fillSampleData: () => void;
   addMockUpload: () => void;
+  uploadRealFiles: (files: File[]) => Promise<void>;
+  runExtraction: () => Promise<void>;
   removeUpload: (id: string) => void;
 
   setDvCurrent: (key: string) => void;
@@ -156,6 +183,11 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
   mockFileIdx: 0,
   dsOpen: false,
 
+  apiMode: isApiConfigured(),
+  isUploading: false,
+  isExtracting: false,
+  extractionWarnings: [],
+
   dvCurrentKey: 'so-hong',
   dvPulseBoxId: null,
   dvPulseToken: 0,
@@ -185,12 +217,10 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
     });
   },
 
-  editTab1Field: (section, field, value) => {
-    const key = `${section}.${field}`;
+  editTab1Field: (key, value) => {
     set((s) => {
-      const sectionObj = s.caseData[section] as unknown as Record<string, { value: string; source?: unknown }>;
-      const updatedSection = { ...sectionObj, [field]: { ...sectionObj[field], value } };
-      const caseData = { ...s.caseData, [section]: updatedSection } as AppraisalCaseFull;
+      const tab1Fields = s.caseData.tab1Fields.map((f) => (f.key === key ? { ...f, value } : f));
+      const caseData = { ...s.caseData, tab1Fields };
 
       const baseline = s.fieldBaseline[key] ?? '';
       const already = s.pendingEdits[1];
@@ -207,7 +237,7 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
   applyDemoEdit: (key) => {
     switch (key) {
       case 'area':
-        get().editTab1Field('physical', 'landAreaSqm', '65 m²');
+        get().editTab1Field('land_area_sqm', '65 m²');
         break;
       case 'environment': {
         set((s) => ({
@@ -387,11 +417,90 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
 
   toggleDs: () => set((s) => ({ dsOpen: !s.dsOpen })),
 
+  fillSampleData: () => {
+    set((s) => {
+      const sampleByKey = new Map(fixtureCase.tab1Fields.map((f) => [f.key, f.value]));
+      const tab1Fields = s.caseData.tab1Fields.map((f) => {
+        const sampleValue = sampleByKey.get(f.key);
+        return sampleValue !== undefined ? { ...f, value: sampleValue } : f;
+      });
+      const pending1 = tab1Fields
+        .filter((f) => f.value.trim() !== (s.fieldBaseline[f.key] ?? '').trim())
+        .map((f) => f.key);
+      return {
+        caseData: { ...s.caseData, tab1Fields },
+        pendingEdits: { ...s.pendingEdits, 1: pending1 },
+      };
+    });
+  },
+
   addMockUpload: () => {
     const s = get();
     const item = mockUploadPool[s.mockFileIdx % mockUploadPool.length];
     const doc: AttachedDocument = { id: nextId('doc'), uploadedAtLabel: 'vừa xong', ...item };
     set((state) => ({ documents: [...state.documents, doc], mockFileIdx: state.mockFileIdx + 1 }));
+  },
+
+  uploadRealFiles: async (files) => {
+    if (!files.length) return;
+    set({ isUploading: true });
+    try {
+      for (const file of files) {
+        // eslint-disable-next-line no-await-in-loop
+        const uploaded = await uploadFile(file);
+        const isPdf = uploaded.content_type.includes('pdf');
+        const isImage = uploaded.content_type.startsWith('image/');
+        const doc: AttachedDocument = {
+          id: uploaded.id,
+          fileName: uploaded.original_name,
+          icon: isPdf ? '📜' : isImage ? '📷' : '📄',
+          docCategory: 'khac',
+          uploadedAtLabel: 'vừa xong',
+        };
+        set((s) => ({ documents: [...s.documents, doc] }));
+      }
+    } catch (err) {
+      set({ chatStarted: true });
+      get().pushMessage('status', `⚠ Tải tệp lên thất bại: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      set({ isUploading: false });
+    }
+  },
+
+  runExtraction: async () => {
+    const s = get();
+    if (!s.apiMode || s.isExtracting || !s.documents.length) return;
+    set({ isExtracting: true, chatStarted: true, extractionWarnings: [] });
+    try {
+      const output = await runPropertyIntake(
+        s.documents.map((d) => d.id),
+        s.caseData.caseId,
+      );
+      const { tab1Fields: extractedFields, docPages: extractedPages } = mapPropertyIntakeOutput(output);
+
+      set((state) => {
+        // Gộp theo key: trường trích xuất được ghi đè đúng ô tương ứng trong bộ trường mockup;
+        // trường lạ (key backend trả về không khớp danh sách mẫu) vẫn được thêm vào cuối, không mất dữ liệu.
+        const tab1Fields = mergeByKey(state.caseData.tab1Fields, extractedFields);
+        const docPages = mergeByKey(state.caseData.docPages, extractedPages);
+        return {
+          caseData: { ...state.caseData, tab1Fields, docPages },
+          fieldBaseline: buildFieldBaseline({ ...state.caseData, tab1Fields }),
+          pendingEdits: { ...state.pendingEdits, 1: [] },
+          dvCurrentKey: docPages[0]?.key ?? state.dvCurrentKey,
+          extractionWarnings: output.warnings ?? [],
+        };
+      });
+      get().pushMessage(
+        'status',
+        `✅ Đã trích xuất ${extractedFields.length} trường từ ${extractedPages.length} tài liệu.` +
+          (output.warnings?.length ? ` Có ${output.warnings.length} cảnh báo — xem chi tiết ở khối tài liệu.` : ''),
+      );
+    } catch (err) {
+      get().pushMessage('status', `⚠ Trích xuất dữ liệu thất bại: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      set({ isExtracting: false });
+    }
   },
 
   removeUpload: (id) => set((s) => ({ documents: s.documents.filter((d) => d.id !== id) })),

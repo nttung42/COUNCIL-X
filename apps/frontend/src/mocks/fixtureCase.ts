@@ -3,6 +3,7 @@ import type {
   AppraisalCaseSummary,
   AttachedDocument,
   DocPage,
+  Tab1Field,
 } from '../types';
 
 // Dữ liệu demo tĩnh cho hồ sơ REQ-2026-0001, chuyển thể 1:1 từ ai/PAA_Mockup_SHB_8.html.
@@ -20,53 +21,10 @@ export const caseHistory: AppraisalCaseSummary[] = [
 ];
 
 export const docPages: DocPage[] = [
-  {
-    key: 'so-hong',
-    label: 'Sổ hồng',
-    boxes: [
-      { id: 'loaigcn', top: 5, left: 12, w: 76, h: 5, conf: 97, field: 'Loại giấy chứng nhận', value: 'Sổ hồng (QSDĐ & QSH nhà ở)' },
-      { id: 'sogcn', top: 14, left: 58, w: 34, h: 5, conf: 96, field: 'Số giấy chứng nhận', value: 'CS 01234567' },
-      { id: 'hoten', top: 24, left: 8, w: 68, h: 5, conf: 98, field: 'Họ và tên chủ sở hữu', value: 'Nguyễn Văn A' },
-      { id: 'diachi', top: 33, left: 8, w: 80, h: 5, conf: 94, field: 'Địa chỉ', value: 'Hẻm 45 Nguyễn Văn A, P.B, Q.C' },
-      { id: 'dientich', top: 42, left: 8, w: 38, h: 5, conf: 91, field: 'Diện tích đất (⚠ mâu thuẫn)', value: '62 m²' },
-      { id: 'mucdich', top: 42, left: 50, w: 42, h: 5, conf: 90, field: 'Mục đích sử dụng đất', value: 'Đất ở tại đô thị' },
-      { id: 'thoihan', top: 50, left: 8, w: 34, h: 5, conf: 95, field: 'Thời hạn sử dụng', value: 'Lâu dài' },
-      { id: 'hinhthuc', top: 50, left: 46, w: 40, h: 5, conf: 94, field: 'Hình thức sở hữu', value: 'Sở hữu riêng' },
-      { id: 'kichthuoc', top: 59, left: 55, w: 37, h: 9, conf: 88, field: 'Kích thước (sơ đồ thửa)', value: '4.2m × 14.8m' },
-      { id: 'sotang', top: 60, left: 8, w: 32, h: 5, conf: 86, field: 'Số tầng', value: '2 tầng + sân thượng' },
-      { id: 'namxd', top: 68, left: 8, w: 26, h: 5, conf: 90, field: 'Năm xây dựng', value: '2016' },
-      { id: 'ketcau', top: 68, left: 38, w: 44, h: 5, conf: 85, field: 'Kết cấu / vật liệu', value: 'BTCT, tường gạch' },
-      { id: 'thechap', top: 78, left: 8, w: 60, h: 5, conf: 55, field: 'Tình trạng thế chấp (chưa đủ căn cứ)', value: 'Trang biến động để trống' },
-      { id: 'ngaycap', top: 88, left: 48, w: 44, h: 6, conf: 93, field: 'Ngày cấp / Cơ quan cấp', value: '14/03/2019 · Sở TN&MT' },
-    ],
-  },
-  {
-    key: 'to-khai',
-    label: 'Tờ khai LPTB',
-    boxes: [
-      { id: 'hoten', top: 13, left: 10, w: 70, h: 5, conf: 90, field: 'Họ tên người nộp', value: 'Nguyễn Văn A' },
-      { id: 'cccd', top: 21, left: 10, w: 60, h: 5, conf: 95, field: 'Số CMND/CCCD người nộp', value: '079xxxxxxxxx' },
-      { id: 'dientich65', top: 45, left: 10, w: 42, h: 5, conf: 72, field: 'Diện tích đất (⚠ mâu thuẫn)', value: '65 m²' },
-    ],
-  },
-  {
-    key: 'bien-ban',
-    label: 'Biên bản BG',
-    boxes: [
-      { id: 'dtsan', top: 30, left: 10, w: 56, h: 5, conf: 66, field: 'Diện tích sàn xây dựng', value: '~98 m²' },
-      { id: 'huong', top: 42, left: 10, w: 40, h: 5, conf: 60, field: 'Hướng nhà', value: 'Đông Nam' },
-      { id: 'tinhtrang', top: 54, left: 10, w: 66, h: 5, conf: 85, field: 'Tình trạng sử dụng / lối vào', value: 'Đang ở · hẻm ô tô vào được' },
-    ],
-  },
-  {
-    key: 'tb-thue',
-    label: 'TB thuế đất (scan)',
-    scan: true,
-    boxes: [
-      { id: 'diachi', top: 25, left: 10, w: 70, h: 5, conf: 80, field: 'Địa chỉ thửa đất', value: 'Hẻm 45 Nguyễn Văn A' },
-      { id: 'sothua', top: 35, left: 10, w: 60, h: 6, conf: 68, field: 'Số thửa / tờ bản đồ', value: 'Thửa 45, tờ BĐ 12' },
-    ],
-  },
+  { key: 'so-hong', label: 'Sổ hồng' },
+  { key: 'to-khai', label: 'Tờ khai LPTB' },
+  { key: 'bien-ban', label: 'Biên bản BG' },
+  { key: 'tb-thue', label: 'TB thuế đất (scan)', scan: true },
 ];
 
 /** Danh mục tệp mẫu để mô phỏng thao tác tải lên (dropzone demo, không upload thật). */
@@ -79,130 +37,337 @@ export const mockUploadPool: Omit<AttachedDocument, 'id' | 'uploadedAtLabel'>[] 
   { fileName: 'giay-phep-xay-dung.pdf', icon: '🏗️', docCategory: 'khac' },
 ];
 
+// Danh sách phẳng — key/section/label khớp NGUYÊN VĂN với FormField mà plugin property_intake
+// thật trả về (xác nhận qua 1 job "completed" thực tế gọi từ backend ai/, 2026-07-18) — KHÔNG
+// còn tự đặt key kiểu "section.camelCase" nữa vì backend dùng snake_case phẳng không tiền tố.
+// Ngoại lệ duy nhất: 'frontage_depth' (Kích thước mặt tiền × chiều sâu) — có trong mockup nhưng
+// backend hiện chưa trích xuất trường này, nên luôn ở trạng thái nhập tay cho tới khi có tool hỗ trợ.
+// bbox tính theo % kích thước trang (0-100); quy đổi từ BBox (0-1) của API xảy ra ở apiClient.ts.
+const tab1Fields: Tab1Field[] = [
+  // A. Thông tin bên vay / chủ sở hữu
+  {
+    key: 'owner_full_name',
+    section: 'A',
+    label: 'Họ và tên',
+    value: 'Nguyễn Văn A',
+    confidencePct: 98,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · trang 1: “Người sử dụng đất, chủ sở hữu: Ông NGUYỄN VĂN A”',
+    bbox: { top: 24, left: 8, w: 68, h: 5 },
+  },
+  {
+    key: 'owner_national_id',
+    section: 'A',
+    label: 'Số CMND/CCCD',
+    value: '079xxxxxxxxx',
+    confidencePct: 95,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'to-khai',
+    sourceSnippet: 'Tờ khai lệ phí trước bạ · mục Người nộp: “CCCD số 079xxxxxxxxx”',
+    bbox: { top: 21, left: 10, w: 60, h: 5 },
+  },
+  {
+    key: 'owner_phone',
+    section: 'A',
+    label: 'Số điện thoại',
+    value: '09xx xxx xxx',
+    confidencePct: null,
+    status: 'nhap_tay',
+    sourceDocKey: null,
+    sourceSnippet: 'Không có trong tài liệu tài sản — nhập tay.',
+    bbox: null,
+  },
+  {
+    key: 'relationship_to_asset',
+    section: 'A',
+    label: 'Mối quan hệ với tài sản',
+    value: 'Chủ sở hữu đứng tên trên GCN',
+    confidencePct: null,
+    status: 'suy_luan',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Suy ra từ đối chiếu: tên người vay trùng tên chủ sở hữu trên Sổ hồng.',
+    bbox: null,
+  },
+
+  // B. Thông tin pháp lý tài sản
+  {
+    key: 'certificate_type',
+    section: 'B',
+    label: 'Loại giấy chứng nhận',
+    value: 'Sổ hồng (QSDĐ & QSH nhà ở)',
+    confidencePct: 97,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · tiêu đề: “GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT, QUYỀN SỞ HỮU NHÀ Ở...”',
+    bbox: { top: 5, left: 12, w: 76, h: 5 },
+  },
+  {
+    key: 'certificate_number',
+    section: 'B',
+    label: 'Số giấy chứng nhận',
+    value: 'CS 01234567',
+    confidencePct: 96,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · góc trên bên phải: “Số phát hành: CS 01234567”',
+    bbox: { top: 14, left: 58, w: 34, h: 5 },
+  },
+  {
+    key: 'issue_date',
+    section: 'B',
+    label: 'Ngày cấp',
+    value: '14/03/2019',
+    confidencePct: 93,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · trang 2: “Ngày 14 tháng 3 năm 2019 — Giám đốc Sở TN&MT”',
+    bbox: { top: 88, left: 48, w: 44, h: 6 },
+  },
+  {
+    key: 'issuing_authority',
+    section: 'B',
+    label: 'Cơ quan cấp',
+    value: 'Sở TN&MT TP',
+    confidencePct: 93,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · trang 2: “Ngày 14 tháng 3 năm 2019 — Giám đốc Sở TN&MT”',
+    bbox: null,
+  },
+  {
+    key: 'land_plot_number',
+    section: 'B',
+    label: 'Số thửa',
+    value: 'Thửa 45',
+    confidencePct: 68,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'tb-thue',
+    sourceSnippet: 'Thông báo nộp thuế đất · bản scan (chất lượng thấp): “Thửa đất số 45, tờ bản đồ 12”',
+    bbox: { top: 35, left: 10, w: 60, h: 6 },
+  },
+  {
+    key: 'map_sheet_number',
+    section: 'B',
+    label: 'Số tờ bản đồ',
+    value: 'Tờ BĐ 12',
+    confidencePct: 68,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'tb-thue',
+    sourceSnippet: 'Thông báo nộp thuế đất · bản scan (chất lượng thấp): “Thửa đất số 45, tờ bản đồ 12”',
+    bbox: null,
+  },
+  {
+    key: 'land_use_purpose',
+    section: 'B',
+    label: 'Mục đích sử dụng đất',
+    value: 'Đất ở tại đô thị (ODT)',
+    confidencePct: 90,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · mục Mục đích sử dụng: “Đất ở tại đô thị”',
+    bbox: { top: 42, left: 50, w: 42, h: 5 },
+  },
+  {
+    key: 'use_term',
+    section: 'B',
+    label: 'Thời hạn sử dụng',
+    value: 'Lâu dài',
+    confidencePct: 95,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · mục Thời hạn sử dụng: “Lâu dài”',
+    bbox: { top: 50, left: 8, w: 34, h: 5 },
+  },
+  {
+    key: 'ownership_form',
+    section: 'B',
+    label: 'Hình thức sở hữu',
+    value: 'Sở hữu riêng',
+    confidencePct: 94,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · mục Hình thức sử dụng: “Sử dụng riêng”',
+    bbox: { top: 50, left: 46, w: 40, h: 5 },
+  },
+  {
+    key: 'current_mortgage_status',
+    section: 'B',
+    label: 'Tình trạng thế chấp hiện tại',
+    value: 'Chưa thế chấp tại TCTD nào',
+    confidencePct: 55,
+    status: 'can_xac_minh',
+    sourceDocKey: 'so-hong',
+    sourceSnippet:
+      'Trang biến động Sổ hồng để trống — chưa đủ căn cứ khẳng định, cần tra cứu CIC/hệ thống nội bộ trước khi kết luận.',
+    bbox: { top: 78, left: 8, w: 60, h: 5 },
+  },
+
+  // C. Vị trí & đặc điểm tài sản
+  {
+    key: 'address',
+    section: 'C',
+    label: 'Địa chỉ',
+    value: 'Hẻm 45 Nguyễn Văn A, Phường B, Quận C',
+    confidencePct: 94,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · Địa chỉ thửa đất: “Hẻm 45 Nguyễn Văn A, Phường B, Quận C”',
+    bbox: { top: 33, left: 8, w: 80, h: 5 },
+  },
+  {
+    key: 'property_type',
+    section: 'C',
+    label: 'Loại BĐS',
+    value: 'Nhà phố (nhà trong hẻm)',
+    confidencePct: null,
+    status: 'suy_luan',
+    sourceDocKey: null,
+    sourceSnippet: 'Suy luận từ đặc điểm nhà + vị trí trong hẻm — không nêu trực tiếp trên tài liệu, cần thẩm định viên xác nhận.',
+    bbox: null,
+  },
+  {
+    key: 'land_area_sqm',
+    section: 'C',
+    label: 'Diện tích đất',
+    value: '62 m²',
+    confidencePct: 91,
+    status: 'mau_thuan',
+    sourceDocKey: 'so-hong',
+    sourceSnippet:
+      '⚠ 2 tài liệu ghi khác nhau: Sổ hồng = 62 m², Tờ khai LPTB = 65 m². Kiểm tra chéo sơ đồ (4.2 × 14.8 = 62.2 m²) ủng hộ 62 m². Cần thẩm định viên chốt.',
+    bbox: { top: 42, left: 8, w: 38, h: 5 },
+  },
+  {
+    key: 'floor_area_sqm',
+    section: 'C',
+    label: 'Diện tích sàn xây dựng',
+    value: '98 m² (2 tầng)',
+    confidencePct: 66,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'bien-ban',
+    sourceSnippet: 'Biên bản bàn giao · “Tổng diện tích sàn ~98m²” (diễn đạt xấp xỉ).',
+    bbox: { top: 30, left: 10, w: 56, h: 5 },
+  },
+  {
+    key: 'frontage_depth',
+    section: 'C',
+    label: 'Kích thước mặt tiền × chiều sâu',
+    value: '4.2m × 14.8m',
+    confidencePct: 88,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · sơ đồ thửa đất: cạnh 4.2m × 14.8m',
+    bbox: { top: 59, left: 55, w: 37, h: 9 },
+  },
+  {
+    key: 'num_floors_desc',
+    section: 'C',
+    label: 'Số tầng',
+    value: '2 tầng + sân thượng',
+    confidencePct: 86,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · tài sản gắn liền với đất: “Nhà ở 2 tầng”',
+    bbox: { top: 60, left: 8, w: 32, h: 5 },
+  },
+  {
+    key: 'construction_year',
+    section: 'C',
+    label: 'Năm xây dựng',
+    value: '2016',
+    confidencePct: 90,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · năm hoàn thành xây dựng: 2016',
+    bbox: { top: 68, left: 8, w: 26, h: 5 },
+  },
+  {
+    key: 'structure_material',
+    section: 'C',
+    label: 'Kết cấu / vật liệu',
+    value: 'Bê tông cốt thép, tường gạch',
+    confidencePct: 85,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'so-hong',
+    sourceSnippet: 'Sổ hồng · kết cấu: “BTCT, tường gạch”',
+    bbox: { top: 68, left: 38, w: 44, h: 5 },
+  },
+  {
+    key: 'house_direction',
+    section: 'C',
+    label: 'Hướng nhà',
+    value: 'Đông Nam',
+    confidencePct: 60,
+    status: 'can_xac_minh',
+    sourceDocKey: 'bien-ban',
+    sourceSnippet: 'Biên bản bàn giao · ghi chú hiện trạng: “hướng Đông Nam” (nguồn thứ cấp, nên xác minh thực địa).',
+    bbox: { top: 42, left: 10, w: 40, h: 5 },
+  },
+  {
+    key: 'road_type_desc',
+    section: 'C',
+    label: 'Loại đường / độ rộng hẻm',
+    value: 'Hẻm bê tông, rộng 3.5m, ô tô vào được',
+    confidencePct: 85,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'bien-ban',
+    sourceSnippet: 'Biên bản bàn giao · mô tả lối vào/hiện trạng khu vực.',
+    bbox: { top: 54, left: 10, w: 66, h: 5 },
+  },
+  {
+    key: 'current_usage_status',
+    section: 'C',
+    label: 'Tình trạng sử dụng hiện tại',
+    value: 'Đang ở, không cho thuê',
+    confidencePct: 85,
+    status: 'da_xac_thuc',
+    sourceDocKey: 'bien-ban',
+    sourceSnippet: 'Biên bản bàn giao: “Bàn giao nhà đang sử dụng để ở”',
+    bbox: null,
+  },
+
+  // D. Thông tin khoản vay — không có nguồn tài liệu, luôn nhập tay
+  {
+    key: 'loan_amount_vnd',
+    section: 'D',
+    label: 'Số tiền vay',
+    value: '3.200.000.000 ₫',
+    confidencePct: null,
+    status: 'nhap_tay',
+    sourceDocKey: null,
+    sourceSnippet: null,
+    bbox: null,
+  },
+  {
+    key: 'loan_purpose',
+    section: 'D',
+    label: 'Mục đích vay',
+    value: 'Thế chấp vay vốn',
+    confidencePct: null,
+    status: 'nhap_tay',
+    sourceDocKey: null,
+    sourceSnippet: null,
+    bbox: null,
+  },
+  {
+    key: 'loan_term_years',
+    section: 'D',
+    label: 'Thời hạn vay',
+    value: '15 năm',
+    confidencePct: null,
+    status: 'nhap_tay',
+    sourceDocKey: null,
+    sourceSnippet: null,
+    bbox: null,
+  },
+];
+
 export const fixtureCase: AppraisalCaseFull = {
   caseId: CASE_ID,
   status: 'dang_xu_ly',
 
-  borrower: {
-    id: 'borrower-1',
-    fullName: {
-      value: 'Nguyễn Văn A',
-      source: { docKey: 'so-hong', boxId: 'hoten', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · trang 1: “Người sử dụng đất, chủ sở hữu: Ông NGUYỄN VĂN A”' },
-    },
-    nationalId: {
-      value: '079xxxxxxxxx',
-      source: { docKey: 'to-khai', boxId: 'cccd', label: '📄 Tờ khai LPTB ↗', srcText: 'Tờ khai lệ phí trước bạ · mục Người nộp: “CCCD số 079xxxxxxxxx”' },
-    },
-    phoneNumber: {
-      value: '09xx xxx xxx',
-      source: { docKey: 'suy-luan', label: '✍️ Nhập tay (không có nguồn)', srcText: 'Không có trong tài liệu tài sản — nhập tay.' },
-    },
-    relationshipToAsset: {
-      value: 'Chủ sở hữu đứng tên trên GCN',
-      source: { docKey: 'so-hong', boxId: 'hoten', label: '📄 Sổ hồng ↗', srcText: 'Suy ra từ đối chiếu: tên người vay trùng tên chủ sở hữu trên Sổ hồng.' },
-    },
-  },
-
-  legal: {
-    certificateType: {
-      value: 'Sổ hồng (QSDĐ & QSH nhà ở)',
-      source: { docKey: 'so-hong', boxId: 'loaigcn', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · tiêu đề: “GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT, QUYỀN SỞ HỮU NHÀ Ở...”' },
-    },
-    certificateNumber: {
-      value: 'CS 01234567',
-      source: { docKey: 'so-hong', boxId: 'sogcn', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · góc trên bên phải: “Số phát hành: CS 01234567”' },
-    },
-    issueDateAuthority: {
-      value: '14/03/2019 · Sở TN&MT TP',
-      source: { docKey: 'so-hong', boxId: 'ngaycap', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · trang 2: “Ngày 14 tháng 3 năm 2019 — Giám đốc Sở TN&MT”' },
-    },
-    landPlotMapSheet: {
-      value: 'Thửa 45, tờ BĐ 12',
-      source: { docKey: 'tb-thue', boxId: 'sothua', label: '📄 TB thuế đất (scan) ↗', srcText: 'Thông báo nộp thuế đất · bản scan (chất lượng thấp): “Thửa đất số 45, tờ bản đồ 12”' },
-    },
-    landUsePurpose: {
-      value: 'Đất ở tại đô thị (ODT)',
-      source: { docKey: 'so-hong', boxId: 'mucdich', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · mục Mục đích sử dụng: “Đất ở tại đô thị”' },
-    },
-    useTerm: {
-      value: 'Lâu dài',
-      source: { docKey: 'so-hong', boxId: 'thoihan', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · mục Thời hạn sử dụng: “Lâu dài”' },
-    },
-    ownershipForm: {
-      value: 'Sở hữu riêng',
-      source: { docKey: 'so-hong', boxId: 'hinhthuc', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · mục Hình thức sử dụng: “Sử dụng riêng”' },
-    },
-    currentMortgageStatus: {
-      value: 'Chưa thế chấp tại TCTD nào',
-      source: {
-        docKey: 'so-hong',
-        boxId: 'thechap',
-        label: '📄 Sổ hồng · cần đối chiếu CIC ↗',
-        srcText: 'Trang biến động Sổ hồng để trống — chưa đủ căn cứ khẳng định, cần tra cứu CIC/hệ thống nội bộ trước khi kết luận.',
-        warn: true,
-      },
-    },
-  },
-
-  physical: {
-    address: {
-      value: 'Hẻm 45 Nguyễn Văn A, Phường B, Quận C',
-      source: { docKey: 'so-hong', boxId: 'diachi', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · Địa chỉ thửa đất: “Hẻm 45 Nguyễn Văn A, Phường B, Quận C”' },
-    },
-    propertyType: {
-      value: 'Nhà phố (nhà trong hẻm)',
-      source: { docKey: 'suy-luan', label: '📄 Suy luận (không có vùng nguồn)', srcText: 'Suy luận từ đặc điểm nhà + vị trí trong hẻm — không nêu trực tiếp trên tài liệu, cần thẩm định viên xác nhận.' },
-    },
-    landAreaSqm: {
-      value: '62 m²',
-      source: {
-        docKey: 'so-hong',
-        boxId: 'dientich',
-        label: '⚠ 2 nguồn khác nhau ↗',
-        srcText: '⚠ 2 tài liệu ghi khác nhau: Sổ hồng = 62 m², Tờ khai LPTB = 65 m². Kiểm tra chéo sơ đồ (4.2 × 14.8 = 62.2 m²) ủng hộ 62 m². Cần thẩm định viên chốt.',
-        warn: true,
-      },
-    },
-    floorAreaSqm: {
-      value: '98 m² (2 tầng)',
-      source: { docKey: 'bien-ban', boxId: 'dtsan', label: '📄 Biên bản BG ↗', srcText: 'Biên bản bàn giao · “Tổng diện tích sàn ~98m²” (diễn đạt xấp xỉ).' },
-    },
-    frontageDepth: {
-      value: '4.2m × 14.8m',
-      source: { docKey: 'so-hong', boxId: 'kichthuoc', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · sơ đồ thửa đất: cạnh 4.2m × 14.8m' },
-    },
-    numFloorsDesc: {
-      value: '2 tầng + sân thượng',
-      source: { docKey: 'so-hong', boxId: 'sotang', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · tài sản gắn liền với đất: “Nhà ở 2 tầng”' },
-    },
-    constructionYear: {
-      value: '2016',
-      source: { docKey: 'so-hong', boxId: 'namxd', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · năm hoàn thành xây dựng: 2016' },
-    },
-    structureMaterial: {
-      value: 'Bê tông cốt thép, tường gạch',
-      source: { docKey: 'so-hong', boxId: 'ketcau', label: '📄 Sổ hồng ↗', srcText: 'Sổ hồng · kết cấu: “BTCT, tường gạch”' },
-    },
-    houseDirection: {
-      value: 'Đông Nam',
-      source: { docKey: 'bien-ban', boxId: 'huong', label: '📄 Biên bản BG ↗', srcText: 'Biên bản bàn giao · ghi chú hiện trạng: “hướng Đông Nam” (nguồn thứ cấp, nên xác minh thực địa).' },
-    },
-    roadTypeDesc: {
-      value: 'Hẻm bê tông, rộng 3.5m, ô tô vào được',
-      source: { docKey: 'bien-ban', boxId: 'tinhtrang', label: '📄 Biên bản BG ↗', srcText: 'Biên bản bàn giao · mô tả lối vào/hiện trạng khu vực.' },
-    },
-    currentUsageStatus: {
-      value: 'Đang ở, không cho thuê',
-      source: { docKey: 'bien-ban', boxId: 'tinhtrang', label: '📄 Biên bản BG ↗', srcText: 'Biên bản bàn giao: “Bàn giao nhà đang sử dụng để ở”' },
-    },
-  },
-
-  loan: {
-    loanAmountVnd: { value: '3.200.000.000 ₫' },
-    loanPurpose: { value: 'Thế chấp vay vốn' },
-    loanTermYears: { value: '15 năm' },
-  },
-
+  tab1Fields,
   documents: [],
   docPages,
 

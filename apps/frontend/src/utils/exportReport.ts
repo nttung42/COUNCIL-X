@@ -1,12 +1,13 @@
 import type { AppraisalCaseFull } from '../types';
 import { SEVERITY_LABEL } from './severity';
+import { getFieldValue } from './tab1Field';
 
 // Sinh nội dung HTML của biên bản thẩm định từ dữ liệu hồ sơ hiện có, y hệt buildReportHtml()
 // trong ai/PAA_Mockup_SHB_8.html — không cần backend, tải trực tiếp về máy dưới dạng .html.
 export function buildReportHtml(caseData: AppraisalCaseFull): string {
-  const address = caseData.physical.address.value;
-  const area = caseData.physical.landAreaSqm.value;
-  const bdsType = caseData.physical.propertyType.value;
+  const address = getFieldValue(caseData.tab1Fields, 'address');
+  const area = getFieldValue(caseData.tab1Fields, 'land_area_sqm');
+  const bdsType = getFieldValue(caseData.tab1Fields, 'property_type');
 
   const { valuation, risk } = caseData;
   const riskLabel = SEVERITY_LABEL[risk.riskLabel].toUpperCase();
