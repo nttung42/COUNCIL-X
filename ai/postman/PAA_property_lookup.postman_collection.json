@@ -3,32 +3,23 @@
     "_postman_id": "c2b8d1ef-2b3c-4d5e-9f0a-1b2c3d4e5f60",
     "name": "SHB AI - property_lookup (Chức năng 2 / Màn 2)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Test đọc Kết quả tra cứu (property_lookup) — service ĐỒNG BỘ (is_async=false): gọi là trả kết quả ngay, KHÔNG cần poll /jobs.\n\nCHẠY THEO THỨ TỰ:\n0. Health\n1. Register → tự lưu {{api_key}}\n2. List services (thấy property_lookup)\n3. Run property_lookup → đọc 7 nguồn + bảng giao dịch so sánh của {{case_id}}\n\nCASE MẪU (đã seed 60 hồ sơ REQ-2026-2000..2059):\n- Giàu dữ liệu (đủ 7 nguồn + comparables): REQ-2026-2000, REQ-2026-2001, REQ-2026-2002\n- Rỗng (demo cảnh báo 'Chưa có dữ liệu'): REQ-2026-2007, REQ-2026-2024, REQ-2026-2026\n\nĐổi biến {{case_id}} rồi Send lại để xem case khác. Xem bảng ở tab Visualize hoặc Console.\n\nBase mặc định http://localhost:8888 (Docker). Prerequisite: đã nạp seed bằng ai/scripts/load_seed.sh."
+    "description": "Test đọc Kết quả tra cứu (property_lookup). Service chạy ASYNC + SSE (đồng nhất với F1).\n\nCHẠY THEO THỨ TỰ:\n0. Health\n1. Register → tự lưu {{api_key}}\n2. List services (thấy property_lookup, is_async=true)\n3. Run → trả {{job_id}}\n4. Stream (SSE) — Postman v10+ hiển thị event stream real-time (snapshot → status → done)\n   HOẶC 5. Get job (poll) — fallback nếu Postman không hỗ trợ SSE, xem bảng ở Visualize.\n\nCASE MẪU (60 hồ sơ REQ-2026-2000..2059):\n- Giàu dữ liệu: REQ-2026-2000, 2001, 2002\n- Rỗng (demo cảnh báo): REQ-2026-2007, 2024, 2026\n\nSSE contract: docs/contracts/sse-streaming.md. Base mặc định http://localhost:8888."
   },
   "variable": [
     { "key": "host", "value": "http://localhost:8888" },
     { "key": "base_url", "value": "http://localhost:8888/api/v1" },
     { "key": "email", "value": "lookup_test@shb.vn" },
     { "key": "api_key", "value": "" },
-    { "key": "case_id", "value": "REQ-2026-2000" }
+    { "key": "case_id", "value": "REQ-2026-2000" },
+    { "key": "job_id", "value": "" }
   ],
   "item": [
     {
       "name": "0. Health",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": ["pm.test('server ok', () => pm.response.to.have.status(200));"]
-          }
-        }
-      ],
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{host}}/health", "host": ["{{host}}"], "path": ["health"] },
-        "description": "Kiểm tra server sống."
+        "url": { "raw": "{{host}}/health", "host": ["{{host}}"], "path": ["health"] }
       }
     },
     {
@@ -41,7 +32,7 @@
             "exec": [
               "pm.test('registered', () => pm.response.to.have.status(201));",
               "const j = pm.response.json();",
-              "if (j.api_key) { pm.collectionVariables.set('api_key', j.api_key); console.log('Saved api_key:', j.api_key); }"
+              "if (j.api_key) { pm.collectionVariables.set('api_key', j.api_key); }"
             ]
           }
         }
@@ -51,33 +42,28 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" },
         "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] },
-        "description": "Tạo user, trả api_key MỘT LẦN (tự lưu {{api_key}}). Nếu 409 (email trùng) → đổi biến {{email}}."
+        "description": "Nếu 409 (email trùng) → đổi biến {{email}}."
       }
     },
     {
-      "name": "2. List services (thấy property_lookup)",
+      "name": "2. List services",
       "request": {
         "method": "GET",
         "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-        "url": { "raw": "{{base_url}}/services", "host": ["{{base_url}}"], "path": ["services"] },
-        "description": "Kiểm tra property_lookup đã đăng ký (is_async=false)."
+        "url": { "raw": "{{base_url}}/services", "host": ["{{base_url}}"], "path": ["services"] }
       }
     },
     {
-      "name": "3. Run property_lookup (đồng bộ → kết quả ngay)",
+      "name": "3. Run property_lookup (async → job_id)",
       "event": [
         {
           "listen": "test",
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('200 ok', () => pm.response.to.have.status(200));",
+              "pm.test('202/200', () => pm.expect(pm.response.code).to.be.oneOf([200, 202]));",
               "const j = pm.response.json();",
-              "const r = j.result || j;",
-              "console.log('case', r.case_id, '| findings', r.findings.length, '| comparables', r.market_comparables.length);",
-              "r.findings.forEach(f => console.log('  [' + f.status_badge + '] ' + f.title + ' ' + f.confidence_pct + '%'));",
-              "(r.warnings || []).forEach(w => console.log('! ' + w));",
-              "pm.visualizer.set('<h3>Case {{case_id}} — {{n}} nguồn tra cứu</h3><table border=1 cellpadding=5 cellspacing=0><tr><th>Nguồn</th><th>Badge</th><th>%</th><th>Nhận định</th></tr>{{#each findings}}<tr><td>{{title}}</td><td>{{status_badge}}</td><td>{{confidence_pct}}</td><td>{{inference_text}}</td></tr>{{/each}}</table><h4>Giao dịch so sánh ({{nc}})</h4><table border=1 cellpadding=5 cellspacing=0><tr><th>Địa chỉ</th><th>Cách (km)</th><th>DT (m²)</th><th>Ngày GD</th><th>Giá/m²</th></tr>{{#each comps}}<tr><td>{{address}}</td><td>{{distance_km}}</td><td>{{area_sqm}}</td><td>{{transaction_date}}</td><td>{{price_per_sqm_vnd}}</td></tr>{{/each}}</table>{{#if warnings.length}}<h4>Cảnh báo</h4><ul>{{#each warnings}}<li>{{this}}</li>{{/each}}</ul>{{/if}}', { case_id: r.case_id, n: r.findings.length, findings: r.findings, nc: r.market_comparables.length, comps: r.market_comparables, warnings: r.warnings });"
+              "if (j.job_id) { pm.collectionVariables.set('job_id', j.job_id); console.log('job_id =', j.job_id); }"
             ]
           }
         }
@@ -90,7 +76,46 @@
         ],
         "body": { "mode": "raw", "raw": "{\n  \"input\": {\n    \"case_id\": \"{{case_id}}\"\n  }\n}" },
         "url": { "raw": "{{base_url}}/services/property_lookup/run", "host": ["{{base_url}}"], "path": ["services", "property_lookup", "run"] },
-        "description": "Trả 200 ngay với result = { case_id, findings[7], market_comparables[], warnings }.\nXem bảng ở tab Visualize, hoặc chi tiết JSON ở Body → Pretty, hoặc tóm tắt ở Postman Console (Ctrl+Alt+C).\nĐổi biến {{case_id}} để xem hồ sơ khác (vd REQ-2026-2007 = rỗng → có cảnh báo)."
+        "description": "Trả { job_id }. Đổi {{case_id}} để xem hồ sơ khác (vd REQ-2026-2007 = rỗng)."
+      }
+    },
+    {
+      "name": "4. Stream (SSE) — tiến độ real-time",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{job_id}}/stream?api_key={{api_key}}",
+          "host": ["{{base_url}}"],
+          "path": ["jobs", "{{job_id}}", "stream"],
+          "query": [{ "key": "api_key", "value": "{{api_key}}" }]
+        },
+        "description": "Postman v10+ nhận diện text/event-stream và hiển thị các event real-time: snapshot → status(running) → done (kèm result). Auth qua ?api_key= (giống EventSource của trình duyệt). Nếu Postman của bạn không hỗ trợ SSE, dùng request 5 (poll) hoặc curl -N."
+      }
+    },
+    {
+      "name": "5. Get job (poll fallback + Visualize)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "console.log('status =', j.status, '| progress =', j.progress);",
+              "if (j.status === 'completed' && j.result) {",
+              "  const r = j.result;",
+              "  pm.visualizer.set('<h3>Case {{case_id}} — {{n}} nguồn</h3><table border=1 cellpadding=5 cellspacing=0><tr><th>Nguồn</th><th>Badge</th><th>%</th><th>Nhận định</th></tr>{{#each findings}}<tr><td>{{title}}</td><td>{{status_badge}}</td><td>{{confidence_pct}}</td><td>{{inference_text}}</td></tr>{{/each}}</table><h4>Giao dịch so sánh ({{nc}})</h4><table border=1 cellpadding=5 cellspacing=0><tr><th>Địa chỉ</th><th>Cách</th><th>DT</th><th>Ngày</th><th>Giá/m²</th></tr>{{#each comps}}<tr><td>{{address}}</td><td>{{distance_km}}</td><td>{{area_sqm}}</td><td>{{transaction_date}}</td><td>{{price_per_sqm_vnd}}</td></tr>{{/each}}</table>{{#if warnings.length}}<ul>{{#each warnings}}<li>{{this}}</li>{{/each}}</ul>{{/if}}', { n: r.findings.length, findings: r.findings, nc: r.market_comparables.length, comps: r.market_comparables, warnings: r.warnings });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "url": { "raw": "{{base_url}}/jobs/{{job_id}}", "host": ["{{base_url}}"], "path": ["jobs", "{{job_id}}"] },
+        "description": "Bấm Send tới khi status=completed → xem bảng ở tab Visualize. (Job property_lookup xong gần như ngay.)"
       }
     }
   ]

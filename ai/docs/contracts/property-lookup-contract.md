@@ -4,7 +4,7 @@
 > **Định dạng:** JSON. Plugin **ĐỌC DB** (`lookup_finding` + `market_comparable`) theo `case_id` và trả JSON Màn 2 — không sinh dữ liệu, không ghi DB.
 > **Đối tượng dùng:** Frontend (render tab "Kết quả tra cứu"), Backend (proxy API).
 
-Khác Function 1 (`property_intake` trả JSON để BE ghi DB), Function 2 **đọc dữ liệu đã có** trong DB (seed demo `apps/datasource/paa_seed_data.sql`, hoặc do một pipeline tra cứu ghi sau này) qua tầng `shb.capabilities.lookup`. Vì chỉ đọc nên service **đồng bộ** (`is_async=False`) — gọi là trả kết quả ngay, không cần poll job.
+Khác Function 1 (`property_intake` trả JSON để BE ghi DB), Function 2 **đọc dữ liệu đã có** trong DB (seed demo `apps/datasource/paa_seed_data.sql`, hoặc do một pipeline tra cứu ghi sau này) qua tầng `shb.capabilities.lookup`. Service chạy **async** (`is_async=True`) để dùng **chung luồng SSE** với các function khác — nhưng vì chỉ đọc DB nên job xong gần như tức thì. Xem [SSE contract](sse-streaming.md).
 
 ---
 
@@ -35,12 +35,15 @@ Khác Function 1 (`property_intake` trả JSON để BE ghi DB), Function 2 **đ
 |---|---|---|---|
 | `case_id` | `string` | ✔ | Mã hồ sơ (`REQ-...`). Subject/data lấy từ DB theo case_id. |
 
-**Gọi & nhận (đồng bộ):**
+**Gọi & nhận (async + SSE):**
 ```
 POST /api/v1/services/property_lookup/run
 Header: X-API-Key: <key>
 Body: { "input": { "case_id": "REQ-2026-0001" } }
-→ 200 { "result": PropertyLookupOutput }     // KHÔNG có job_id, trả ngay
+→ 200 { "job_id": "...", "status": "pending" }
+
+GET /api/v1/jobs/{job_id}/stream?api_key=<key>   (SSE)
+→ done { "status": "completed", "result": PropertyLookupOutput }
 ```
 
 ---
