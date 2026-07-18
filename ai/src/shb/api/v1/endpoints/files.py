@@ -58,16 +58,7 @@ async def upload_file(
         )
 
 
-@router.get("/{file_id}/download", summary="Download a file by ID")
-async def download_file(
-    file_id: str,
-    db: AsyncSession = Depends(get_db),
-) -> PhysicalFileResponse:
-    """Download the physical file associated with *file_id*.
-
-    Returns the raw file bytes with the correct ``Content-Disposition`` header
-    so browsers and ``curl -OJ`` can save it under its original filename.
-    """
+async def _file_response(file_id: str, db: AsyncSession, disposition: str) -> PhysicalFileResponse:
     storage_service = StorageService(db)
     file_record = await storage_service.get_file(file_id)
 
@@ -87,4 +78,23 @@ async def download_file(
         path=file_record.stored_path,
         filename=file_record.original_name,
         media_type=file_record.content_type,
+        content_disposition_type=disposition,
     )
+
+
+@router.get("/{file_id}/preview", summary="Preview a file inline by ID")
+async def preview_file(
+    file_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> PhysicalFileResponse:
+    """Return file bytes inline so browser preview widgets do not trigger download."""
+    return await _file_response(file_id, db, "inline")
+
+
+@router.get("/{file_id}/download", summary="Download a file by ID")
+async def download_file(
+    file_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> PhysicalFileResponse:
+    """Download the physical file associated with *file_id*."""
+    return await _file_response(file_id, db, "attachment")
