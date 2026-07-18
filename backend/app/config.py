@@ -38,6 +38,12 @@ try:
             "postgresql+psycopg://paa:paa@localhost:5432/paa"
         )
 
+        # --- Orchestrator / API (THÊM bởi agent Orchestrator & API) ---
+        # Backend lưu CaseSession/TraceEvent: "memory" (mặc định, không cần
+        # Postgres — đủ cho demo/hackathon single-process) hoặc "sql" (dùng
+        # SQLAlchemy + Postgres theo data-model.md §10–11).
+        store_backend: str = "memory"
+
 except ImportError:  # pragma: no cover - fallback nếu chưa cài pydantic-settings
     import os
 
@@ -53,6 +59,7 @@ except ImportError:  # pragma: no cover - fallback nếu chưa cài pydantic-set
             self.database_url = os.getenv(
                 "DATABASE_URL", "postgresql+psycopg://paa:paa@localhost:5432/paa"
             )
+            self.store_backend = os.getenv("STORE_BACKEND", "memory")
 
 
 settings = Settings()

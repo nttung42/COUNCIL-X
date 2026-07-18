@@ -1,11 +1,30 @@
 # PAA backend dependencies.
-# NOTE: file tối thiểu do agent Advisory & RAG khởi tạo (superset an toàn). Các
-# agent khác / Orchestrator hãy MERGE thêm dep còn thiếu (google-adk, ...) thay vì
-# ghi đè để tránh mất dependency.
+# NOTE: minimal file created by the Advisory & RAG agent (safe superset). Other
+# agents / Orchestrator should MERGE additional deps in (not overwrite) to avoid
+# losing dependencies.
+#
+# ASCII-only comments on purpose: on Windows, `pip install -r` decodes this
+# file using the console codepage (cp1252) unless PYTHONUTF8=1 is set, so
+# non-ASCII characters here can break `pip install` for some users.
 
 # --- Web / API ---
 fastapi>=0.110
 uvicorn[standard]>=0.29
+# httpx: used by scripts/mock_planner.py (ASGI in-process + server mode) and
+# starlette TestClient. Already a transitive dep of FastAPI test extras,
+# declared explicitly here.
+httpx>=0.27
+# SSE StreamingResponse uses starlette's built-in support (no extra lib needed).
+
+# --- Multi-agent orchestration (Google ADK) ---
+# Research Agent uses ParallelAgent (best-effort), OpenAI-compatible model via
+# the LiteLlm adapter. Core pipeline still runs WITHOUT ADK (asyncio.gather
+# fallback).
+google-adk>=1.19
+# litellm: required for ADK's `LiteLlm` wrapper around an OpenAI-compatible
+# model (custom base_url). Without litellm, build_adk_model() returns None
+# and the pipeline still runs via the fallback path.
+litellm>=1.40
 
 # --- Config / validation ---
 pydantic>=2.6
