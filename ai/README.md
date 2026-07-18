@@ -119,7 +119,6 @@ của frontend để biết chính xác màn nào đã nối API, màn nào còn
 | Hàng đợi tác vụ nền | **Celery 5.3+** + **Redis 7+** (broker + result backend) | phục vụ plugin `is_async=True` — điển hình là `property_intake`, vì gọi LLM mất nhiều giây |
 | Orchestration LLM nhiều bước | **LangChain / LangGraph** | pipeline PAA đầy đủ ở `ARCHITECTURE.md` sẽ dùng; `property_intake` hiện đã dùng LangGraph nội bộ (`graph.py`) |
 | LLM | Gateway **tương thích OpenAI** qua `LLM_BASE_URL` (trỏ tới OpenRouter hay gateway nội bộ đều được) | `LLM_API_KEY`, `LLM_MODEL`, `LLM_VISION_MODEL` cho OCR tài liệu scan |
-| Auth | API key đơn giản qua header `X-API-Key` (hash SHA-256, lưu DB) | không có màn đăng nhập — tự đăng ký 1 lần qua `POST /auth/register` |
 | Containerize | Docker + Docker Compose | app + Postgres + Redis + Celery worker, 1 lệnh khởi động toàn bộ |
 | Quản lý dependency | `uv` | Python 3.12 |
 | Chất lượng code | pre-commit: black, isort, flake8, mypy, bandit | |
@@ -195,10 +194,10 @@ thật thay vì 7 mục rỗng.
 
 ```
 Frontend (apps/frontend)
-        │  X-API-Key
+        │
         ▼
 ┌─────────────────────────────────────────────────────────┐
-│ FastAPI  /api/v1/{auth,services,jobs,files}              │
+│ FastAPI  /api/v1/{services,jobs,files}                   │
 ├─────────────────────────────────────────────────────────┤
 │ AIServiceRegistry — tự quét & đăng ký plugin lúc khởi động│
 │   ├─ property_intake  (is_async=True)  ──▶ Celery job     │
@@ -233,48 +232,39 @@ nghiệp vụ chỉ đọc dữ liệu đã có sẵn.
 
 ## 6. API chính
 
-Mọi endpoint dưới `/api/v1` (trừ `/health`) đều yêu cầu header `X-API-Key`.
+Không endpoint nào dưới `/api/v1` yêu cầu xác thực — mọi request dùng chung 1 user hệ
+thống (`get_default_user`, xem `shb/api/v1/dependencies.py`) để giữ nguyên cột `user_id`
+trong DB.
 
-### 6.1 Auth
-
-```bash
-# Đăng ký (1 lần) — nhận về api_key, sau đó KHÔNG hiển thị lại lần nào nữa
-curl -X POST http://localhost:8888/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email": "ten@shb.local"}'
-
-curl -H "X-API-Key: <key>" http://localhost:8888/api/v1/auth/me
-```
-
-### 6.2 Services (plugin)
+### 6.1 Services (plugin)
 
 ```bash
-curl -H "X-API-Key: <key>" http://localhost:8888/api/v1/services
-curl -H "X-API-Key: <key>" http://localhost:8888/api/v1/services/{service_id}
+curl http://localhost:8888/api/v1/services
+curl http://localhost:8888/api/v1/services/{service_id}
 
 # property_lookup — đồng bộ, trả kết quả ngay
-curl -X POST -H "X-API-Key: <key>" -H "Content-Type: application/json" \
+curl -X POST -H "Content-Type: application/json" \
   -d '{"input": {"case_id": "REQ-2026-0001"}}' \
   http://localhost:8888/api/v1/services/property_lookup/run
 
 # property_intake — bất đồng bộ: upload file trước, rồi poll /jobs
-curl -X POST -H "X-API-Key: <key>" -H "Content-Type: application/json" \
+curl -X POST -H "Content-Type: application/json" \
   -d '{"input": {"file_ids": ["<file-id-từ-/files>"], "case_id": "REQ-2026-0001"}}' \
   http://localhost:8888/api/v1/services/property_intake/run
 ```
 
-### 6.3 Jobs
+### 6.2 Jobs
 
 ```bash
-curl -H "X-API-Key: <key>" http://localhost:8888/api/v1/jobs/{job_id}
-curl -H "X-API-Key: <key>" "http://localhost:8888/api/v1/jobs?limit=10&offset=0"
-curl -X DELETE -H "X-API-Key: <key>" http://localhost:8888/api/v1/jobs/{job_id}
+curl http://localhost:8888/api/v1/jobs/{job_id}
+curl "http://localhost:8888/api/v1/jobs?limit=10&offset=0"
+curl -X DELETE http://localhost:8888/api/v1/jobs/{job_id}
 ```
 
-### 6.4 Files
+### 6.3 Files
 
 ```bash
-curl -X POST -H "X-API-Key: <key>" -F "file=@so-hong.pdf" http://localhost:8888/api/v1/files
+curl -X POST -F "file=@so-hong.pdf" http://localhost:8888/api/v1/files
 ```
 
 Tài liệu Swagger/OpenAPI đầy đủ, tự sinh, luôn khớp code — có sẵn tại

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shb.ai.plugins import AIServiceContext, get_registry
-from shb.api.v1.dependencies import get_current_user
+from shb.api.v1.dependencies import get_default_user
 from shb.core.celery_app import celery_app
 from shb.core.db import AsyncSessionLocal, get_db
 from shb.db.models import User
@@ -85,7 +85,7 @@ async def get_service(service_id: str) -> PluginMetaResponse:
 async def run_service(
     service_id: str,
     request: PluginRunRequest,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_default_user),
     db: AsyncSession = Depends(get_db),
 ) -> PluginRunResponse | PluginRunAsyncResponse:
     """Run a service with the provided input."""

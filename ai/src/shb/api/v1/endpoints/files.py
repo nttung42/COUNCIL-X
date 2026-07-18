@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse as PhysicalFileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shb.api.v1.dependencies import get_current_user
+from shb.api.v1.dependencies import get_default_user
 from shb.core.db import get_db
 from shb.db.models import User
 from shb.schemas import FileResponse
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/files", tags=["files"])
 @router.post("", response_model=FileResponse, status_code=201)
 async def upload_file(
     file: UploadFile = File(...),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_default_user),
     db: AsyncSession = Depends(get_db),
 ) -> FileResponse:
     """Upload a file."""
@@ -61,7 +61,6 @@ async def upload_file(
 @router.get("/{file_id}/download", summary="Download a file by ID")
 async def download_file(
     file_id: str,
-    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> PhysicalFileResponse:
     """Download the physical file associated with *file_id*.
@@ -76,13 +75,6 @@ async def download_file(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="File not found",
-        )
-
-    # Ownership check — users may only download their own files
-    if file_record.user_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to download this file",
         )
 
     if not os.path.exists(file_record.stored_path):
