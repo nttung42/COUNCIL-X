@@ -6,6 +6,8 @@ import type {
   ApiPluginRunAsyncResponse,
   ApiPluginRunResponse,
   ApiPropertyIntakeOutput,
+  ApiPropertyLookupOutput,
+  ApiPropertyValuationOutput,
 } from './apiTypes';
 
 // Client cho backend thật ở ai/ (FastAPI, xem ai/src/shb/main.py + ai/src/shb/api/v1/api.py).
@@ -71,7 +73,7 @@ function parseSsePayload(event: MessageEvent<string>): SsePayload {
   }
 }
 
-function streamJob(jobId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
+function streamJob<T>(jobId: string, onProgress?: (progress: number) => void): Promise<T> {
   return new Promise((resolve, reject) => {
     const url = `${API_BASE_URL}/api/v1/jobs/${encodeURIComponent(jobId)}/stream`;
     const es = new EventSource(url);
@@ -106,18 +108,30 @@ function streamJob(jobId: string, onProgress?: (progress: number) => void): Prom
   });
 }
 
-/** Chạy plugin property_intake trên các file đã upload, nhận tiến độ qua SSE, trả kết quả trích xuất. */
-export async function runPropertyIntake(fileIds: string[], caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
-  const res = await apiFetch('/api/v1/services/property_intake/run', {
+async function runService<T>(serviceId: string, input: Record<string, unknown>, onProgress?: (progress: number) => void): Promise<T> {
+  const res = await apiFetch(`/api/v1/services/${serviceId}/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ input }),
   });
   const body = (await res.json()) as ApiPluginRunAsyncResponse | ApiPluginRunResponse;
 
-  if ('result' in body) return body.result as unknown as ApiPropertyIntakeOutput;
+  if ('result' in body) return body.result as unknown as T;
 
-  return streamJob(body.job_id, onProgress);
+  return streamJob<T>(body.job_id, onProgress);
+}
+
+/** Chạy plugin property_intake trên các file đã upload, nhận tiến độ qua SSE, trả kết quả trích xuất. */
+export function runPropertyIntake(fileIds: string[], caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyIntakeOutput> {
+  return runService<ApiPropertyIntakeOutput>('property_intake', { file_ids: fileIds, language: 'vi', case_id: caseId }, onProgress);
+}
+
+export function runPropertyLookup(caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyLookupOutput> {
+  return runService<ApiPropertyLookupOutput>('property_lookup', { case_id: caseId }, onProgress);
+}
+
+export function runPropertyValuation(caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyValuationOutput> {
+  return runService<ApiPropertyValuationOutput>('property_valuation', { case_id: caseId }, onProgress);
 }
 
 export interface ExtractionResult {
