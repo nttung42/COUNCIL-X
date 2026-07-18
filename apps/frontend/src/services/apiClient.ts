@@ -5,16 +5,20 @@ import type {
   ApiJobResponse,
   ApiPluginRunAsyncResponse,
   ApiPluginRunResponse,
+  ApiPropertyDashboardOutput,
   ApiPropertyIntakeOutput,
   ApiPropertyLookupOutput,
+  ApiPropertyRiskOutput,
   ApiPropertyValuationOutput,
 } from './apiTypes';
 
 // Client cho backend thật ở ai/ (FastAPI, xem ai/src/shb/main.py + ai/src/shb/api/v1/api.py).
-// Hiện backend mới có route cho upload-file/chạy-service-bất-đồng-bộ/SSE job — CHƯA có
-// route riêng cho case/lookup/valuation/risk/dashboard/chat (những bảng đó mới chỉ là ORM model,
-// xem models_paa.py). Vì vậy chỉ màn "Nhập thông tin" (property_intake) gọi API thật; các màn
-// 2-5 + chat + xác nhận chỉnh sửa vẫn dùng fixtureCase cho tới khi backend có endpoint tương ứng.
+// Backend chỉ có route chung upload-file/chạy-service-bất-đồng-bộ/SSE job (KHÔNG có route
+// riêng cho case/risk/dashboard/chat — những bảng đó mới chỉ là ORM model, xem models_paa.py).
+// Cả 5 màn — "Nhập thông tin" (property_intake), "Kết quả tra cứu" (property_lookup),
+// "Định giá" (property_valuation), "Rủi ro & LTV" (property_risk) và "Dashboard"
+// (property_dashboard) — đã gọi API thật qua route chung này; chat + xác nhận chỉnh sửa
+// vẫn dùng logic demo (mocks/chatScripts.ts) vì backend chưa có endpoint chat riêng.
 
 const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim();
 const API_BASE_URL = RAW_BASE_URL ? RAW_BASE_URL.replace(/\/+$/, '') : '';
@@ -138,6 +142,14 @@ export function runPropertyLookup(caseId: string, onProgress?: (progress: number
 
 export function runPropertyValuation(caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyValuationOutput> {
   return runService<ApiPropertyValuationOutput>('property_valuation', { case_id: caseId }, onProgress);
+}
+
+export function runPropertyRisk(caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyRiskOutput> {
+  return runService<ApiPropertyRiskOutput>('property_risk', { case_id: caseId }, onProgress);
+}
+
+export function runPropertyDashboard(caseId: string, onProgress?: (progress: number) => void): Promise<ApiPropertyDashboardOutput> {
+  return runService<ApiPropertyDashboardOutput>('property_dashboard', { case_id: caseId }, onProgress);
 }
 
 export interface ExtractionResult {

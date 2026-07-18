@@ -15,6 +15,7 @@ export function Tab4Risk() {
   const riskWeightedInferenceText = useCaseStore((s) => s.caseData.riskWeightedInferenceText);
   const riskFlags = useCaseStore((s) => s.caseData.riskFlags);
   const valuationProposed = useCaseStore((s) => s.caseData.valuation.proposedValueLabel);
+  const riskWarnings = useCaseStore((s) => s.riskWarnings);
   const pendingEdits = useCaseStore((s) => s.pendingEdits);
   const confirmedKeys = useCaseStore((s) => s.confirmedKeys);
 
@@ -22,6 +23,17 @@ export function Tab4Risk() {
 
   return (
     <>
+      {riskWarnings.length > 0 && (
+        <Card style={{ marginBottom: 12, background: 'var(--warning-tint)', border: '1px solid rgba(250,178,25,0.4)' }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6100', marginBottom: 4 }}>{riskWarnings.length} cảnh báo rủi ro</div>
+          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: 'var(--ink)', lineHeight: 1.55 }}>
+            {riskWarnings.map((w, i) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </Card>
+      )}
       <div className="grid c2">
         <Card>
           <div className="section-h">

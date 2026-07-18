@@ -13,9 +13,20 @@ import {
   matchDemoEdit,
 } from '../mocks/chatScripts';
 import { downloadStandaloneReport } from '../utils/exportReport';
-import { apiFileUrl, isApiConfigured, runPropertyIntake, runPropertyLookup, runPropertyValuation, uploadFile } from '../services/apiClient';
+import {
+  apiFileUrl,
+  isApiConfigured,
+  runPropertyDashboard,
+  runPropertyIntake,
+  runPropertyLookup,
+  runPropertyRisk,
+  runPropertyValuation,
+  uploadFile,
+} from '../services/apiClient';
+import { mapPropertyDashboardOutput } from '../utils/mapPropertyDashboard';
 import { mapPropertyIntakeOutput } from '../utils/mapPropertyIntake';
 import { mapPropertyLookupOutput } from '../utils/mapPropertyLookup';
+import { mapPropertyRiskOutput } from '../utils/mapPropertyRisk';
 import { mapPropertyValuationOutput } from '../utils/mapPropertyValuation';
 
 // Store trung tâm cho toàn bộ workspace thẩm định — chuyển thể hành vi từ khối <script>
@@ -78,7 +89,7 @@ function readFieldValue(caseData: AppraisalCaseFull, key: string): string {
   return caseData.tab1Fields.find((f) => f.key === key)?.value ?? '';
 }
 
-function upsertDashboardSummary(caseData: AppraisalCaseFull, stepNumber: 2 | 3, summaryText: string): AppraisalCaseFull {
+function upsertDashboardSummary(caseData: AppraisalCaseFull, stepNumber: 2 | 3 | 4, summaryText: string): AppraisalCaseFull {
   const dashboardSteps = caseData.dashboardSteps.map((step) =>
     step.stepNumber === stepNumber ? { ...step, summaryText } : step,
   );
@@ -139,6 +150,12 @@ interface CaseStoreState {
   isRunningValuation: boolean;
   valuationProgress: number | null;
   valuationWarnings: string[];
+  isRunningRisk: boolean;
+  riskProgress: number | null;
+  riskWarnings: string[];
+  isRunningDashboard: boolean;
+  dashboardProgress: number | null;
+  dashboardWarnings: string[];
 
   dvCurrentKey: string;
   dvPulseBoxId: string | null;
@@ -170,6 +187,8 @@ interface CaseStoreState {
   runExtraction: () => Promise<void>;
   runLookup: () => Promise<void>;
   runValuation: () => Promise<void>;
+  runRisk: () => Promise<void>;
+  runDashboard: () => Promise<void>;
   removeUpload: (id: string) => void;
 
   setDvCurrent: (key: string) => void;
@@ -212,6 +231,12 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
   isRunningValuation: false,
   valuationProgress: null,
   valuationWarnings: [],
+  isRunningRisk: false,
+  riskProgress: null,
+  riskWarnings: [],
+  isRunningDashboard: false,
+  dashboardProgress: null,
+  dashboardWarnings: [],
 
   dvCurrentKey: 'so-hong',
   dvPulseBoxId: null,
@@ -403,6 +428,8 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
     await get().runSteps(steps);
     if (cur === 1) await get().runLookup();
     if (cur === 2) await get().runValuation();
+    if (cur === 3) await get().runRisk();
+    if (cur === 4) await get().runDashboard();
     get().switchTab(target);
   },
 
@@ -606,6 +633,79 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
       get().pushMessage('status', `Không lấy được định giá thật, đang giữ dữ liệu demo. ${message}`);
     } finally {
       set({ isRunningValuation: false, valuationProgress: null });
+    }
+  },
+
+  runRisk: async () => {
+    const s = get();
+    if (!s.apiMode || s.isRunningRisk) return;
+    set({ isRunningRisk: true, riskProgress: 0, riskWarnings: [] });
+    try {
+      const output = await runPropertyRisk(s.caseData.caseId, (progress) => set({ riskProgress: progress }));
+      const mapped = mapPropertyRiskOutput(output);
+      if (!mapped.ok) {
+        set({ riskWarnings: mapped.warnings });
+        get().pushMessage('status', `Backend chưa trả được điểm rủi ro, đang giữ dữ liệu demo. ${mapped.warnings.join(' ')}`);
+        return;
+      }
+      set((state) => {
+        const caseData = upsertDashboardSummary(
+          {
+            ...state.caseData,
+            risk: mapped.risk,
+            ltvPolicyBands: mapped.ltvPolicyBands,
+            ltvPolicyInferenceText: mapped.ltvPolicyInferenceText,
+            riskGroups: mapped.riskGroups,
+            riskWeightedInferenceText: mapped.riskWeightedInferenceText,
+            riskFlags: mapped.riskFlags,
+          },
+          4,
+          `Điểm rủi ro ${mapped.risk.riskScore}/100 (${mapped.risk.riskLabel}) · LTV đề xuất ${mapped.risk.ltvProposedPct}% · ${mapped.riskFlags.length} flag cần lưu ý.`,
+        );
+        return { caseData, riskWarnings: mapped.warnings };
+      });
+      get().pushMessage(
+        'status',
+        `Đã cập nhật điểm rủi ro từ backend: ${mapped.risk.riskScore}/100, LTV đề xuất ${mapped.risk.ltvProposedPct}%.` +
+          (mapped.warnings.length ? ` Có ${mapped.warnings.length} cảnh báo.` : ''),
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      set({ riskWarnings: [`Không lấy được điểm rủi ro thật: ${message}`] });
+      get().pushMessage('status', `Không lấy được điểm rủi ro thật, đang giữ dữ liệu demo. ${message}`);
+    } finally {
+      set({ isRunningRisk: false, riskProgress: null });
+    }
+  },
+
+  runDashboard: async () => {
+    const s = get();
+    if (!s.apiMode || s.isRunningDashboard) return;
+    set({ isRunningDashboard: true, dashboardProgress: 0, dashboardWarnings: [] });
+    try {
+      const output = await runPropertyDashboard(s.caseData.caseId, (progress) => set({ dashboardProgress: progress }));
+      const mapped = mapPropertyDashboardOutput(output);
+      set((state) => ({
+        caseData: {
+          ...state.caseData,
+          verdict: mapped.verdict,
+          overallNarrative: mapped.overallNarrative,
+          dashboardSteps: mapped.dashboardSteps.length ? mapped.dashboardSteps : state.caseData.dashboardSteps,
+          agentTrace: mapped.agentTrace.length ? mapped.agentTrace : state.caseData.agentTrace,
+        },
+        dashboardWarnings: mapped.warnings,
+      }));
+      get().pushMessage(
+        'status',
+        `Đã tổng hợp dashboard từ backend: ${mapped.verdict ? mapped.verdict.headline : 'chưa đủ dữ liệu để kết luận'}.` +
+          (mapped.warnings.length ? ` Có ${mapped.warnings.length} cảnh báo.` : ''),
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      set({ dashboardWarnings: [`Không lấy được dashboard thật: ${message}`] });
+      get().pushMessage('status', `Không lấy được dashboard thật, đang giữ dữ liệu demo. ${message}`);
+    } finally {
+      set({ isRunningDashboard: false, dashboardProgress: null });
     }
   },
 

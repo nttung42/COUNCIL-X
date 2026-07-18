@@ -1,4 +1,4 @@
-import type { ConfidenceFactorKey, LookupBadge, LookupCategory, ValuationMethodKey } from '../types';
+import type { ConfidenceFactorKey, LookupBadge, LookupCategory, RiskGroupKey, SeverityLevel, ValuationMethodKey, VerdictDecision } from '../types';
 
 // Kiểu dữ liệu "trên dây" (wire types) — khớp nguyên văn các Pydantic schema của backend thật
 // tại ai/src/shb/schemas/api.py và ai/src/shb/ai/plugins/*/schema.py.
@@ -122,6 +122,97 @@ export interface ApiPropertyValuationOutput {
   confidence_factors: ApiValuationConfidenceFactor[];
   price_index_series: ApiPriceIndexPoint[];
   subjective_adjustment: ApiSubjectiveAdjustment | null;
+  warnings: string[];
+}
+
+export interface ApiRiskGroup {
+  group_key: RiskGroupKey;
+  label: string;
+  weight_pct: number;
+  score: number;
+  signals: string[];
+  source_confidence: number | null;
+  verified: boolean;
+}
+
+export interface ApiRiskFlag {
+  severity: SeverityLevel;
+  title: string;
+  description: string;
+  confidence_pct: number | null;
+  verified: boolean;
+}
+
+export interface ApiLtvBand {
+  min_score: number;
+  max_score: number | null;
+  max_ltv_pct: number;
+  label: string;
+}
+
+export interface ApiRiskAssessmentSummary {
+  risk_score: number;
+  risk_label: SeverityLevel;
+  ltv_proposed_pct: number;
+  risk_inference_text: string | null;
+}
+
+export interface ApiPropertyRiskOutput {
+  case_id: string;
+  assessment: ApiRiskAssessmentSummary | null;
+  groups: ApiRiskGroup[];
+  flags: ApiRiskFlag[];
+  ltv_policy_bands: ApiLtvBand[];
+  warnings: string[];
+}
+
+export interface ApiDashboardKpi {
+  proposed_value_vnd: number;
+  value_range_low_vnd: number | null;
+  value_range_high_vnd: number | null;
+  valuation_confidence_pct: number | null;
+  risk_score: number;
+  risk_label: SeverityLevel;
+  ltv_proposed_pct: number;
+}
+
+export interface ApiVerdict {
+  decision: VerdictDecision;
+  headline: string;
+  max_loan_vnd: number | null;
+  downgraded: boolean;
+  reasons: string[];
+}
+
+export interface ApiStepSummary {
+  step_number: number;
+  title: string;
+  summary_text: string;
+  generated_by: string;
+}
+
+export interface ApiTraceEvent {
+  seconds_offset: number;
+  actor: string;
+  title: string;
+  description: string | null;
+}
+
+export interface ApiCaseHistory {
+  case_id: string;
+  address: string | null;
+  status: string;
+  updated_at: string;
+}
+
+export interface ApiPropertyDashboardOutput {
+  case_id: string;
+  kpi: ApiDashboardKpi | null;
+  verdict: ApiVerdict | null;
+  step_summaries: ApiStepSummary[];
+  overall_narrative: string | null;
+  trace: ApiTraceEvent[];
+  case_history: ApiCaseHistory[];
   warnings: string[];
 }
 

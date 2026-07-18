@@ -1,4 +1,4 @@
-import type { SeverityLevel } from '../types';
+import type { SeverityLevel, VerdictDecision } from '../types';
 
 export type Tone = 'good' | 'warning' | 'serious' | 'critical';
 
@@ -14,6 +14,20 @@ export const SEVERITY_TONE: Record<SeverityLevel, Tone> = {
   trung_binh: 'warning',
   cao: 'serious',
   nghiem_trong: 'critical',
+};
+
+/** Kết luận cho vay (Màn 5 — Dashboard) -> nhãn hiển thị. */
+export const VERDICT_LABEL: Record<VerdictDecision, string> = {
+  de_xuat_cho_vay: 'Đề xuất cho vay',
+  can_nhac: 'Cân nhắc',
+  tu_choi: 'Từ chối',
+};
+
+/** Kết luận cho vay (Màn 5 — Dashboard) -> tông màu badge. */
+export const VERDICT_TONE: Record<VerdictDecision, Tone> = {
+  de_xuat_cho_vay: 'good',
+  can_nhac: 'warning',
+  tu_choi: 'critical',
 };
 
 export const TONE_COLOR: Record<Tone, string> = {

@@ -28,6 +28,7 @@ export type ConfidenceFactorKey =
   | 'market_volatility'
   | 'comp_similarity';
 export type RiskGroupKey = 'legal' | 'liquidity' | 'price_volatility' | 'physical_environment' | 'reputation';
+export type VerdictDecision = 'de_xuat_cho_vay' | 'can_nhac' | 'tu_choi';
 
 /** Số thứ tự subtab 1..5 (Nhập thông tin / Kết quả tra cứu / Định giá / Rủi ro / Dashboard). */
 export type StepNumber = 1 | 2 | 3 | 4 | 5;
@@ -194,6 +195,15 @@ export interface DashboardStepSummary {
   summaryText: string;
 }
 
+/** Kết luận cho vay xác định (engine synthesis, Màn 5) — ↔ VerdictOut của property_dashboard. */
+export interface DashboardVerdict {
+  decision: VerdictDecision;
+  headline: string;
+  maxLoanVndLabel: string;
+  downgraded: boolean;
+  reasons: string[];
+}
+
 export interface AgentTraceEvent {
   id: string;
   secondsOffsetLabel: string;
@@ -231,5 +241,7 @@ export interface AppraisalCaseFull {
   riskWeightedInferenceText: string;
   riskFlags: RiskFlag[];
   dashboardSteps: DashboardStepSummary[];
+  verdict: DashboardVerdict | null;
+  overallNarrative: string | null;
   agentTrace: AgentTraceEvent[];
 }
