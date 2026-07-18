@@ -1,185 +1,266 @@
-/* ============================================================================
-   Type definitions — mirror contracts/appraisal-api.md + data-model.md.
-   Kept intentionally permissive (optional fields) so a component renders
-   "chưa có dữ liệu" instead of crashing when a field is missing (Error Handling).
-   ============================================================================ */
+// Domain types for the PAA appraiser workspace.
+// Field names/shape mirror ai/PAA_Schema_PostgreSQL.sql (schema `paa`) but in camelCase,
+// since the frontend talks to the (not-yet-built) API in JSON, not to Postgres directly.
+// Whoever wires the real API can map snake_case columns -> these fields in src/services/apiClient.ts.
 
-export type CaseStatus = 'processing' | 'completed' | 'cancelled'
-export type SourceType = 'mock' | 'verified' | 'unverified_rumor'
-export type PropertyType = 'nha_pho' | 'dat_nen' | 'chung_cu' | 'bds_thuong_mai'
-export type LegalStatus = 'so_hong' | 'so_do' | 'giay_tay' | 'khac'
-export type RiskTier = 'LOW' | 'MEDIUM' | 'HIGH'
-export type Severity = 'low' | 'medium' | 'high'
+export type CaseStatus = 'dang_xu_ly' | 'hoan_tat' | 'huy';
+export type StepStatus = 'locked' | 'unlocked' | 'confirmed';
+export type SeverityLevel = 'thap' | 'trung_binh' | 'cao' | 'nghiem_trong';
+export type VerificationStatus = 'da_xac_thuc' | 'chua_xac_thuc';
+export type EditSource = 'ui_form' | 'chat';
+export type EditStatus = 'pending' | 'confirmed';
+export type ChatRole = 'user' | 'agent' | 'status';
+export type DocumentCategory = 'so_do_so_hong' | 'cmnd_cccd' | 'hop_dong' | 'anh_hien_trang' | 'khac';
+export type LookupCategory =
+  | 'market_price'
+  | 'planning_zoning'
+  | 'legal_status'
+  | 'neighborhood_amenity'
+  | 'environmental_risk'
+  | 'liquidity_stat'
+  | 'stigma_reputation';
+export type LookupBadge = 'da_xac_thuc' | 'luu_y' | 'chua_xac_thuc';
+export type ValuationMethodKey = 'sales_comparison' | 'hedonic_ml' | 'cost_approach';
+export type ConfidenceFactorKey =
+  | 'comp_quantity_quality'
+  | 'method_consensus'
+  | 'legal_planning_completeness'
+  | 'market_volatility'
+  | 'comp_similarity';
+export type RiskGroupKey = 'legal' | 'liquidity' | 'price_volatility' | 'physical_environment' | 'reputation';
 
-export interface SubjectProperty {
-  address: string
-  lat?: number
-  long?: number
-  area_m2?: number
-  property_type?: PropertyType
-  legal_status_claimed?: LegalStatus
+/** Số thứ tự subtab 1..5 (Nhập thông tin / Kết quả tra cứu / Định giá / Rủi ro / Dashboard). */
+export type StepNumber = 1 | 2 | 3 | 4 | 5;
+
+export interface AppraisalCaseSummary {
+  caseId: string;
+  address: string;
+  status: CaseStatus;
+  updatedAtLabel: string; // vd. "hôm nay", "hôm qua", "3 ngày trước" — hiển thị ở sidebar
 }
 
-export interface LoanContext {
-  requested_amount?: number
-  purpose?: string
+/** Tham chiếu tới vùng trích xuất trên tài liệu gốc — hiển thị dạng chip "📄 nguồn" dưới mỗi trường. */
+export interface SourceRef {
+  /** key của DocPage trong docPages, hoặc 'suy-luan' nếu PAA suy luận / không có nguồn trực tiếp. */
+  docKey: string;
+  /** id của DocBox trong DocPage tương ứng, nếu có vùng khoanh trên tài liệu. */
+  boxId?: string;
+  /** Nhãn hiển thị trên chip, vd. "📄 Sổ hồng ↗" hoặc "✍️ Nhập tay (không có nguồn)". */
+  label: string;
+  /** Nội dung tooltip khi hover — trích dẫn nguyên văn từ tài liệu / lý do suy luận. */
+  srcText: string;
+  /** true nếu là cảnh báo (mâu thuẫn giữa các nguồn, chưa đủ căn cứ...) — hiển thị màu đỏ. */
+  warn?: boolean;
 }
 
-export interface AppraisalRequestBody {
-  request_id: string
-  subject_property: SubjectProperty
-  loan_context: LoanContext
+export interface CaseField<T = string> {
+  value: T;
+  source?: SourceRef;
 }
 
-/* ---- data-model.md §2 ComparableTransaction ---- */
-export interface ComparableTransaction {
-  transaction_id?: string
-  address?: string
-  area_m2?: number
-  distance_from_subject_km?: number
-  transaction_date?: string
-  price_per_m2?: number
-  price_total?: number
-  source_type?: SourceType
-  confidence?: number
+export interface CaseBorrower {
+  id: string;
+  fullName: CaseField;
+  nationalId: CaseField;
+  phoneNumber: CaseField;
+  relationshipToAsset: CaseField;
 }
 
-/* ---- data-model.md §5 Lookup envelope ---- */
-export interface LookupEnvelope<T = Record<string, unknown>> {
-  tool_name?: string
-  status?: 'ok' | 'partial' | 'error'
-  confidence?: number
-  source_type?: SourceType
-  data?: T
-  warning?: string | null
+export interface PropertyLegalInfo {
+  certificateType: CaseField;
+  certificateNumber: CaseField;
+  issueDateAuthority: CaseField;
+  landPlotMapSheet: CaseField;
+  landUsePurpose: CaseField;
+  useTerm: CaseField;
+  ownershipForm: CaseField;
+  currentMortgageStatus: CaseField;
 }
 
-export interface AmenityItem { type?: string; name?: string; distance_m?: number }
-export interface RumorItem { detail?: string; year?: number; verified?: boolean }
-
-export interface LookupResult {
-  comparables?: ComparableTransaction[]
-  market_price?: LookupEnvelope<{
-    comparables?: ComparableTransaction[]
-    price_index_period?: string
-    price_index?: { period: string; index: number }[]
-  }>
-  planning_zoning?: LookupEnvelope<{ zoning_status?: string; is_planned_overlay?: boolean; road_widening_plan?: string }>
-  legal_status?: LookupEnvelope<{ legal_status?: string; has_dispute?: boolean; mortgaged_elsewhere?: boolean }>
-  neighborhood_amenity?: LookupEnvelope<{ amenities?: AmenityItem[] }>
-  stigma_reputation?: LookupEnvelope<{ rumors?: RumorItem[] }>
-  environmental_risk?: LookupEnvelope<{ flood_risk?: string; landslide_risk?: string; pollution_risk?: string; notes?: string }>
-  liquidity_stat?: LookupEnvelope<{ avg_days_on_market?: number; success_rate_pct?: number }>
+export interface PropertyPhysicalInfo {
+  address: CaseField;
+  propertyType: CaseField;
+  landAreaSqm: CaseField;
+  floorAreaSqm: CaseField;
+  frontageDepth: CaseField;
+  numFloorsDesc: CaseField;
+  constructionYear: CaseField;
+  structureMaterial: CaseField;
+  houseDirection: CaseField;
+  roadTypeDesc: CaseField;
+  currentUsageStatus: CaseField;
 }
 
-/* ---- data-model.md §6 ValuationResult ---- */
+export interface LoanInfo {
+  loanAmountVnd: CaseField;
+  loanPurpose: CaseField;
+  loanTermYears: CaseField;
+}
+
+export interface AttachedDocument {
+  id: string;
+  fileName: string;
+  icon: string;
+  docCategory: DocumentCategory;
+  uploadedAtLabel: string;
+}
+
+/** Một ô khoanh vùng trích xuất trên trang tài liệu, kèm % độ tin cậy OCR/extraction. */
+export interface DocBox {
+  id: string;
+  top: number;
+  left: number;
+  w: number;
+  h: number;
+  conf: number;
+  field: string;
+  value: string;
+}
+
+export interface DocPage {
+  key: string;
+  label: string;
+  scan?: boolean;
+  boxes: DocBox[];
+}
+
+export interface MarketComparable {
+  id: string;
+  compAddress: string;
+  distanceKmLabel: string;
+  areaSqmLabel: string;
+  transactionDateLabel: string;
+  pricePerSqmLabel: string;
+}
+
+export interface LookupFinding {
+  id: string;
+  category: LookupCategory;
+  toolName: string;
+  /** undefined = không hiển thị badge (vd. Tiện ích, Thanh khoản trong mockup gốc). */
+  statusBadge?: LookupBadge;
+  title: string;
+  rawFindings: string[];
+  inferenceText: string;
+  sourceLabel: string;
+  confidencePct: number;
+}
+
+export interface ValuationPriceIndexPoint {
+  periodLabel: string;
+  indexValue: number;
+}
+
+export interface ValuationMethod {
+  id: string;
+  methodKey: ValuationMethodKey;
+  label: string;
+  estimatedValueLabel: string;
+  weightPct: number;
+  contributionValueLabel: string;
+  methodConfidencePct: number;
+  inputs: string[];
+  inferenceText: string;
+  sourceLabel: string;
+}
+
+export interface ValuationConfidenceFactor {
+  factorKey: ConfidenceFactorKey;
+  label: string;
+  weightPct: number;
+  score: number;
+}
+
 export interface ValuationResult {
-  estimated_value?: number
-  value_range?: { low?: number; high?: number }
-  value_per_m2?: number
-  confidence_score?: number
-  methodology_breakdown?: {
-    comparable_approach?: number
-    hedonic_model?: number
-    cost_approach?: number
-  }
-  comparables_used?: number
-  time_adjustment_index_period?: string
-  price_index_series?: { period: string; index: number }[]
-  adjustment_notes?: string[]
+  proposedValueLabel: string;
+  valueRangeLabel: string;
+  pricePerSqmLabel: string;
+  confidencePct: number;
+  comparableCount: number;
+  priceIndexPeriod: string;
+  priceIndexValue: number;
+  priceIndexBase: number;
 }
 
-/* ---- data-model.md §7 AssetRiskAssessment ---- */
+export interface RiskLtvPolicyBand {
+  minScore: number;
+  maxScore: number | null;
+  maxLtvPct: number;
+  label: string;
+}
+
+export interface RiskGroup {
+  id: string;
+  groupKey: RiskGroupKey;
+  label: string;
+  weightPct: number;
+  score: number;
+  rawFindings: string[];
+  inferenceText: string;
+  sourceLabel: string;
+  toolName: string;
+}
+
 export interface RiskFlag {
-  type?: string
-  severity?: Severity
-  detail?: string
-  confidence?: number
-  action?: string
-  verified?: boolean
+  id: string;
+  severity: SeverityLevel;
+  title: string;
+  description: string;
+  confidencePct: number;
+  verifiedStatus: VerificationStatus;
 }
 
-export interface AssetRiskAssessment {
-  asset_risk_score?: number
-  risk_tier?: RiskTier
-  recommended_ltv_cap?: number
-  risk_group_scores?: {
-    legal?: number
-    liquidity?: number
-    price_volatility?: number
-    physical_environmental?: number
-    reputation_stigma?: number
-  }
-  flags?: RiskFlag[]
-  recommended_conditions?: string[]
+export interface RiskAssessmentResult {
+  riskScore: number;
+  riskLabel: SeverityLevel;
+  ltvProposedPct: number;
 }
 
-/* ---- data-model.md §8 ChecklistItem ---- */
-export interface ChecklistItem {
-  item_id: string
-  text: string
-  is_checked: boolean
-  property_type_scope?: string[]
-  related_flag_type?: string | null
+export interface DashboardStepSummary {
+  stepNumber: 1 | 2 | 3 | 4;
+  title: string;
+  summaryText: string;
 }
 
-/* ---- data-model.md §9 AppraisalReportDraft ---- */
-export interface DraftReport {
-  sections?: {
-    property_info?: string
-    valuation?: string
-    risk_and_ltv?: string
-  }
-  signature_block?: string
+export interface AgentTraceEvent {
+  id: string;
+  secondsOffsetLabel: string;
+  actor: string;
+  title: string;
+  description: string;
 }
 
-/* ---- data-model.md §11 TraceEvent ---- */
-export interface TraceEvent {
-  step_name?: string
-  component?: string
-  t_offset_seconds?: number
-  input_summary?: string
-  output_summary?: string
-}
-
-/* ---- contracts §3 full case state ---- */
-export interface AppraisalReport {
-  case_id?: string
-  request_id?: string
-  status?: CaseStatus
-  subject_property?: SubjectProperty
-  loan_context?: LoanContext
-  lookup_result?: LookupResult
-  valuation?: ValuationResult
-  asset_risk?: AssetRiskAssessment
-  checklist?: ChecklistItem[]
-  draft_report?: DraftReport
-  requires_human_verification?: boolean
-  trace_id?: string
-  trace_events?: TraceEvent[]
-}
-
-/* ---- contracts §4 sidebar list item ---- */
-export interface CaseListItem {
-  case_id: string
-  address: string
-  status: CaseStatus
-  updated_at: string
-}
-
-/* ---- chat ---- */
-export type ChatRole = 'user' | 'agent' | 'status'
-export interface Citation { source_doc?: string; excerpt?: string }
 export interface ChatMessage {
-  role: ChatRole
-  content: string
-  citations?: Citation[]
+  id: string;
+  role: ChatRole;
+  html: string;
 }
 
-/* ---- contracts §2 SSE step_update payload ---- */
-export interface StepUpdateEvent {
-  step_name?: string
-  active_tab?: number
-  chat_message?: string
-  status?: CaseStatus
+/** Toàn bộ dữ liệu 1 hồ sơ thẩm định — hình dạng payload mà GET /cases/:id dự kiến trả về. */
+export interface AppraisalCaseFull {
+  caseId: string;
+  status: CaseStatus;
+  borrower: CaseBorrower;
+  legal: PropertyLegalInfo;
+  physical: PropertyPhysicalInfo;
+  loan: LoanInfo;
+  documents: AttachedDocument[];
+  docPages: DocPage[];
+  marketComparables: MarketComparable[];
+  marketInferenceText: string;
+  lookupFindings: LookupFinding[];
+  valuation: ValuationResult;
+  priceIndexSeries: ValuationPriceIndexPoint[];
+  valuationMethods: ValuationMethod[];
+  valuationWeightedInferenceText: string;
+  confidenceFactors: ValuationConfidenceFactor[];
+  confidenceInferenceText: string;
+  risk: RiskAssessmentResult;
+  ltvPolicyBands: RiskLtvPolicyBand[];
+  ltvPolicyInferenceText: string;
+  riskGroups: RiskGroup[];
+  riskWeightedInferenceText: string;
+  riskFlags: RiskFlag[];
+  dashboardSteps: DashboardStepSummary[];
+  agentTrace: AgentTraceEvent[];
 }

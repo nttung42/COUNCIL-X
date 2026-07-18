@@ -1,9 +1,5 @@
-/* ============================================================================
-   SHB brand tokens — copied verbatim from PAA_Mockup_SHB.html (:root, lines 8-39)
-   Validated: white-on-navy >= 9.8:1, white-on-orange600 4.78:1, ink-on-white 17.2:1
-   NGUỒN SỰ THẬT màu sắc — không sáng tạo bảng màu khác.
-   ============================================================================ */
 :root {
+  /* ---- SHB brand tokens (validated: white-on-navy ≥9.8:1, white-on-orange600 4.78:1, ink-on-white 17.2:1) ---- */
   --navy-900: #101B42;   /* sidebar / dark chrome */
   --navy-800: #182658;   /* hover on dark chrome */
   --navy-700: #1E2F66;   /* strong headings/accents on light surfaces */

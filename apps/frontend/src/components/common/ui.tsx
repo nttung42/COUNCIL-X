@@ -1,106 +1,257 @@
-/* ============================================================================
-   Shared UI atoms — pattern .qmark tooltip (Nguyên tắc II/III: mọi số liệu kèm
-   nguồn/độ tin cậy), badge, và các formatter tiền tệ/độ tin cậy dùng chung.
-   ============================================================================ */
-import type { ReactNode } from 'react'
-import type { SourceType } from '../../types'
+import type { CSSProperties, ReactNode } from 'react';
+import type { EditStatusFlag } from '../../state/caseStore';
+import type { SourceRef } from '../../types';
 
-/** Dấu ? tooltip giải thích nguồn/độ tin cậy — bọc mọi số liệu định giá/rủi ro. */
-export function QMark({ why }: { why: string }) {
+function statusClass(status?: EditStatusFlag): string {
+  if (status === 'pending') return ' pending-edit';
+  if (status === 'confirmed') return ' edited';
+  return '';
+}
+
+export function EditedBadge({ status }: { status: EditStatusFlag }) {
+  if (status === 'none') return null;
   return (
-    <span className="qmark" data-why={why} aria-label={why} role="img">
+    <span className={'edited-badge' + (status === 'confirmed' ? ' confirmed' : '')}>
+      {status === 'confirmed' ? '✓ Đã xác nhận' : 'Đang chờ xác nhận'}
+    </span>
+  );
+}
+
+export function Card({
+  children,
+  className = '',
+  status,
+  id,
+  style,
+}: {
+  children: ReactNode;
+  className?: string;
+  status?: EditStatusFlag;
+  id?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <div id={id} className={`card ${className}${statusClass(status)}`.trim()} style={style}>
+      {children}
+    </div>
+  );
+}
+
+export function Qmark({ text }: { text: string }) {
+  return (
+    <span className="qmark" data-why={text}>
       ?
     </span>
-  )
+  );
 }
 
-export type BadgeKind = 'good' | 'warning' | 'serious' | 'critical'
-
-export function Badge({ kind, children }: { kind: BadgeKind; children: ReactNode }) {
+export function SectionHeading({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <span className={`badge ${kind}`} style={{ flex: 'none' }}>
-      <span className="dot" />
+    <div className="section-h">
       {children}
+      {action}
+    </div>
+  );
+}
+
+const BADGE_LABEL: Record<string, string> = {
+  good: 'Đã xác thực',
+  warning: 'Lưu ý',
+  serious: 'Cần lưu ý',
+  critical: 'Nghiêm trọng',
+};
+
+export function Badge({
+  tone,
+  children,
+}: {
+  tone: 'good' | 'warning' | 'serious' | 'critical';
+  children?: ReactNode;
+}) {
+  return (
+    <span className={`badge ${tone}`}>
+      <span className="dot" />
+      {children ?? BADGE_LABEL[tone]}
     </span>
-  )
+  );
 }
 
-/** "chưa có dữ liệu" khi field thiếu (Error Handling) — không render số trần trụi. */
-export function NoData({ label = 'chưa có dữ liệu' }: { label?: string }) {
-  return <span className="nodata">{label}</span>
+export function StatTile({
+  label,
+  value,
+  sub,
+  qmark,
+  id,
+  status,
+}: {
+  label: string;
+  value: ReactNode;
+  sub?: ReactNode;
+  qmark?: string;
+  id?: string;
+  status?: EditStatusFlag;
+}) {
+  return (
+    <Card className="stat-tile" id={id} status={status}>
+      <div className="label">
+        {label}
+        {qmark && <Qmark text={qmark} />}
+      </div>
+      <div className="value">{value}</div>
+      {sub && <div className="sub">{sub}</div>}
+    </Card>
+  );
 }
 
-/* ---------- formatters ---------- */
-
-/** 4850000000 → "4.85 tỷ" */
-export function formatTy(vnd?: number | null): string {
-  if (vnd == null || Number.isNaN(vnd)) return '—'
-  return `${(vnd / 1e9).toFixed(2).replace(/\.?0+$/, '')} tỷ`
+export function BarRow({
+  label,
+  valueLabel,
+  percent,
+  color,
+  status,
+}: {
+  label: ReactNode;
+  valueLabel: ReactNode;
+  percent: number;
+  color?: string;
+  status?: EditStatusFlag;
+}) {
+  return (
+    <div className={'barrow' + statusClass(status)}>
+      <div className="rowlabel">{label}</div>
+      <div className="bartrack">
+        <div className="barfill" style={{ width: `${percent}%`, background: color }} />
+      </div>
+      <div className="rowvalue">{valueLabel}</div>
+    </div>
+  );
 }
 
-/** 97000000 → "97.0 tr" */
-export function formatTrieu(vnd?: number | null): string {
-  if (vnd == null || Number.isNaN(vnd)) return '—'
-  return `${(vnd / 1e6).toFixed(1)} tr`
+export function Meter({ percent, color, valueLabel }: { percent: number; color: string; valueLabel: ReactNode }) {
+  return (
+    <div className="meter-wrap">
+      <div className="meter-track">
+        <div className="meter-fill" style={{ width: `${percent}%`, background: color }} />
+      </div>
+      <div className="meter-num">{valueLabel}</div>
+    </div>
+  );
 }
 
-/** 0.78 → "78%" */
-export function formatPct(x?: number | null): string {
-  if (x == null || Number.isNaN(x)) return '—'
-  return `${Math.round(x * 100)}%`
+export function Timeline({ children }: { children: ReactNode }) {
+  return <div className="timeline">{children}</div>;
 }
 
-/** 3200000000 → "3.200.000.000 ₫" */
-export function formatVnd(vnd?: number | null): string {
-  if (vnd == null || Number.isNaN(vnd)) return '—'
-  return `${vnd.toLocaleString('vi-VN')} ₫`
+export function TimelineItem({ time, title, description }: { time: string; title: string; description?: string }) {
+  return (
+    <div className="tl-item">
+      <div className="tl-time">{time}</div>
+      <div className="tl-rail">
+        <div className="tl-dot" />
+        <div className="tl-line" />
+      </div>
+      <div className="tl-body">
+        <b>{title}</b>
+        {description && <p>{description}</p>}
+      </div>
+    </div>
+  );
 }
 
-/** "2025-11-01" → "11/2025" */
-export function formatMonthYear(iso?: string): string {
-  if (!iso) return '—'
-  const m = /^(\d{4})-(\d{2})/.exec(iso)
-  return m ? `${m[2]}/${m[1]}` : iso
+export function SourceChip({ source, onClick }: { source: SourceRef; onClick?: () => void }) {
+  return (
+    <span
+      className={'src-ref' + (source.warn ? ' warn' : '')}
+      data-src={source.srcText}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+    >
+      {source.label}
+    </span>
+  );
 }
 
-export function tierVi(t?: string): string {
-  if (t === 'LOW') return 'THẤP'
-  if (t === 'HIGH') return 'CAO'
-  if (t === 'MEDIUM') return 'TRUNG BÌNH'
-  return '—'
+/** Card lặp lại dạng "ld-head + ld-raw (bullet) + ld-inference + ld-meta" ở màn 2/3/4. */
+export function LookupDetailCard({
+  id,
+  badge,
+  title,
+  qmark,
+  rawLabel = 'Dữ liệu tra cứu được',
+  rawFindings,
+  inferenceHtml,
+  metaText,
+  status,
+}: {
+  id?: string;
+  badge?: ReactNode;
+  title: string;
+  qmark?: string;
+  rawLabel?: string;
+  rawFindings: string[];
+  inferenceHtml: string;
+  metaText: string;
+  status?: EditStatusFlag;
+}) {
+  return (
+    <Card className="lookup-detail" id={id} status={status}>
+      <div className="ld-head">
+        {badge}
+        <span className="ld-title">{title}</span>
+        <EditedBadge status={status ?? 'none'} />
+        {qmark && <Qmark text={qmark} />}
+      </div>
+      <div className="ld-raw">
+        <div className="ld-label">{rawLabel}</div>
+        <ul>
+          {rawFindings.map((line, i) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <li key={i}>{line}</li>
+          ))}
+        </ul>
+      </div>
+      <div className="ld-inference">
+        <div className="ld-label">💡 Nhận định của PAA</div>
+        {/* eslint-disable-next-line react/no-danger */}
+        <p dangerouslySetInnerHTML={{ __html: inferenceHtml }} />
+      </div>
+      <div className="ld-meta">{metaText}</div>
+    </Card>
+  );
 }
 
-export function tierBadge(t?: string): BadgeKind {
-  if (t === 'LOW') return 'good'
-  if (t === 'HIGH') return 'critical'
-  return 'warning'
-}
-
-export function severityVi(s?: string): string {
-  if (s === 'low') return 'Thấp'
-  if (s === 'high') return 'Cao'
-  if (s === 'medium') return 'Trung bình'
-  return '—'
-}
-
-export function severityBadge(s?: string): BadgeKind {
-  if (s === 'low') return 'good'
-  if (s === 'high') return 'critical'
-  return 'warning'
-}
-
-/** Nhãn nguồn dữ liệu để tooltip/label — phân biệt đã xác thực vs tin đồn. */
-export function sourceLabel(source?: SourceType, confidence?: number): string {
-  const pct = confidence != null ? ` · Độ tin cậy ${Math.round(confidence * 100)}%` : ''
-  if (source === 'verified') return `Nguồn: dữ liệu đã xác thực${pct}`
-  if (source === 'unverified_rumor') return `Nguồn: tin đồn CHƯA kiểm chứng${pct} — chỉ tham khảo, không dùng để từ chối hồ sơ`
-  return `Nguồn: dữ liệu mô phỏng (mock)${pct}`
-}
-
-/** Màu bar theo giá trị điểm rủi ro 0..100 (khớp ngưỡng mockup). */
-export function riskColor(score: number): string {
-  if (score <= 30) return 'var(--good)'
-  if (score <= 55) return 'var(--warning)'
-  if (score <= 70) return 'var(--serious)'
-  return 'var(--critical)'
+export function FlagRow({
+  leading,
+  title,
+  descriptionHtml,
+  meta,
+  status,
+  onClick,
+}: {
+  leading: ReactNode;
+  title: string;
+  descriptionHtml: string;
+  meta: string;
+  status?: EditStatusFlag;
+  onClick?: () => void;
+}) {
+  return (
+    <div
+      className={'flag-row' + statusClass(status)}
+      style={onClick ? { cursor: 'pointer' } : undefined}
+      onClick={onClick}
+    >
+      {leading}
+      <div>
+        <b>
+          {title}
+          <EditedBadge status={status ?? 'none'} />
+        </b>
+        {/* eslint-disable-next-line react/no-danger */}
+        <p dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
+        <div className="meta">{meta}</div>
+      </div>
+    </div>
+  );
 }
