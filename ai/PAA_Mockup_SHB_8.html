@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAA — Appraiser Workspace (SHB)</title>
+<style>
+  :root {
+    /* ---- SHB brand tokens (validated: white-on-navy ≥9.8:1, white-on-orange600 4.78:1, ink-on-white 17.2:1) ---- */
+    --navy-900: #101B42;   /* sidebar / dark chrome */
+    --navy-800: #182658;   /* hover on dark chrome */
+    --navy-700: #1E2F66;   /* strong headings/accents on light surfaces */
+    --navy-600: #2A3F82;   /* links, secondary accent, chart hue */
+    --navy-300: #8C9BC7;   /* muted label on dark chrome */
+    --navy-100: #E4E8F4;   /* light tint — agent chat bubble, highlight bg */
+    --navy-050: #F1F3FA;
+
+    --orange-600: #C24E0E; /* CTA buttons w/ white text (4.78:1) */
+    --orange-500: #F2701C; /* vivid accent — icons/badges on dark bg only */
+    --orange-100: #FBDCC4; /* light tint — user chat bubble bg */
+    --orange-050: #FEF1E7;
+
+    --white: #FFFFFF;
+    --page-bg: #F7F5F2;
+    --ink: #151A2E;
+    --text-secondary: #5B6478;
+    --text-muted: #8A93A8;
+    --border: rgba(16,27,66,0.10);
+    --gridline: #ECE9E3;
+
+    --good: #0ca30c;
+    --warning: #fab219;
+    --serious: #ec835a;
+    --critical: #d03b3b;
+    --good-tint: rgba(12,163,12,0.12);
+    --warning-tint: rgba(250,178,25,0.18);
+    --serious-tint: rgba(236,131,90,0.16);
+    --critical-tint: rgba(208,59,59,0.12);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--page-bg); }
+
+  .app-shell { display: flex; height: 100vh; }
+
+  /* ================= SIDEBAR ================= */
+  .sidebar { width: 264px; flex: none; min-height: 0; background: var(--navy-900); color: #fff; display: flex; flex-direction: column; overflow: hidden; }
+  .sb-brand { display: flex; align-items: center; gap: 10px; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .sb-brand .mark { width: 32px; height: 32px; border-radius: 8px; background: var(--orange-500); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; color: #fff; flex: none; }
+  .sb-brand .name { font-size: 13.5px; font-weight: 700; }
+  .sb-brand .name small { display: block; font-size: 10.5px; font-weight: 500; color: var(--navy-300); margin-top: 1px; }
+
+  .sb-section { padding: 12px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px; font-size: 12.8px; font-weight: 600; color: rgba(255,255,255,0.72); margin-bottom: 2px; cursor: pointer; border-left: 3px solid transparent; }
+  .nav-item .ic { width: 17px; height: 17px; flex: none; opacity: 0.9; }
+  .nav-item.active { background: var(--navy-800); color: #fff; border-left-color: var(--orange-500); }
+  .nav-item.disabled { color: rgba(255,255,255,0.32); cursor: default; }
+  .nav-item .soon { margin-left: auto; font-size: 8.5px; font-weight: 700; color: var(--navy-300); border: 1px solid rgba(255,255,255,0.18); border-radius: 999px; padding: 1.5px 6px; }
+
+  .sb-divider { border-top: 1px solid rgba(255,255,255,0.08); margin: 2px 0; }
+
+  .new-req-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--orange-600); color: #fff; border: none; border-radius: 9px; padding: 9px; font-size: 12.5px; font-weight: 700;
+    margin: 6px 0 12px; cursor: pointer;
+  }
+  .new-req-btn:hover { background: #a83f09; }
+
+  .sb-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--navy-300); margin: 4px 0 8px; }
+
+  .history-list { flex: 1; overflow-y: auto; padding: 0 12px 14px; }
+  .history-item { padding: 9px 9px; border-radius: 9px; margin-bottom: 2px; cursor: pointer; }
+  .history-item:hover { background: rgba(255,255,255,0.05); }
+  .history-item.active { background: var(--navy-800); }
+  .history-item .addr { font-size: 12px; font-weight: 600; color: #fff; line-height: 1.35; }
+  .history-item .meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .history-item .dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .history-item .date { font-size: 10.3px; color: var(--navy-300); }
+
+  /* ================= MAIN ================= */
+  .main-col { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .mobile-toggle { display: none; }
+  .main-split { flex: 1; display: flex; min-width: 0; min-height: 0; }
+
+  /* ---- Chat pane 30% ---- */
+  .chat-pane { flex: 3; min-width: 300px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--white); min-height: 0; }
+  .pane-head { padding: 15px 18px; border-bottom: 1px solid var(--border); }
+  .pane-head .title { font-size: 13px; font-weight: 700; color: var(--navy-700); }
+  .pane-head .sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+  .chat-thread { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 11px; }
+  .msg { max-width: 86%; padding: 10px 13px; border-radius: 13px; font-size: 12.6px; line-height: 1.55; }
+  .msg .who { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; opacity: 0.65; }
+  .msg.agent { align-self: flex-start; background: var(--navy-050); border: 1px solid var(--navy-100); color: var(--ink); border-bottom-left-radius: 4px; }
+  .msg.user { align-self: flex-end; background: var(--orange-050); border: 1px solid var(--orange-100); color: var(--ink); border-bottom-right-radius: 4px; }
+  .msg.status { align-self: flex-start; background: transparent; border: 1px dashed var(--border); color: var(--text-secondary); font-style: italic; padding: 7px 11px; font-size: 12px; }
+
+  .chat-input-bar { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+  .chat-input { flex: 1; border: 1px solid var(--border); border-radius: 10px; padding: 10px 13px; font-size: 12.6px; color: var(--ink); font-family: inherit; }
+  .chat-input::placeholder { color: var(--text-muted); }
+  .chat-send { width: 38px; border-radius: 10px; background: var(--orange-600); border: none; flex: none; color: #fff; font-size: 15px; cursor: pointer; }
+  .chat-send:hover { background: #a83f09; }
+
+  /* ---- Info pane 70% ---- */
+  .info-pane { flex: 7; min-width: 360px; display: flex; flex-direction: column; background: var(--page-bg); min-height: 0; }
+
+  .subtab-bar { display: flex; gap: 4px; padding: 10px 18px; border-bottom: 1px solid var(--border); background: var(--white); overflow-x: auto; }
+  .subtab-btn { flex: none; display:flex; align-items:center; gap:6px; font-size: 12px; font-weight: 700; color: var(--text-secondary); padding: 8px 13px; border-radius: 999px; border: none; background: transparent; white-space: nowrap; cursor: pointer; font-family: inherit; }
+  .subtab-btn .n { display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--gridline); color: var(--text-muted); font-size: 9px; text-align: center; line-height: 16px; }
+  .step-num { display: inline-block; border-radius: 50%; background: var(--navy-050); color: var(--navy-600); font-weight: 700; text-align: center; }
+  .subtab-btn.active { background: var(--navy-900); color: #fff; }
+  .subtab-btn.active .n { background: var(--orange-500); color: #fff; }
+  .subtab-btn:not(.active):hover { background: var(--navy-050); }
+
+  .info-content { flex: 1; overflow-y: auto; padding: 18px 22px 30px; }
+  .info-screen { display: none; }
+  .info-screen.active { display: block; }
+
+  .grid { display: grid; gap: 12px; margin-bottom: 12px; }
+  .grid.c2 { grid-template-columns: 1fr 1fr; }
+  .grid.c3 { grid-template-columns: repeat(3, 1fr); }
+  .grid.c4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 1200px) { .grid.c4 { grid-template-columns: repeat(2, 1fr); } .grid.c3 { grid-template-columns: repeat(2, 1fr); } }
+
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .section-h { font-size: 11px; font-weight: 700; color: var(--text-secondary); margin: 2px 0 10px; text-transform: uppercase; letter-spacing: 0.04em; display:flex; align-items:center; gap:8px; }
+  .section-h .primary-btn { margin-left: auto; }
+
+  .primary-btn { background: var(--orange-600); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .primary-btn:hover { background: #a83f09; }
+
+  /* q-mark tooltip */
+  .qmark { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 1.3px solid var(--navy-300); color: var(--navy-600); font-size: 9px; font-weight: 700; cursor: help; position: relative; flex: none; }
+  .qmark:hover::after {
+    content: attr(data-why); position: absolute; bottom: 135%; left: 50%; transform: translateX(-50%); width: 200px;
+    background: var(--navy-900); color: #fff; font-size: 11px; font-weight: 500; line-height: 1.45; text-transform: none; letter-spacing: normal;
+    padding: 9px 11px; border-radius: 8px; z-index: 20; text-align: left;
+  }
+  .qmark:hover::before {
+    content: ''; position: absolute; bottom: 118%; left: 50%; transform: translateX(-50%);
+    border: 5px solid transparent; border-top-color: var(--navy-900); z-index: 20;
+  }
+
+  /* form (screen 1) */
+  .field label { display: block; font-size: 10.5px; color: var(--text-muted); margin-bottom: 5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+  .field .fake-input { border: 1px solid var(--border); background: var(--page-bg); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--ink); }
+
+  /* ---- reference chip trên trường (grounding, KHÔNG hiển thị confidence ở đây) ---- */
+  .field-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: 6px; }
+  .src-ref { display: inline-flex; align-items: center; gap: 4px; font-size: 9.5px; font-weight: 600; color: var(--navy-600); background: var(--navy-050); border: 1px solid var(--navy-100); border-radius: 999px; padding: 2px 8px; cursor: pointer; text-transform: none; letter-spacing: 0; position: relative; }
+  .src-ref:hover { background: var(--navy-100); border-color: var(--navy-300); }
+  .src-ref.warn { color: var(--critical); background: var(--critical-tint); border-color: rgba(208,59,59,0.35); }
+  .src-ref:hover::after { content: attr(data-src); position: absolute; bottom: 130%; left: 0; width: 250px; background: var(--navy-900); color: #fff; font-size: 10.5px; font-weight: 500; line-height: 1.5; padding: 9px 11px; border-radius: 8px; z-index: 40; text-align: left; white-space: normal; }
+
+  .extract-caption { font-size: 11px; color: var(--text-secondary); margin: 12px 0 14px; line-height: 1.55; display: flex; align-items: flex-start; gap: 6px; }
+
+  /* ---- khung xem tài liệu + bounding box ---- */
+  .doc-viewer-card { padding: 0; overflow: hidden; }
+  .dv-toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .dv-toolbar .dv-title { font-size: 12.8px; font-weight: 700; color: var(--ink); }
+  .dv-files { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+  .dv-file { font-size: 11px; font-weight: 700; color: var(--text-secondary); background: var(--page-bg); border: 1px solid var(--border); border-radius: 999px; padding: 5px 11px; cursor: pointer; white-space: nowrap; }
+  .dv-file:hover { background: var(--navy-050); }
+  .dv-file.active { background: var(--navy-900); color: #fff; border-color: var(--navy-900); }
+  .dv-stage { padding: 16px; background: var(--navy-050); display: flex; justify-content: center; }
+  .dv-page { position: relative; width: 100%; max-width: 500px; aspect-ratio: 1 / 1.414; background: var(--white); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 4px 18px rgba(16,27,66,0.12); overflow: hidden; }
+  .dv-page.scan .dv-lines { filter: blur(1.1px); opacity: 0.55; }
+  .dv-page.scan::after { content: 'BẢN SCAN'; position: absolute; top: 10px; right: 10px; font-size: 8.5px; font-weight: 800; color: var(--critical); border: 1px solid var(--critical); border-radius: 4px; padding: 2px 6px; transform: rotate(6deg); letter-spacing: 0.05em; z-index: 6; }
+  .dv-watermark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 62px; font-weight: 800; color: rgba(16,27,66,0.045); pointer-events: none; }
+  .dv-lines { position: absolute; inset: 0; padding: 9% 8%; display: flex; flex-direction: column; gap: 2.4%; }
+  .dv-lines .ln { height: 1.5%; background: var(--gridline); border-radius: 2px; width: 100%; }
+  .dv-lines .ln.t { height: 3%; width: 60%; background: var(--navy-100); margin: 0 auto 3%; }
+  .dv-lines .ln.s { width: 45%; }
+  .dv-lines .ln.m { width: 75%; }
+
+  .dv-box { position: absolute; border: 2px solid; border-radius: 4px; cursor: pointer; transition: box-shadow .15s; }
+  .dv-box .dv-conf { position: absolute; top: -9px; left: 6px; font-size: 8.5px; font-weight: 800; padding: 1px 5px; border-radius: 999px; color: #fff; white-space: nowrap; }
+  .dv-box.high { border-color: var(--good); background: rgba(12,163,12,0.12); } .dv-box.high .dv-conf { background: var(--good); }
+  .dv-box.mid  { border-color: var(--warning); background: rgba(250,178,25,0.18); } .dv-box.mid .dv-conf { background: #b07d00; }
+  .dv-box.low  { border-color: var(--critical); background: rgba(208,59,59,0.12); } .dv-box.low .dv-conf { background: var(--critical); }
+  .dv-box:hover { box-shadow: 0 0 0 3px rgba(242,112,28,0.5); z-index: 5; }
+  .dv-box .dv-tip { display: none; position: absolute; bottom: calc(100% + 6px); left: 0; background: var(--navy-900); color: #fff; font-size: 10px; font-weight: 600; line-height: 1.45; padding: 6px 9px; border-radius: 7px; width: max-content; max-width: 210px; z-index: 10; }
+  .dv-box:hover .dv-tip { display: block; }
+  @keyframes boxpulse { 0%,100% { box-shadow: 0 0 0 3px rgba(242,112,28,0.15); } 50% { box-shadow: 0 0 0 6px rgba(242,112,28,0.75); } }
+  .dv-box.pulse { animation: boxpulse 0.7s ease-in-out 3; z-index: 5; }
+  .dv-hint { font-size: 10.5px; color: var(--text-muted); padding: 0 16px 14px; line-height: 1.5; }
+
+  /* table */
+  table { width: 100%; border-collapse: collapse; font-size: 12.3px; }
+  th { text-align: left; color: var(--text-muted); font-weight: 700; font-size: 10.3px; text-transform: uppercase; letter-spacing: 0.03em; padding: 8px 4px; border-bottom: 1px solid var(--gridline); }
+  td { padding: 9px 4px; border-bottom: 1px solid var(--gridline); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  td.strong { color: var(--ink); font-weight: 700; }
+
+  /* badges */
+  .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10.7px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+  .badge.good { background: var(--good-tint); color: #0a7f0a; }
+  .badge.warning { background: var(--warning-tint); color: #8a6100; }
+  .badge.serious { background: var(--serious-tint); color: #9c4419; }
+  .badge.critical { background: var(--critical-tint); color: var(--critical); }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* stat tile */
+  .stat-tile .label { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; display:flex; align-items:center; gap:6px;}
+  .stat-tile .value { font-size: 21px; font-weight: 700; color: var(--navy-700); letter-spacing: -0.01em; }
+  .stat-tile .sub { font-size: 10.7px; color: var(--text-muted); margin-top: 3px; }
+
+  /* bars */
+  .barchart { display: flex; flex-direction: column; gap: 10px; }
+  .barrow { display: grid; grid-template-columns: 118px 1fr 68px; align-items: center; gap: 9px; font-size: 12px; }
+  .barrow .rowlabel { color: var(--text-secondary); }
+  .bartrack { background: var(--navy-050); border-radius: 4px; height: 16px; overflow: hidden; }
+  .barfill { height: 100%; border-radius: 4px; background: var(--navy-600); }
+  .barrow .rowvalue { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 700; font-size: 12px; }
+
+  /* meter */
+  .meter-wrap { display: flex; align-items: center; gap: 12px; }
+  .meter-track { flex: 1; height: 12px; border-radius: 999px; background: var(--gridline); overflow: hidden; }
+  .meter-fill { height: 100%; border-radius: 999px; }
+  .meter-num { font-size: 19px; font-weight: 700; color: var(--navy-700); min-width: 60px; text-align: right; }
+
+
+  /* timeline */
+  .timeline { display: flex; flex-direction: column; }
+  .tl-item { display: grid; grid-template-columns: 60px 18px 1fr; gap: 10px; }
+  .tl-time { font-size: 10.5px; color: var(--text-muted); padding-top: 2px; font-variant-numeric: tabular-nums; }
+  .tl-rail { display: flex; flex-direction: column; align-items: center; }
+  .tl-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--good); margin-top: 3px; flex: none; }
+  .tl-line { width: 2px; flex: 1; background: var(--gridline); margin: 2px 0; }
+  .tl-item:last-child .tl-line { display: none; }
+  .tl-body { padding-bottom: 16px; }
+  .tl-body b { font-size: 12.5px; color: var(--ink); }
+  .tl-body p { margin: 2px 0 0; font-size: 11.5px; color: var(--text-secondary); }
+
+  /* lookup mini-cards */
+  .lookup-card .headline { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .lookup-card p { margin: 6px 0 0; font-size: 11.8px; color: var(--text-secondary); line-height: 1.5; }
+  .lookup-card .src { margin-top: 7px; font-size: 10px; color: var(--text-muted); }
+
+  .flag-row { display: flex; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--gridline); }
+  .flag-row:last-child { border-bottom: none; }
+  .flag-row b { font-size: 12.5px; color: var(--ink); }
+  .flag-row p { margin: 3px 0 0; font-size: 11.8px; color: var(--text-secondary); line-height: 1.5; }
+  .flag-row .meta { margin-top: 4px; font-size: 10.3px; color: var(--text-muted); }
+
+  /* ---- Chat welcome / empty state ---- */
+  .chat-welcome { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 22px; }
+  .welcome-avatar { width: 50px; height: 50px; border-radius: 14px; background: var(--navy-900); display: flex; align-items: center; justify-content: center; font-size: 21px; margin-bottom: 14px; }
+  .welcome-title { font-size: 15.5px; font-weight: 800; color: var(--navy-700); margin-bottom: 6px; }
+  .welcome-text { font-size: 12.3px; color: var(--text-secondary); line-height: 1.6; max-width: 300px; margin-bottom: 20px; }
+  .suggest-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 10px; }
+  .suggest-chips { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
+  .chip { display: flex; align-items: center; gap: 9px; text-align: left; background: var(--white); border: 1px solid var(--border); border-radius: 11px; padding: 10px 13px; font-size: 12.2px; font-weight: 600; color: var(--ink); font-family: inherit; cursor: pointer; }
+  .chip:hover { border-color: var(--orange-500); background: var(--orange-050); }
+  .chip .ic { flex: none; font-size: 15px; }
+
+  /* ---- typing indicator ---- */
+  .msg.typing { display: flex; align-items: center; gap: 4px; padding: 12px 15px; }
+  .msg.typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--navy-300); animation: typingBounce 1.1s infinite ease-in-out; }
+  .msg.typing span:nth-child(2) { animation-delay: 0.15s; }
+  .msg.typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+
+  /* ---- data source upload ---- */
+  .dropzone { border: 1.6px dashed var(--navy-300); border-radius: 12px; padding: 20px 16px; text-align: center; background: var(--navy-050); cursor: pointer; margin-bottom: 14px; }
+  .dropzone .dz-icon { font-size: 22px; margin-bottom: 6px; }
+  .dropzone .dz-text { font-size: 12.5px; font-weight: 700; color: var(--navy-700); }
+  .dropzone .dz-text span { color: var(--orange-600); text-decoration: underline; }
+  .dropzone .dz-hint { font-size: 10.7px; color: var(--text-muted); margin-top: 4px; }
+
+  .upload-list { display: flex; flex-direction: column; }
+  .upload-row { display: flex; align-items: center; gap: 11px; padding: 10px 2px; border-bottom: 1px solid var(--gridline); }
+  .upload-row:last-child { border-bottom: none; }
+  .upload-ic { width: 30px; height: 30px; border-radius: 8px; background: var(--navy-050); display: flex; align-items: center; justify-content: center; font-size: 14px; flex: none; }
+  .upload-info { flex: 1; min-width: 0; }
+  .upload-name { font-size: 12.3px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .upload-status { font-size: 11px; color: var(--good); margin-top: 3px; display: flex; align-items: center; gap: 5px; }
+  .upload-empty { font-size: 11.8px; color: var(--text-muted); padding: 10px 2px; line-height: 1.6; }
+  .upload-remove { flex: none; width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--border); background: var(--white); color: var(--text-muted); cursor: pointer; font-size: 12px; font-family: inherit; }
+  .upload-remove:hover { background: var(--critical-tint); border-color: var(--critical); color: var(--critical); }
+
+  .form-section + .form-section { margin-top: 12px; }
+
+  /* ---- data source accordion (persistent across all tabs) ---- */
+  .ds-persistent { padding: 14px 22px 0; }
+  .ds-header { display: flex; align-items: center; gap: 11px; cursor: pointer; user-select: none; }
+  .ds-header .ds-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--navy-050); display: flex; align-items: center; justify-content: center; font-size: 15px; flex: none; }
+  .ds-title { font-size: 12.8px; font-weight: 700; color: var(--ink); }
+  .ds-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .ds-chevron { margin-left: auto; font-size: 12px; color: var(--text-muted); transition: transform 0.15s ease; flex: none; }
+  .ds-header.open .ds-chevron { transform: rotate(180deg); }
+  .ds-body { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--gridline); }
+
+  /* ---- per-screen loading state ---- */
+  .loading-screen .loading-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 90px 20px; color: var(--text-secondary); font-size: 12.5px; font-weight: 600; }
+  .spinner { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--navy-100); border-top-color: var(--orange-500); animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- chat/UI edit highlight: chờ xác nhận (xanh dương) → đã xác nhận (xanh lá) ---- */
+  .edited-badge { display: inline-block; margin-left: 6px; font-size: 8.5px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--navy-600); background: var(--navy-050); border: 1px solid var(--navy-100); border-radius: 999px; padding: 1.5px 7px; vertical-align: middle; white-space: nowrap; }
+  .edited-badge.confirmed { color: #0a7f0a; background: var(--good-tint); border-color: rgba(12,163,12,0.3); }
+
+  .field.pending-edit .fake-input { border-color: var(--navy-600); background: var(--navy-050); }
+  .field.edited .fake-input { border-color: var(--good); background: var(--good-tint); }
+
+  .card.pending-edit { border-left: 3px solid var(--navy-600); background: var(--navy-050); }
+  .card.edited { border-left: 3px solid var(--good); background: var(--good-tint); }
+
+  .lookup-card.pending-edit .headline, .lookup-card.edited .headline,
+  .lookup-detail.pending-edit .ld-head, .lookup-detail.edited .ld-head { flex-wrap: wrap; }
+
+  .barrow.pending-edit .rowlabel, .barrow.pending-edit .rowvalue { color: var(--navy-600); font-weight: 700; }
+  .barrow.edited .rowlabel, .barrow.edited .rowvalue { color: #0a7f0a; font-weight: 700; }
+
+  .flag-row.pending-edit { background: var(--navy-050); border-radius: 8px; padding: 11px 8px; margin: 0 -8px; }
+  .flag-row.edited { background: var(--good-tint); border-radius: 8px; padding: 11px 8px; margin: 0 -8px; }
+
+  /* ---- editable fields (màn Nhập thông tin) ---- */
+  .fake-input[contenteditable] { cursor: text; }
+  .fake-input[contenteditable]:hover { border-color: var(--navy-300); }
+  .fake-input[contenteditable]:focus { outline: 2px solid var(--navy-300); outline-offset: 1px; background: var(--white); }
+
+  /* ---- review banner (screens 1–5) ---- */
+  .review-banner { display: flex; align-items: center; gap: 8px; padding: 9px 22px; background: var(--navy-050); border-bottom: 1px solid var(--navy-100); font-size: 11.3px; color: var(--navy-600); font-weight: 600; }
+  .review-banner .ic { flex: none; font-size: 13px; }
+
+  /* ---- locked subtabs (chưa mở khoá tới bước đó) ---- */
+  .subtab-btn.locked { opacity: 0.42; cursor: not-allowed; pointer-events: none; }
+
+  /* ---- lookup detail cards (màn Kết quả tra cứu) ---- */
+  .lookup-detail { display: flex; flex-direction: column; gap: 10px; }
+  .ld-head { display: flex; align-items: center; gap: 8px; }
+  .ld-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .ld-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin-bottom: 4px; }
+  .ld-raw ul { margin: 0; padding-left: 16px; font-size: 11.8px; color: var(--text-secondary); line-height: 1.55; }
+  .ld-raw li { margin-bottom: 2px; }
+  .ld-inference { background: var(--navy-050); border-radius: 8px; padding: 9px 11px; }
+  .ld-inference p { margin: 0; font-size: 11.8px; color: var(--ink); line-height: 1.55; }
+  .ld-meta { font-size: 10px; color: var(--text-muted); }
+
+  /* ---- footer next/back bar ---- */
+  .info-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 22px; border-top: 1px solid var(--border); background: var(--white); }
+  .info-footer .footer-hint { font-size: 11.2px; color: var(--text-secondary); flex: 1; min-width: 0; }
+  .footer-btns { display: flex; gap: 8px; flex: none; }
+  .footer-back-btn { background: var(--white); border: 1px solid var(--border); color: var(--navy-700); border-radius: 8px; padding: 9px 15px; font-size: 12.3px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .footer-back-btn:hover:not(:disabled) { background: var(--navy-050); }
+  .footer-back-btn:disabled { opacity: 0.35; cursor: default; }
+  .footer-next-btn.done { background: var(--good); }
+  .footer-next-btn.done:hover { background: #0a8a0a; }
+  .footer-next-btn:disabled { opacity: 0.6; cursor: default; }
+
+  /* ================= Responsive ================= */
+  @media (max-width: 900px) {
+    .sidebar { width: 64px; }
+    .sidebar .txt-hide { display: none; }
+    .new-req-btn { padding: 9px 0; }
+    .history-list { padding: 0 8px 14px; }
+    .history-item { display: flex; justify-content: center; }
+    .history-item .addr, .history-item .date { display: none; }
+    .history-item .meta { margin: 0; }
+
+    .mobile-toggle { display: flex; gap: 4px; padding: 10px 14px; background: var(--white); border-bottom: 1px solid var(--border); }
+    .mobile-toggle button { flex: 1; font-size: 12.5px; font-weight: 700; padding: 9px; border-radius: 9px; border: none; background: var(--page-bg); color: var(--text-secondary); font-family: inherit; }
+    .mobile-toggle button.active { background: var(--navy-900); color: #fff; }
+
+    .main-split { flex-direction: column; }
+    .chat-pane, .info-pane { flex: 1; min-height: 0; width: 100%; min-width: 0; }
+    body.show-chat .info-pane { display: none; }
+    body.show-info .chat-pane { display: none; }
+
+    .info-footer { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
+    .info-footer .footer-hint { text-align: center; }
+    .footer-btns { justify-content: stretch; }
+    .footer-btns button { flex: 1; }
+    .review-banner { padding: 9px 16px; }
+    .ds-persistent { padding: 12px 16px 0; }
+  }
+  @media (min-width: 901px) {
+    .chat-pane, .info-pane { display: flex !important; }
+  }
+</style>
+</head>
+<body class="show-chat">
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="mark">SHB</div>
+      <div class="name txt-hide">PAA Workspace<small>Digital Expert Agent</small></div>
+    </div>
+    <div class="sb-section" style="padding-bottom:0;">
+      <div class="nav-item active"><span class="ic">🏠</span><span class="txt-hide">Thẩm định BĐS</span></div>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section" style="padding-bottom:0;">
+      <button class="new-req-btn">＋ <span class="txt-hide">Yêu cầu thẩm định mới</span></button>
+      <div class="sb-label txt-hide">Lịch sử hồ sơ</div>
+    </div>
+    <div class="history-list">
+      <div class="history-item active">
+        <div class="addr">Hẻm 45 Nguyễn Văn A, Q.C</div>
+        <div class="meta"><span class="dot" style="background:var(--warning)"></span><span class="date">Đang xử lý · hôm nay</span></div>
+      </div>
+      <div class="history-item">
+        <div class="addr">12 Trần Văn B, Q.7</div>
+        <div class="meta"><span class="dot" style="background:var(--good)"></span><span class="date">Hoàn tất · hôm qua</span></div>
+      </div>
+      <div class="history-item">
+        <div class="addr">Chung cư Sunview, Q.Bình Thạnh</div>
+        <div class="meta"><span class="dot" style="background:var(--good)"></span><span class="date">Hoàn tất · 3 ngày trước</span></div>
+      </div>
+      <div class="history-item">
+        <div class="addr">Đất nền Long Thành, Đồng Nai</div>
+        <div class="meta"><span class="dot" style="background:var(--good)"></span><span class="date">Hoàn tất · tuần trước</span></div>
+      </div>
+      <div class="history-item">
+        <div class="addr">34 Lê Văn C, Q.10</div>
+        <div class="meta"><span class="dot" style="background:var(--text-muted)"></span><span class="date">Huỷ · 2 tuần trước</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-col">
+    <div class="mobile-toggle">
+      <button class="active" data-pane="chat">💬 Chat</button>
+      <button data-pane="info">📋 Thông tin</button>
+    </div>
+    <div class="main-split">
+
+      <!-- CHAT 30% -->
+      <div class="chat-pane">
+        <div class="pane-head">
+          <div class="title">Trò chuyện với PAA</div>
+          <div class="sub">Hẻm 45 Nguyễn Văn A, Phường B, Quận C</div>
+        </div>
+        <div class="chat-welcome" id="chatWelcome">
+          <div class="welcome-avatar">🏠</div>
+          <div class="welcome-title">Xin chào, tôi là PAA 👋</div>
+          <div class="welcome-text">Trợ lý thẩm định bất động sản. Tôi có thể tra cứu dữ liệu khu vực, định giá và đánh giá rủi ro giúp bạn. Bạn có thể sửa trực tiếp trên form hoặc nhờ tôi sửa qua chat — mọi thay đổi sẽ hiện màu xanh lá sau khi bạn bấm Xác nhận ở từng bước.</div>
+          <div class="suggest-label">Câu hỏi gợi ý</div>
+          <div class="suggest-chips">
+            <button class="chip" data-flow="appraise"><span class="ic">🏠</span>Thẩm định căn nhà tôi vừa nhập thông tin</button>
+            <button class="chip" data-flow="market"><span class="ic">📈</span>Giá thị trường khu vực này hiện nay thế nào?</button>
+            <button class="chip" data-flow="legal"><span class="ic">📄</span>Kiểm tra tính pháp lý của tài sản</button>
+            <button class="chip" data-flow="process"><span class="ic">❓</span>Quy trình thẩm định BĐS thế chấp gồm những bước nào?</button>
+            <button class="chip" data-flow="edit-demo"><span class="ic">✏️</span>Diện tích đất tôi khai chưa đúng, sửa lại giúp tôi</button>
+          </div>
+        </div>
+        <div class="chat-thread" id="chatThread" style="display:none;"></div>
+        <div class="chat-input-bar">
+          <input class="chat-input" id="chatInput" placeholder="Nhập câu hỏi hoặc yêu cầu chỉnh sửa cho PAA…" />
+          <button class="chat-send" id="chatSend">➤</button>
+        </div>
+      </div>
+
+      <!-- INFO 70% -->
+      <div class="info-pane">
+        <div class="subtab-bar">
+          <button class="subtab-btn active" data-tab="1"><span class="n">1</span>Nhập thông tin</button>
+          <button class="subtab-btn" data-tab="2"><span class="n">2</span>Kết quả tra cứu</button>
+          <button class="subtab-btn" data-tab="3"><span class="n">3</span>Định giá</button>
+          <button class="subtab-btn" data-tab="4"><span class="n">4</span>Rủi ro</button>
+          <button class="subtab-btn" data-tab="5"><span class="n">5</span>Dashboard</button>
+        </div>
+
+        <div class="review-banner" id="reviewBanner"><span class="ic">💬</span>Chưa đúng? Sửa trực tiếp trên form (nếu có) hoặc chat với PAA — thay đổi sẽ hiện màu xanh lá sau khi bạn bấm Xác nhận.</div>
+
+        <div class="info-content">
+
+          <!-- LOADING PLACEHOLDER -->
+          <div class="info-screen loading-screen" id="scr-loading">
+            <div class="loading-inner">
+              <div class="spinner"></div>
+              <div class="loading-text" id="loadingText">Đang tải dữ liệu…</div>
+            </div>
+          </div>
+
+          <!-- SCREEN 1 -->
+          <div class="info-screen active" id="scr-1">
+
+            <!-- Nguồn tài liệu đính kèm — chỉ hiển thị ở màn Nhập thông tin -->
+            <div class="ds-persistent" style="padding:0 0 12px;">
+              <div class="card">
+                <div class="ds-header" id="dsHeader">
+                  <div class="ds-icon">📎</div>
+                  <div>
+                    <div class="ds-title">Nguồn tài liệu đính kèm</div>
+                    <div class="ds-sub" id="dsSummary">Chưa có tài liệu nào được tải lên</div>
+                  </div>
+                  <span class="ds-chevron" id="dsChevron">▾</span>
+                </div>
+                <div class="ds-body" id="dsBody" style="display:none;">
+                  <div class="dropzone" id="dropzone">
+                    <div class="dz-icon">📤</div>
+                    <div class="dz-text">Kéo thả tệp vào đây hoặc <span>chọn tệp để tải lên</span></div>
+                    <div class="dz-hint">Hỗ trợ PDF, JPG, PNG · tối đa 20MB/tệp — ví dụ: sổ đỏ/sổ hồng, CMND/CCCD, hợp đồng, ảnh hiện trạng...</div>
+                  </div>
+                  <div class="upload-list" id="uploadedList">
+                    <div class="upload-empty" id="uploadEmpty">Chưa có tệp nào được tải lên.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card doc-viewer-card">
+              <div class="dv-toolbar">
+                <div class="dv-title">🗂️ Tài liệu &amp; vùng trích xuất</div>
+                <div class="dv-files" id="dvFiles"></div>
+              </div>
+              <div class="dv-stage"><div class="dv-page" id="dvPage"></div></div>
+              <div class="dv-hint" id="dvHint">Ô màu = vùng PAA trích xuất được, kèm <b>% độ tin cậy</b> ngay trên tài liệu. Di chuột vào ô để xem trường + giá trị. Bấm chip <b>📄 nguồn</b> ở mỗi trường bên dưới để nhảy tới đúng vùng.</div>
+            </div>
+
+            <p class="extract-caption"><span>🔎</span><span>Mỗi trường bên dưới chỉ điền khi trích được <b>trực tiếp từ tài liệu</b> — bấm chip <b>📄 nguồn</b> để đối chiếu vùng gốc. Trường không có nguồn (SĐT, khoản vay) để nhập tay; PAA <b>không suy đoán</b>.</span></p>
+
+            <div class="card form-section">
+              <div class="section-h">A. Thông tin bên vay / chủ sở hữu</div>
+              <div class="grid c2">
+                <div class="field"><label>Họ và tên</label><div class="fake-input">Nguyễn Văn A</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="hoten" data-src="Sổ hồng · trang 1: “Người sử dụng đất, chủ sở hữu: Ông NGUYỄN VĂN A”">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Số CMND/CCCD</label><div class="fake-input">079xxxxxxxxx</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="to-khai" data-box="cccd" data-src="Tờ khai lệ phí trước bạ · mục Người nộp: “CCCD số 079xxxxxxxxx”">📄 Tờ khai LPTB ↗</span></div>
+                </div>
+                <div class="field"><label>Số điện thoại</label><div class="fake-input">09xx xxx xxx</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="suy-luan" data-src="Không có trong tài liệu tài sản — nhập tay.">✍️ Nhập tay (không có nguồn)</span></div>
+                </div>
+                <div class="field"><label>Mối quan hệ với tài sản</label><div class="fake-input">Chủ sở hữu đứng tên trên GCN</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="hoten" data-src="Suy ra từ đối chiếu: tên người vay trùng tên chủ sở hữu trên Sổ hồng.">📄 Sổ hồng ↗</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card form-section">
+              <div class="section-h">B. Thông tin pháp lý tài sản <span class="qmark" data-why="Các trường này đối chiếu trực tiếp với dữ liệu trên Giấy chứng nhận quyền sử dụng đất / quyền sở hữu nhà (sổ đỏ/sổ hồng).">?</span></div>
+              <div class="grid c2">
+                <div class="field"><label>Loại giấy chứng nhận</label><div class="fake-input">Sổ hồng (QSDĐ &amp; QSH nhà ở)</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="loaigcn" data-src="Sổ hồng · tiêu đề: “GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT, QUYỀN SỞ HỮU NHÀ Ở...”">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Số giấy chứng nhận</label><div class="fake-input">CS 01234567</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="sogcn" data-src="Sổ hồng · góc trên bên phải: “Số phát hành: CS 01234567”">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Ngày cấp / Cơ quan cấp</label><div class="fake-input">14/03/2019 · Sở TN&MT TP</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="ngaycap" data-src="Sổ hồng · trang 2: “Ngày 14 tháng 3 năm 2019 — Giám đốc Sở TN&MT”">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Số thửa / Số tờ bản đồ</label><div class="fake-input">Thửa 45, tờ BĐ 12</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="tb-thue" data-box="sothua" data-src="Thông báo nộp thuế đất · bản scan (chất lượng thấp): “Thửa đất số 45, tờ bản đồ 12”">📄 TB thuế đất (scan) ↗</span></div>
+                </div>
+                <div class="field"><label>Mục đích sử dụng đất</label><div class="fake-input">Đất ở tại đô thị (ODT)</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="mucdich" data-src="Sổ hồng · mục Mục đích sử dụng: “Đất ở tại đô thị”">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Thời hạn sử dụng</label><div class="fake-input">Lâu dài</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="thoihan" data-src="Sổ hồng · mục Thời hạn sử dụng: “Lâu dài”">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Hình thức sở hữu</label><div class="fake-input">Sở hữu riêng</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="hinhthuc" data-src="Sổ hồng · mục Hình thức sử dụng: “Sử dụng riêng”">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Tình trạng thế chấp hiện tại</label><div class="fake-input">Chưa thế chấp tại TCTD nào</div>
+                  <div class="field-meta"><span class="src-ref warn" data-doc="so-hong" data-box="thechap" data-src="Trang biến động Sổ hồng để trống — chưa đủ căn cứ khẳng định, cần tra cứu CIC/hệ thống nội bộ trước khi kết luận.">📄 Sổ hồng · cần đối chiếu CIC ↗</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card form-section">
+              <div class="section-h">C. Vị trí &amp; đặc điểm tài sản</div>
+              <div class="grid c2">
+                <div class="field" id="fld-diachi"><label>Địa chỉ</label><div class="fake-input">Hẻm 45 Nguyễn Văn A, Phường B, Quận C</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="diachi" data-src="Sổ hồng · Địa chỉ thửa đất: “Hẻm 45 Nguyễn Văn A, Phường B, Quận C”">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field" id="fld-loaibds"><label>Loại BĐS</label><div class="fake-input">Nhà phố (nhà trong hẻm)</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="suy-luan" data-src="Suy luận từ đặc điểm nhà + vị trí trong hẻm — không nêu trực tiếp trên tài liệu, cần thẩm định viên xác nhận.">📄 Suy luận (không có vùng nguồn)</span></div>
+                </div>
+                <div class="field" id="fld-dientich"><label>Diện tích đất</label><div class="fake-input">62 m²</div>
+                  <div class="field-meta"><span class="src-ref warn" data-doc="so-hong" data-box="dientich" data-src="⚠ 2 tài liệu ghi khác nhau: Sổ hồng = 62 m², Tờ khai LPTB = 65 m². Kiểm tra chéo sơ đồ (4.2 × 14.8 = 62.2 m²) ủng hộ 62 m². Cần thẩm định viên chốt.">⚠ 2 nguồn khác nhau ↗</span></div>
+                </div>
+                <div class="field"><label>Diện tích sàn xây dựng</label><div class="fake-input">98 m² (2 tầng)</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="bien-ban" data-box="dtsan" data-src="Biên bản bàn giao · “Tổng diện tích sàn ~98m²” (diễn đạt xấp xỉ).">📄 Biên bản BG ↗</span></div>
+                </div>
+                <div class="field"><label>Kích thước mặt tiền × chiều sâu</label><div class="fake-input">4.2m × 14.8m</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="kichthuoc" data-src="Sổ hồng · sơ đồ thửa đất: cạnh 4.2m × 14.8m">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Số tầng</label><div class="fake-input">2 tầng + sân thượng</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="sotang" data-src="Sổ hồng · tài sản gắn liền với đất: “Nhà ở 2 tầng”">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Năm xây dựng</label><div class="fake-input">2016</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="namxd" data-src="Sổ hồng · năm hoàn thành xây dựng: 2016">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Kết cấu / vật liệu</label><div class="fake-input">Bê tông cốt thép, tường gạch</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="so-hong" data-box="ketcau" data-src="Sổ hồng · kết cấu: “BTCT, tường gạch”">📄 Sổ hồng ↗</span></div>
+                </div>
+                <div class="field"><label>Hướng nhà</label><div class="fake-input">Đông Nam</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="bien-ban" data-box="huong" data-src="Biên bản bàn giao · ghi chú hiện trạng: “hướng Đông Nam” (nguồn thứ cấp, nên xác minh thực địa).">📄 Biên bản BG ↗</span></div>
+                </div>
+                <div class="field"><label>Loại đường / độ rộng hẻm</label><div class="fake-input">Hẻm bê tông, rộng 3.5m, ô tô vào được</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="bien-ban" data-box="tinhtrang" data-src="Biên bản bàn giao · mô tả lối vào/hiện trạng khu vực.">📄 Biên bản BG ↗</span></div>
+                </div>
+                <div class="field"><label>Tình trạng sử dụng hiện tại</label><div class="fake-input">Đang ở, không cho thuê</div>
+                  <div class="field-meta"><span class="src-ref" data-doc="bien-ban" data-box="tinhtrang" data-src="Biên bản bàn giao: “Bàn giao nhà đang sử dụng để ở”">📄 Biên bản BG ↗</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card form-section">
+              <div class="section-h">D. Thông tin khoản vay</div>
+              <div class="grid c2">
+                <div class="field"><label>Số tiền vay</label><div class="fake-input">3.200.000.000 ₫</div></div>
+                <div class="field"><label>Mục đích vay</label><div class="fake-input">Thế chấp vay vốn</div></div>
+                <div class="field"><label>Thời hạn vay</label><div class="fake-input">15 năm</div></div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SCREEN 2 -->
+          <div class="info-screen" id="scr-2">
+            <div class="card" style="margin-bottom:12px;">
+              <div class="section-h">Giao dịch so sánh khu vực <span class="qmark" data-why="Nguồn: dữ liệu tra cứu giá thị trường (market_price_lookup) trong bán kính 1.1km quanh tài sản, đã quy đổi theo chỉ số giá hiện hành.">?</span></div>
+              <table>
+                <tr><th>Địa chỉ</th><th>Cách</th><th>DT</th><th>Ngày GD</th><th>Giá/m²</th></tr>
+                <tr><td>Hẻm 40 Nguyễn Văn A</td><td>0.3 km</td><td>58 m²</td><td>11/2025</td><td class="strong">76.6 tr</td></tr>
+                <tr><td>Đường Nguyễn Văn A</td><td>0.6 km</td><td>65 m²</td><td>09/2025</td><td class="strong">79.2 tr</td></tr>
+                <tr><td>Hẻm 12 Trần Văn B</td><td>0.8 km</td><td>60 m²</td><td>06/2025</td><td class="strong">88.1 tr</td></tr>
+                <tr><td>Hẻm 45 (kế bên)</td><td>0.1 km</td><td>64 m²</td><td>02/2026</td><td class="strong">98.4 tr</td></tr>
+                <tr><td>Đường Lê Văn C</td><td>1.1 km</td><td>70 m²</td><td>01/2026</td><td class="strong">95.0 tr</td></tr>
+              </table>
+              <div class="ld-inference" style="margin-top:12px;">
+                <div class="ld-label">💡 Nhận định của PAA</div>
+                <p>Giá giao dịch so sánh dao động 76.6–98.4 triệu/m², trung vị khoảng 88 triệu/m². Xu hướng tăng nhẹ theo thời gian — giao dịch gần nhất (02/2026) cao hơn ~28% so với giao dịch xa nhất (11/2025), cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.</p>
+              </div>
+            </div>
+
+            <div class="grid c2">
+              <div class="card lookup-detail" id="lc-planning">
+                <div class="ld-head">
+                  <span class="badge good"><span class="dot"></span>Đã xác thực</span>
+                  <span class="ld-title">Quy hoạch</span>
+                  <span class="qmark" data-why="Nguồn: tra cứu quy hoạch đất đai (planning_zoning_lookup) · Độ tin cậy 85%">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Không nằm trong khu vực quy hoạch treo.</li>
+                    <li>Lộ giới hẻm dự kiến mở rộng lên 4m theo đồ án quy hoạch 1/2000 phê duyệt 2024.</li>
+                    <li>Không thuộc diện giải toả, thu hồi đất.</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Mở rộng lộ giới thường làm tăng giá trị BĐS trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận. Nên đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để loại trừ khả năng một phần diện tích nằm trong lộ giới mới.</p>
+                </div>
+                <div class="ld-meta">Nguồn: Cổng thông tin quy hoạch đô thị · Độ tin cậy 85%</div>
+              </div>
+
+              <div class="card lookup-detail" id="lc-legal">
+                <div class="ld-head">
+                  <span class="badge good"><span class="dot"></span>Đã xác thực</span>
+                  <span class="ld-title">Pháp lý</span>
+                  <span class="qmark" data-why="Nguồn: tra cứu tình trạng pháp lý sổ đỏ/sổ hồng (legal_status_lookup) · Độ tin cậy 95%">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Sổ hồng đứng tên chính chủ, cấp 14/03/2019.</li>
+                    <li>Không ghi nhận tranh chấp, kê biên hay khiếu nại.</li>
+                    <li>Không đang thế chấp tại tổ chức tín dụng khác.</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.</p>
+                </div>
+                <div class="ld-meta">Nguồn: Hệ thống tra cứu sổ đỏ/sổ hồng liên thông · Độ tin cậy 95%</div>
+              </div>
+
+              <div class="card lookup-detail" id="lc-amenity">
+                <div class="ld-head">
+                  <span class="ld-title">Tiện ích xung quanh</span>
+                  <span class="qmark" data-why="Nguồn: dữ liệu điểm tiện ích khu vực (neighborhood_amenity_lookup) · Độ tin cậy 90%">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Trường tiểu học: 300m · Chợ dân sinh: 450m</li>
+                    <li>Trạm xe bus: 200m · Bệnh viện quận: 1.2km</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Mật độ tiện ích cao hơn trung bình khu vực (đầy đủ trường học/chợ/giao thông công cộng trong bán kính &lt;500m) — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.</p>
+                </div>
+                <div class="ld-meta">Nguồn: Dữ liệu điểm tiện ích (POI) khu vực · Độ tin cậy 90%</div>
+              </div>
+
+              <div class="card lookup-detail" id="lc-environment">
+                <div class="ld-head">
+                  <span class="badge warning"><span class="dot"></span>Lưu ý</span>
+                  <span class="ld-title">Môi trường</span>
+                  <span class="qmark" data-why="Nguồn: dữ liệu khí tượng thuỷ văn & phản ánh cư dân (environmental_risk_lookup) · Độ tin cậy 70%">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Ghi nhận ngập nhẹ cục bộ mùa mưa 2022–2023 (mức nước &lt;15cm, rút trong ngày).</li>
+                    <li>Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp.</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản và có phương án chống ngập khi cải tạo.</p>
+                </div>
+                <div class="ld-meta">Nguồn: Dữ liệu khí tượng thuỷ văn & phản ánh cư dân · Độ tin cậy 70%</div>
+              </div>
+
+              <div class="card lookup-detail" id="lc-liquidity">
+                <div class="ld-head">
+                  <span class="ld-title">Thanh khoản khu vực</span>
+                  <span class="qmark" data-why="Nguồn: thống kê giao dịch sàn & môi giới khu vực (liquidity_stat_lookup) · Độ tin cậy 80%">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Thời gian bán trung bình: 45 ngày · Tỷ lệ giao dịch thành công: 82%</li>
+                    <li>Số tin rao bán cùng phân khúc trong bán kính 1km: 14 tin</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Thanh khoản khá tốt so với mặt bằng chung phân khúc nhà phố hẻm (thường 60–90 ngày) — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.</p>
+                </div>
+                <div class="ld-meta">Nguồn: Thống kê giao dịch sàn & môi giới khu vực · Độ tin cậy 80%</div>
+              </div>
+
+              <div class="card lookup-detail" id="lc-reputation">
+                <div class="ld-head">
+                  <span class="badge warning"><span class="dot"></span>Chưa xác thực</span>
+                  <span class="ld-title">Dư luận / tâm linh</span>
+                  <span class="qmark" data-why="Nguồn: tra cứu dư luận mạng xã hội & diễn đàn khu vực (stigma_reputation_lookup) · Độ tin cậy chỉ 30% (chưa kiểm chứng) — không dùng để từ chối hồ sơ, chỉ mang tính cảnh báo tham khảo.">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2019.</li>
+                    <li>Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận.</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Độ tin cậy nguồn tin thấp (30%), chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa (hỏi hàng xóm, chính quyền địa phương) trước khi đưa vào báo cáo chính thức.</p>
+                </div>
+                <div class="ld-meta">Nguồn: Tra cứu dư luận mạng xã hội & diễn đàn khu vực · Độ tin cậy 30%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SCREEN 3 -->
+          <div class="info-screen" id="scr-3">
+            <div class="grid c4">
+              <div class="card stat-tile" id="tile-valuation"><div class="label">Giá trị đề xuất</div><div class="value">4.85 tỷ</div><div class="sub">4.55–5.10 tỷ</div></div>
+              <div class="card stat-tile"><div class="label">Giá/m²</div><div class="value">97.0 tr</div><div class="sub">quy đổi Q2/2026</div></div>
+              <div class="card stat-tile" id="tile-confidence"><div class="label">Độ tin cậy <span class="qmark" data-why="Trung bình có trọng số của 5 yếu tố: số lượng/chất lượng giao dịch so sánh (30%), mức đồng thuận giữa 3 phương pháp (25%), độ đầy đủ dữ liệu pháp lý/quy hoạch (20%), biến động thị trường gần đây (15%), độ tương đồng giao dịch so sánh (10%) — xem chi tiết bên dưới.">?</span></div><div class="value">78%</div><div class="sub">5 giao dịch dùng</div></div>
+              <div class="card stat-tile"><div class="label">Kỳ chỉ số giá</div><div class="value">2026-Q2</div><div class="sub">index 118.3 (gốc 100)</div></div>
+            </div>
+            <div class="grid c2">
+              <div class="card">
+                <div class="section-h">3 phương pháp định giá <span class="qmark" data-why="Kết hợp so sánh trực tiếp, hedonic-ML và chi phí xây dựng để giảm sai lệch.">?</span></div>
+                <div class="barchart">
+                  <div class="barrow"><div class="rowlabel">So sánh trực tiếp</div><div class="bartrack"><div class="barfill" style="width:100%"></div></div><div class="rowvalue">4.90 tỷ</div></div>
+                  <div class="barrow"><div class="rowlabel">Hedonic (ML)</div><div class="bartrack"><div class="barfill" style="width:98%"></div></div><div class="rowvalue">4.80 tỷ</div></div>
+                  <div class="barrow"><div class="rowlabel">Chi phí xây dựng</div><div class="bartrack"><div class="barfill" style="width:97%"></div></div><div class="rowvalue">4.75 tỷ</div></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="section-h">Chỉ số giá theo thời gian</div>
+                <svg viewBox="0 0 300 100" width="100%" height="100" preserveAspectRatio="none">
+                  <polygon id="sparkArea" points="" fill="var(--navy-600)" fill-opacity="0.10" stroke="none"></polygon>
+                  <polyline id="sparkLine" points="" fill="none" stroke="var(--navy-600)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
+                  <circle id="sparkEnd" r="4.5" fill="var(--orange-600)" stroke="var(--white)" stroke-width="2"></circle>
+                </svg>
+                <div style="display:flex;justify-content:space-between;font-size:10.3px;color:var(--text-muted);margin-top:4px;"><span>2024-Q1 · 100.0</span><span>2026-Q2 · 118.3</span></div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:12px;">
+              <div class="section-h">Quy đổi giá trị đề xuất — trọng số kết hợp 3 phương pháp <span class="qmark" data-why="Trọng số do Valuation Agent gán theo độ tin cậy riêng của từng phương pháp trong bối cảnh dữ liệu hiện có của tài sản này.">?</span></div>
+              <table>
+                <tr><th>Phương pháp</th><th>Giá trị ước tính</th><th>Trọng số</th><th>Đóng góp</th></tr>
+                <tr><td>So sánh trực tiếp</td><td class="strong">4.90 tỷ</td><td>50%</td><td>2.45 tỷ</td></tr>
+                <tr><td>Hedonic (ML)</td><td class="strong">4.80 tỷ</td><td>30%</td><td>1.44 tỷ</td></tr>
+                <tr><td>Chi phí xây dựng</td><td class="strong">4.75 tỷ</td><td>20%</td><td>0.95 tỷ</td></tr>
+                <tr><td><b>Tổng (làm tròn)</b></td><td></td><td><b>100%</b></td><td class="strong">4.85 tỷ</td></tr>
+              </table>
+              <div class="ld-inference" style="margin-top:12px;">
+                <div class="ld-label">💡 Nhận định của PAA</div>
+                <p>Trọng số ưu tiên <b>So sánh trực tiếp (50%)</b> vì khu vực có đủ giao dịch gần đây và tương đồng cao với tài sản; <b>Hedonic/ML (30%)</b> giúp hiệu chỉnh đồng thời nhiều biến số; <b>Chi phí xây dựng (20%)</b> chỉ dùng làm giá sàn tham chiếu vì ít phản ánh yếu tố vị trí. Chênh lệch giữa giá trị cao nhất và thấp nhất trong 3 phương pháp chỉ <b>3.1%</b> (4.90 so với 4.75 tỷ) — mức đồng thuận cao giữa các phương pháp, củng cố cho độ tin cậy tổng 78%.</p>
+              </div>
+            </div>
+
+            <div class="grid c3">
+              <div class="card lookup-detail" id="lc-method-sales">
+                <div class="ld-head">
+                  <span class="badge good"><span class="dot"></span>Độ tin cậy 82%</span>
+                  <span class="ld-title">So sánh trực tiếp</span>
+                  <span class="qmark" data-why="Phương pháp so sánh trực tiếp (Sales Comparison Approach) — dùng giao dịch thực tế đã điều chỉnh khác biệt.">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu đầu vào</div>
+                  <ul>
+                    <li>5 giao dịch so sánh trong bán kính 1.1km, gần nhất 02/2026.</li>
+                    <li>Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch (quy đổi theo chỉ số giá index 118.3).</li>
+                    <li>Giá/m² sau điều chỉnh: 79–98 triệu, trung vị ~86 triệu.</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh. Với 5 giao dịch cùng loại hình hẻm, diện tích 58–70m², độ tương đồng khá cao nên độ tin cậy phương pháp này ở mức cao.</p>
+                </div>
+                <div class="ld-meta">Nguồn: market_price_lookup (Research Agent) · Độ tin cậy phương pháp: 82%</div>
+              </div>
+
+              <div class="card lookup-detail" id="lc-method-hedonic">
+                <div class="ld-head">
+                  <span class="badge good"><span class="dot"></span>Độ tin cậy 78%</span>
+                  <span class="ld-title">Hedonic (ML)</span>
+                  <span class="qmark" data-why="Mô hình hồi quy đa biến (hedonic pricing) học từ dữ liệu giao dịch lịch sử khu vực.">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu đầu vào</div>
+                  <ul>
+                    <li>Huấn luyện trên ~2.400 giao dịch lịch sử toàn quận (2022–2026).</li>
+                    <li>Biến số: diện tích, số tầng, chiều rộng hẻm, hướng nhà, khoảng cách trung tâm, tuổi công trình, mật độ tiện ích.</li>
+                    <li>R² mô hình: 0.87 · Sai số trung bình (MAE): 4.2%.</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc (vd. tổ hợp hướng nhà + chiều rộng hẻm). Sai số trung bình 4.2% trên tập dữ liệu khu vực tương tự cho thấy mô hình khá ổn định.</p>
+                </div>
+                <div class="ld-meta">Nguồn: calculate_valuation — nhánh hedonic-ML (Valuation Agent) · Độ tin cậy phương pháp: 78%</div>
+              </div>
+
+              <div class="card lookup-detail" id="lc-method-cost">
+                <div class="ld-head">
+                  <span class="badge warning"><span class="dot"></span>Độ tin cậy 70%</span>
+                  <span class="ld-title">Chi phí xây dựng</span>
+                  <span class="qmark" data-why="Phương pháp chi phí (Cost Approach) — giá đất tham chiếu cộng chi phí xây dựng, trừ khấu hao.">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu đầu vào</div>
+                  <ul>
+                    <li>Giá đất tham chiếu khu vực: ~68 triệu/m² (đã loại trừ phần công trình).</li>
+                    <li>Đơn giá xây dựng: 7.5 triệu/m² (nhà 3 tầng, kết cấu BTCT), diện tích sàn 124m².</li>
+                    <li>Khấu hao theo tuổi công trình: 12 năm, khấu hao 18%.</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Cho giá trị thấp nhất trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá — phù hợp dùng làm giá sàn tham chiếu, hạn chế định giá vượt quá xa chi phí thay thế thực tế.</p>
+                </div>
+                <div class="ld-meta">Nguồn: calculate_valuation — nhánh chi phí xây dựng (Valuation Agent) · Độ tin cậy phương pháp: 70%</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="section-h">Cấu thành độ tin cậy tổng 78% <span class="qmark" data-why="Trung bình có trọng số của 5 yếu tố ảnh hưởng đến độ tin cậy định giá.">?</span></div>
+              <div class="barchart">
+                <div class="barrow"><div class="rowlabel">Giao dịch so sánh (SL & chất lượng) · 30%</div><div class="bartrack"><div class="barfill" style="width:85%;background:var(--good);"></div></div><div class="rowvalue">85</div></div>
+                <div class="barrow"><div class="rowlabel">Đồng thuận giữa 3 phương pháp · 25%</div><div class="bartrack"><div class="barfill" style="width:80%;background:var(--good);"></div></div><div class="rowvalue">80</div></div>
+                <div class="barrow"><div class="rowlabel">Pháp lý & quy hoạch đầy đủ · 20%</div><div class="bartrack"><div class="barfill" style="width:88%;background:var(--good);"></div></div><div class="rowvalue">88</div></div>
+                <div class="barrow"><div class="rowlabel">Biến động thị trường gần đây · 15%</div><div class="bartrack"><div class="barfill" style="width:54%;background:var(--serious);"></div></div><div class="rowvalue">54</div></div>
+                <div class="barrow"><div class="rowlabel">Tương đồng giao dịch so sánh · 10%</div><div class="bartrack"><div class="barfill" style="width:65%;background:var(--warning);"></div></div><div class="rowvalue">65</div></div>
+              </div>
+              <div class="ld-inference" style="margin-top:12px;">
+                <div class="ld-label">💡 Nhận định của PAA</div>
+                <p>Hai yếu tố đang kéo độ tin cậy tổng xuống 78% thay vì cao hơn: <b>biến động thị trường gần đây</b> (chỉ số giá tăng ~5%/quý, nhanh hơn trung bình dài hạn của khu vực) và <b>độ tương đồng giao dịch so sánh</b> (một số giao dịch chênh lệch diện tích &gt;15% so với tài sản thẩm định). Ba yếu tố còn lại (số lượng giao dịch, mức đồng thuận giữa các phương pháp, dữ liệu pháp lý/quy hoạch) đều ở mức tốt. Khuyến nghị bổ sung giao dịch so sánh mới nhất nếu cần nâng độ tin cậy trước khi ra quyết định cho vay.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SCREEN 4 -->
+          <div class="info-screen" id="scr-4">
+            <div class="grid c2">
+              <div class="card">
+                <div class="section-h">Điểm rủi ro bất động sản <span class="qmark" data-why="Trung bình có trọng số của 5 nhóm rủi ro của chính tài sản — không phải rủi ro tín dụng người vay. Xem chi tiết cấu thành bên dưới.">?</span></div>
+                <div class="meter-wrap"><div class="meter-track"><div class="meter-fill" id="meter-risk-fill" style="width:34%;background:var(--warning);"></div></div><div class="meter-num" id="meter-risk-num">34<span style="font-size:11px;color:var(--text-muted);font-weight:500;">/100</span></div></div>
+                <div style="margin-top:9px;" id="riskBadgeWrap"><span class="badge warning"><span class="dot"></span>TRUNG BÌNH</span></div>
+              </div>
+              <div class="card">
+                <div class="section-h">LTV đề xuất <span class="qmark" data-why="LTV đề xuất được tính theo khung chính sách LTV gắn với điểm rủi ro tài sản, không phải điểm tín dụng người vay.">?</span></div>
+                <div class="meter-wrap"><div class="meter-track"><div class="meter-fill" style="width:65%;background:var(--navy-600);"></div></div><div class="meter-num" id="ltv-value">65%</div></div>
+                <div class="sub" style="font-size:10.7px;color:var(--text-muted);margin-top:9px;">Trần cho vay trên giá trị định giá 4.85 tỷ.</div>
+                <div class="ld-inference" style="margin-top:10px;">
+                  <div class="ld-label">💡 Khung chính sách LTV theo điểm rủi ro</div>
+                  <p>0–20 điểm → tối đa 75% · <b>21–40 điểm → tối đa 65%</b> · 41–60 điểm → tối đa 55% · &gt;60 điểm → tối đa 45% hoặc cần thẩm định lại. Điểm rủi ro tài sản 34/100 rơi vào khung 21–40, nên LTV đề xuất 65%.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:12px;">
+              <div class="section-h">5 nhóm rủi ro cấu thành</div>
+              <div class="barchart">
+                <div class="barrow"><div class="rowlabel">Pháp lý · 30%</div><div class="bartrack"><div class="barfill" style="width:15%;background:var(--good);"></div></div><div class="rowvalue">15</div></div>
+                <div class="barrow"><div class="rowlabel">Thanh khoản · 25%</div><div class="bartrack"><div class="barfill" style="width:30%;background:var(--warning);"></div></div><div class="rowvalue">30</div></div>
+                <div class="barrow"><div class="rowlabel">Biến động giá · 20%</div><div class="bartrack"><div class="barfill" style="width:55%;background:var(--serious);"></div></div><div class="rowvalue">55</div></div>
+                <div class="barrow"><div class="rowlabel">Vật lý/môi trường · 15%</div><div class="bartrack"><div class="barfill" style="width:30%;background:var(--warning);"></div></div><div class="rowvalue">30</div></div>
+                <div class="barrow" id="bar-reputation"><div class="rowlabel">Danh tiếng/tâm linh · 10%</div><div class="bartrack"><div class="barfill" style="width:60%;background:var(--serious);"></div></div><div class="rowvalue">60</div></div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:12px;">
+              <div class="section-h">Quy đổi điểm rủi ro tổng — trọng số 5 nhóm <span class="qmark" data-why="Risk Assessment Agent tính điểm rủi ro tổng bằng trung bình có trọng số của 5 nhóm rủi ro cấu thành.">?</span></div>
+              <table>
+                <tr><th>Nhóm rủi ro</th><th>Điểm</th><th>Trọng số</th><th>Đóng góp</th></tr>
+                <tr><td>Pháp lý</td><td class="strong">15</td><td>30%</td><td>4.5</td></tr>
+                <tr><td>Thanh khoản</td><td class="strong">30</td><td>25%</td><td>7.5</td></tr>
+                <tr><td>Biến động giá</td><td class="strong">55</td><td>20%</td><td>11.0</td></tr>
+                <tr><td>Vật lý/môi trường</td><td class="strong">30</td><td>15%</td><td>4.5</td></tr>
+                <tr><td>Danh tiếng/tâm linh</td><td class="strong">60</td><td>10%</td><td>6.0</td></tr>
+                <tr><td><b>Tổng (làm tròn)</b></td><td></td><td><b>100%</b></td><td class="strong">34/100</td></tr>
+              </table>
+              <div class="ld-inference" style="margin-top:12px;">
+                <div class="ld-label">💡 Nhận định của PAA</div>
+                <p><b>Biến động giá</b> (20%) và <b>danh tiếng/tâm linh</b> (10%) là 2 nhóm có điểm cao nhất (55 và 60), nhưng danh tiếng/tâm linh chỉ chiếm trọng số nhỏ nên ảnh hưởng lên điểm tổng bị giới hạn. Ngược lại, <b>pháp lý</b> (30% — trọng số lớn nhất) có điểm rất thấp (15), là yếu tố kéo điểm rủi ro tổng xuống mức Trung bình thay vì cao hơn.</p>
+              </div>
+            </div>
+
+            <div class="grid c2">
+              <div class="card lookup-detail" id="rc-legal">
+                <div class="ld-head">
+                  <span class="badge good"><span class="dot"></span>Điểm 15/100</span>
+                  <span class="ld-title">Pháp lý</span>
+                  <span class="qmark" data-why="Nguồn: legal_status_lookup · Trọng số 30% trong điểm rủi ro tổng.">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Sổ hồng chính chủ, cấp 14/03/2019, không tranh chấp/kê biên.</li>
+                    <li>Không đang thế chấp tại tổ chức tín dụng khác.</li>
+                    <li>Không thuộc diện giải toả, thu hồi đất.</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Nhóm rủi ro thấp nhất trong 5 nhóm nhờ hồ sơ pháp lý sạch, đã xác thực qua hệ thống liên thông sổ đỏ/sổ hồng — đóng góp tích cực lớn nhất giúp kéo điểm rủi ro tổng xuống mức Trung bình.</p>
+                </div>
+                <div class="ld-meta">Nguồn: legal_status_lookup · Trọng số 30% · Điểm rủi ro 15/100</div>
+              </div>
+
+              <div class="card lookup-detail" id="rc-liquidity">
+                <div class="ld-head">
+                  <span class="badge warning"><span class="dot"></span>Điểm 30/100</span>
+                  <span class="ld-title">Thanh khoản</span>
+                  <span class="qmark" data-why="Nguồn: liquidity_stat_lookup · Trọng số 25% trong điểm rủi ro tổng.">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Thời gian bán trung bình khu vực: 45 ngày · Tỷ lệ giao dịch thành công: 82%.</li>
+                    <li>Số tin rao bán cùng phân khúc trong bán kính 1km: 14 tin.</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Thanh khoản khá tốt so với mặt bằng chung phân khúc nhà phố hẻm (thường 60–90 ngày) nên điểm rủi ro ở mức thấp-trung bình — hỗ trợ khả năng xử lý tài sản bảo đảm khi cần thiết.</p>
+                </div>
+                <div class="ld-meta">Nguồn: liquidity_stat_lookup · Trọng số 25% · Điểm rủi ro 30/100</div>
+              </div>
+
+              <div class="card lookup-detail" id="rc-volatility">
+                <div class="ld-head">
+                  <span class="badge serious"><span class="dot"></span>Điểm 55/100</span>
+                  <span class="ld-title">Biến động giá</span>
+                  <span class="qmark" data-why="Nguồn: market_price_lookup (chuỗi chỉ số giá) · Trọng số 20% trong điểm rủi ro tổng.">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Chỉ số giá khu vực tăng từ 100.0 (2024-Q1) lên 118.3 (2026-Q2), tương đương ~5%/quý.</li>
+                    <li>Biên độ giá giao dịch so sánh dao động rộng: 76.6–98.4 triệu/m² (chênh lệch 28%).</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Tốc độ tăng giá nhanh hơn trung bình dài hạn và biên độ giao dịch rộng cho thấy thị trường khu vực đang biến động khá mạnh — nhóm có điểm cao thứ 2. Nếu thị trường điều chỉnh giảm, giá trị tài sản bảo đảm có thể biến động theo.</p>
+                </div>
+                <div class="ld-meta">Nguồn: market_price_lookup · Trọng số 20% · Điểm rủi ro 55/100</div>
+              </div>
+
+              <div class="card lookup-detail" id="rc-environment">
+                <div class="ld-head">
+                  <span class="badge warning"><span class="dot"></span>Điểm 30/100</span>
+                  <span class="ld-title">Vật lý/môi trường</span>
+                  <span class="qmark" data-why="Nguồn: environmental_risk_lookup · Trọng số 15% trong điểm rủi ro tổng.">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Ghi nhận ngập nhẹ cục bộ mùa mưa 2022–2023 (&lt;15cm, rút trong ngày).</li>
+                    <li>Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp.</li>
+                    <li>Công trình xây dựng 2016, kết cấu BTCT, chưa ghi nhận xuống cấp.</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Rủi ro ở mức thấp-trung bình, chủ yếu do tình trạng ngập nhẹ cục bộ — không ảnh hưởng đáng kể đến kết cấu công trình. Khuyến nghị khách hàng mua bảo hiểm tài sản.</p>
+                </div>
+                <div class="ld-meta">Nguồn: environmental_risk_lookup · Trọng số 15% · Điểm rủi ro 30/100</div>
+              </div>
+
+              <div class="card lookup-detail" id="rc-reputation">
+                <div class="ld-head">
+                  <span class="badge serious"><span class="dot"></span>Điểm 60/100</span>
+                  <span class="ld-title">Danh tiếng/tâm linh</span>
+                  <span class="qmark" data-why="Nguồn: stigma_reputation_lookup · Trọng số chỉ 10% trong điểm rủi ro tổng — không dùng để từ chối hồ sơ.">?</span>
+                </div>
+                <div class="ld-raw">
+                  <div class="ld-label">Dữ liệu tra cứu được</div>
+                  <ul>
+                    <li>Tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2019.</li>
+                    <li>Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận.</li>
+                    <li>Độ tin cậy nguồn tin: chỉ 30% (chưa kiểm chứng).</li>
+                  </ul>
+                </div>
+                <div class="ld-inference">
+                  <div class="ld-label">💡 Nhận định của PAA</div>
+                  <p>Điểm rủi ro cao nhất trong 5 nhóm (60/100) nhưng dựa trên nguồn tin có độ tin cậy thấp — chưa đủ cơ sở kết luận. Trọng số nhóm này chỉ 10% nên ảnh hưởng lên điểm tổng bị giới hạn. Cần xác minh thực địa trước khi đưa vào báo cáo chính thức.</p>
+                </div>
+                <div class="ld-meta">Nguồn: stigma_reputation_lookup · Trọng số 10% · Điểm rủi ro 60/100 · Độ tin cậy nguồn 30%</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="section-h">Flags cần lưu ý</div>
+              <div class="flag-row"><span class="badge good" style="flex:none;">Thấp</span><div><b>Pháp lý</b><p>Sổ hồng hợp lệ, không tranh chấp ghi nhận.</p><div class="meta">Độ tin cậy 95% · Đã xác thực</div></div></div>
+              <div class="flag-row" id="flag-reputation"><span class="badge warning" style="flex:none;">Trung bình</span><div><b>Danh tiếng / tâm linh</b><p>Tin đồn dân cư chưa xác thực về sự việc 2019 — <b>cần xác minh thực địa</b>.</p><div class="meta">Độ tin cậy 35% · Chưa xác thực</div></div></div>
+              <div class="flag-row"><span class="badge warning" style="flex:none;">Thấp</span><div><b>Môi trường</b><p>Khu vực từng ngập nhẹ 2022–2023 — khuyến nghị mua bảo hiểm tài sản.</p><div class="meta">Độ tin cậy 70% · Đã xác thực</div></div></div>
+            </div>
+          </div>
+
+          <!-- SCREEN 5 -->
+          <div class="info-screen" id="scr-5">
+            <div class="card" style="margin-bottom:12px;">
+              <div class="section-h">Tổng quan hồ sơ — REQ-2026-0001 <button class="primary-btn" id="exportReportBtn" type="button">📄 Xuất báo cáo thẩm định</button></div>
+              <div class="grid c4">
+                <div class="card stat-tile"><div class="label">Giá trị đề xuất</div><div class="value" id="dash-valuation">4.85 tỷ</div><div class="sub" id="dash-valuation-range">4.55–5.10 tỷ</div></div>
+                <div class="card stat-tile"><div class="label">Độ tin cậy định giá</div><div class="value" id="dash-confidence">78%</div><div class="sub">Kết hợp 3 phương pháp</div></div>
+                <div class="card stat-tile"><div class="label">Điểm rủi ro tài sản</div><div class="value" id="dash-risk">34/100</div><div class="sub" id="dash-risk-label">Trung bình</div></div>
+                <div class="card stat-tile"><div class="label">LTV đề xuất</div><div class="value" id="dash-ltv">65%</div><div class="sub">Trên giá trị định giá</div></div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:12px;">
+              <div class="section-h">Tổng hợp theo từng bước</div>
+              <div class="flag-row" data-jump="1" style="cursor:pointer;"><span class="step-num" style="flex:none;width:22px;height:22px;font-size:11px;line-height:22px;">1</span><div><b>Nhập thông tin</b><p id="dash-sum-1">Hẻm 45 Nguyễn Văn A, Phường B, Quận C · 62 m² · Sổ hồng chính chủ.</p><div class="meta">Xem lại →</div></div></div>
+              <div class="flag-row" data-jump="2" style="cursor:pointer;"><span class="step-num" style="flex:none;width:22px;height:22px;font-size:11px;line-height:22px;">2</span><div><b>Kết quả tra cứu</b><p>7 nguồn tra cứu hoàn tất · 1 điểm cần lưu ý (dư luận khu vực, chưa xác thực).</p><div class="meta">Xem lại →</div></div></div>
+              <div class="flag-row" data-jump="3" style="cursor:pointer;"><span class="step-num" style="flex:none;width:22px;height:22px;font-size:11px;line-height:22px;">3</span><div><b>Định giá</b><p id="dash-sum-3">4.85 tỷ (4.55–5.10 tỷ) · độ tin cậy 78%, kết hợp 3 phương pháp.</p><div class="meta">Xem lại →</div></div></div>
+              <div class="flag-row" data-jump="4" style="cursor:pointer;"><span class="step-num" style="flex:none;width:22px;height:22px;font-size:11px;line-height:22px;">4</span><div><b>Rủi ro</b><p id="dash-sum-4">Điểm rủi ro tài sản 34/100 (Trung bình) · LTV đề xuất 65%.</p><div class="meta">Xem lại →</div></div></div>
+            </div>
+
+            <div class="card">
+              <div class="section-h">Trace thực thi PAA — REQ-2026-0001</div>
+              <div class="timeline">
+                <div class="tl-item"><div class="tl-time">t+0.0s</div><div class="tl-rail"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><b>Hệ thống tiếp nhận yêu cầu</b><p>Từ hệ thống điều phối chung (Planner Agent)</p></div></div>
+                <div class="tl-item"><div class="tl-time">t+0.1–1.2s</div><div class="tl-rail"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><b>7 nguồn tra cứu chạy song song</b><p>Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...</p></div></div>
+                <div class="tl-item"><div class="tl-time">t+1.4s</div><div class="tl-rail"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><b>Bộ máy định giá hoàn tất</b><p>Giá trị ước tính: 4.85 tỷ</p></div></div>
+                <div class="tl-item"><div class="tl-time">t+1.6s</div><div class="tl-rail"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><b>Bộ máy chấm điểm rủi ro hoàn tất</b><p>Điểm rủi ro tài sản: 34/100 · Trung bình</p></div></div>
+                <div class="tl-item"><div class="tl-time">t+2.3s</div><div class="tl-rail"><div class="tl-dot"></div></div><div class="tl-body"><b>Copilot tổng hợp báo cáo</b><p>Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận</p></div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="info-footer">
+          <div class="footer-hint" id="footerHint">Rà soát thông tin ở tab này. Sửa qua form hoặc chat nếu cần, rồi bấm Xác nhận.</div>
+          <div class="footer-btns">
+            <button class="footer-back-btn" id="footerBack">← Quay lại</button>
+            <button class="primary-btn footer-next-btn" id="footerNext">✓ Xác nhận & Tiếp theo →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TAB_NAMES = { 1: 'Nhập thông tin', 2: 'Kết quả tra cứu', 3: 'Định giá', 4: 'Rủi ro', 5: 'Dashboard' };
+  const LOADING_TEXT = {
+    1: 'Đang tải thông tin đã nhập…',
+    2: 'Đang tra cứu dữ liệu khu vực…',
+    3: 'Đang tính toán định giá…',
+    4: 'Đang chấm điểm rủi ro…',
+    5: 'Đang tổng hợp trace xử lý…',
+  };
+  const visitedTabs = { 1: true };
+  const unlockedTabs = { 1: true };
+  // Các trường/khối đang sửa (qua UI hoặc chat) nhưng chưa được user bấm Xác nhận, theo từng tab.
+  const pendingEditsByScreen = { 1: [], 2: [], 3: [], 4: [] };
+
+  function activateScreen(n) {
+    document.querySelectorAll('.info-screen').forEach(s => s.classList.remove('active'));
+    const scr = document.getElementById('scr-' + n);
+    if (scr) scr.classList.add('active');
+  }
+
+  // Các tab sau chỉ mở khoá khi user bấm Xác nhận ở tab trước — hiển thị mờ + khoá click.
+  function unlockTab(n) {
+    unlockedTabs[n] = true;
+    renderTabLocks();
+  }
+
+  function renderTabLocks() {
+    document.querySelectorAll('.subtab-btn').forEach(btn => {
+      const n = parseInt(btn.dataset.tab, 10);
+      const locked = !unlockedTabs[n];
+      btn.classList.toggle('locked', locked);
+      btn.disabled = locked;
+      btn.title = locked ? 'Hãy xác nhận các bước trước để mở khoá tab này' : '';
+      const numEl = btn.querySelector('.n');
+      if (numEl) numEl.textContent = locked ? '🔒' : n;
+    });
+  }
+
+  function switchTab(n) {
+    n = parseInt(n, 10);
+    if (!unlockedTabs[n]) return; // an toàn — không cho nhảy tới tab chưa mở khoá
+    if (n === 5) renderDashboardOverview(); // đồng bộ số liệu tổng quan với các sửa đổi đã xác nhận
+    document.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector('.subtab-btn[data-tab="' + n + '"]');
+    if (btn) btn.classList.add('active');
+
+    if (visitedTabs[n]) {
+      activateScreen(n);
+      updateFooter(n);
+      return;
+    }
+    // Lần đầu vào tab này — hiện trạng thái đang tải dữ liệu trước khi hiện nội dung thật.
+    // Khoá nút Tiếp theo/Quay lại cho tới khi PAA báo xong kết quả của bước này,
+    // tránh việc user bấm tiếp trong lúc dữ liệu đang tải.
+    document.querySelectorAll('.info-screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('loadingText').textContent = LOADING_TEXT[n] || 'Đang tải dữ liệu…';
+    document.getElementById('scr-loading').classList.add('active');
+    document.getElementById('footerNext').disabled = true;
+    document.getElementById('footerBack').disabled = true;
+    document.getElementById('footerHint').textContent = 'Đang tải dữ liệu cho bước này…';
+    setTimeout(() => {
+      visitedTabs[n] = true;
+      activateScreen(n);
+      showAppraisalStepThen(n, () => updateFooter(n));
+    }, 750);
+  }
+
+  function getCurrentTab() {
+    const btn = document.querySelector('.subtab-btn.active');
+    return btn ? parseInt(btn.dataset.tab, 10) : 1;
+  }
+
+  function updateFooter(n) {
+    const backBtn = document.getElementById('footerBack');
+    const nextBtn = document.getElementById('footerNext');
+    const hint = document.getElementById('footerHint');
+    const banner = document.getElementById('reviewBanner');
+    backBtn.disabled = (n <= 1);
+    nextBtn.classList.remove('done');
+    nextBtn.disabled = false;
+    if (n < 5) {
+      const pendingCount = (pendingEditsByScreen[n] || []).length;
+      nextBtn.textContent = '✓ Xác nhận & Tiếp theo →';
+      hint.textContent = pendingCount
+        ? 'Có ' + pendingCount + ' thay đổi đang chờ xác nhận ở tab "' + TAB_NAMES[n] + '" — bấm Xác nhận để áp dụng (đánh dấu xanh lá) và qua bước tiếp theo.'
+        : 'Rà soát thông tin ở tab "' + TAB_NAMES[n] + '". Sửa qua form hoặc chat nếu cần, rồi bấm Xác nhận để qua bước tiếp theo.';
+      banner.style.display = 'flex';
+    } else {
+      nextBtn.textContent = '✓ Hoàn tất hồ sơ';
+      nextBtn.classList.add('done');
+      hint.textContent = 'Đây là bước cuối — rà soát tổng quan & trace thực thi, có thể xuất báo cáo, rồi bấm Hoàn tất để đóng hồ sơ.';
+      banner.style.display = 'none';
+    }
+  }
+
+  /* ================= Dashboard tổng quan — đồng bộ số liệu & xuất báo cáo ================= */
+  // Đọc lại số liệu "đầu nguồn" (đã có thể được sửa qua form/chat và xác nhận ở các tab trước)
+  // để các thẻ tổng quan + dòng tóm tắt ở Dashboard luôn khớp với trạng thái mới nhất.
+  function renderDashboardOverview() {
+    const valTile = document.getElementById('tile-valuation');
+    const confTile = document.getElementById('tile-confidence');
+    const riskNum = document.getElementById('meter-risk-num');
+    const riskBadge = document.querySelector('#riskBadgeWrap .badge');
+    const ltvEl = document.getElementById('ltv-value');
+    const addrEl = document.querySelector('#fld-diachi .fake-input');
+    const areaEl = document.querySelector('#fld-dientich .fake-input');
+
+    const valuation = valTile ? valTile.querySelector('.value').textContent.trim() : '4.85 tỷ';
+    const valuationRange = valTile ? valTile.querySelector('.sub').textContent.trim() : '4.55–5.10 tỷ';
+    const confidence = confTile ? confTile.querySelector('.value').textContent.trim() : '78%';
+    const riskScore = riskNum ? (riskNum.firstChild ? riskNum.firstChild.textContent.trim() : riskNum.textContent.trim()) : '34';
+    const riskLabel = riskBadge ? riskBadge.textContent.trim() : 'TRUNG BÌNH';
+    const ltv = ltvEl ? ltvEl.textContent.trim() : '65%';
+
+    const dv = document.getElementById('dash-valuation');
+    const dvr = document.getElementById('dash-valuation-range');
+    const dc = document.getElementById('dash-confidence');
+    const dr = document.getElementById('dash-risk');
+    const drl = document.getElementById('dash-risk-label');
+    const dltv = document.getElementById('dash-ltv');
+    if (dv) dv.textContent = valuation;
+    if (dvr) dvr.textContent = valuationRange;
+    if (dc) dc.textContent = confidence;
+    if (dr) dr.textContent = riskScore + '/100';
+    if (drl) drl.textContent = riskLabel.charAt(0) + riskLabel.slice(1).toLowerCase();
+    if (dltv) dltv.textContent = ltv;
+
+    const s1 = document.getElementById('dash-sum-1');
+    const s3 = document.getElementById('dash-sum-3');
+    const s4 = document.getElementById('dash-sum-4');
+    if (s1 && addrEl) s1.textContent = addrEl.textContent.trim() + (areaEl ? ' · ' + areaEl.textContent.trim() : '') + ' · Sổ hồng chính chủ.';
+    if (s3) s3.textContent = valuation + ' (' + valuationRange + ') · độ tin cậy ' + confidence + ', kết hợp 3 phương pháp.';
+    if (s4) s4.textContent = 'Điểm rủi ro tài sản ' + riskScore + '/100 (' + (drl ? drl.textContent : riskLabel) + ') · LTV đề xuất ' + ltv + '.';
+  }
+
+  // Tạo nội dung HTML của báo cáo thẩm định từ số liệu hiện có trên mockup, rồi tải về máy
+  // dưới dạng file .html độc lập (không cần backend/server) — phù hợp phạm vi demo.
+  function buildReportHtml() {
+    const addrEl = document.querySelector('#fld-diachi .fake-input');
+    const areaEl = document.querySelector('#fld-dientich .fake-input');
+    const typeEl = document.querySelector('#fld-loaibds .fake-input');
+    const address = addrEl ? addrEl.textContent.trim() : 'Hẻm 45 Nguyễn Văn A, Phường B, Quận C';
+    const area = areaEl ? areaEl.textContent.trim() : '62 m²';
+    const bdsType = typeEl ? typeEl.textContent.trim() : 'Nhà phố (nhà trong hẻm)';
+
+    const valTile = document.getElementById('tile-valuation');
+    const confTile = document.getElementById('tile-confidence');
+    const riskNum = document.getElementById('meter-risk-num');
+    const riskBadge = document.querySelector('#riskBadgeWrap .badge');
+    const ltvEl = document.getElementById('ltv-value');
+    const valuation = valTile ? valTile.querySelector('.value').textContent.trim() : '4.85 tỷ';
+    const valuationRange = valTile ? valTile.querySelector('.sub').textContent.trim() : '4.55–5.10 tỷ';
+    const confidence = confTile ? confTile.querySelector('.value').textContent.trim() : '78%';
+    const riskScore = riskNum ? (riskNum.firstChild ? riskNum.firstChild.textContent.trim() : riskNum.textContent.trim()) : '34';
+    const riskLabel = riskBadge ? riskBadge.textContent.trim() : 'TRUNG BÌNH';
+    const ltv = ltvEl ? ltvEl.textContent.trim() : '65%';
+    const today = new Date().toLocaleDateString('vi-VN');
+
+    return '<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8">'
+      + '<title>Bien ban tham dinh - REQ-2026-0001</title>'
+      + '<style>'
+      + 'body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#151A2E;max-width:760px;margin:32px auto;padding:0 20px;line-height:1.6;}'
+      + '.hd{display:flex;align-items:center;gap:12px;border-bottom:3px solid #1E2F66;padding-bottom:14px;margin-bottom:20px;}'
+      + '.hd .mark{width:38px;height:38px;border-radius:9px;background:#F2701C;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;}'
+      + '.hd h1{font-size:16px;margin:0;color:#1E2F66;}'
+      + '.hd .sub{font-size:11.5px;color:#5B6478;margin-top:2px;}'
+      + 'h2{font-size:13px;color:#1E2F66;border-left:3px solid #C24E0E;padding-left:8px;margin:22px 0 8px;}'
+      + 'table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;}'
+      + 'td,th{padding:6px 8px;border-bottom:1px solid #ECE9E3;text-align:left;}'
+      + 'th{color:#5B6478;font-weight:700;font-size:10.5px;text-transform:uppercase;}'
+      + '.kpi{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}'
+      + '.kpi div{background:#F1F3FA;border-radius:10px;padding:10px 14px;min-width:130px;}'
+      + '.kpi .l{font-size:10.5px;color:#5B6478;}'
+      + '.kpi .v{font-size:17px;font-weight:700;color:#1E2F66;}'
+      + '.note{background:#FEF1E7;border-radius:8px;padding:10px 12px;font-size:12px;color:#151A2E;margin-top:8px;}'
+      + '.sig{margin-top:32px;padding-top:14px;border-top:1px dashed #ECE9E3;font-size:11.5px;color:#5B6478;}'
+      + '.ft{margin-top:26px;font-size:10.5px;color:#8A93A8;}'
+      + '</style></head><body>'
+      + '<div class="hd"><div class="mark">SHB</div><div><h1>BIÊN BẢN THẨM ĐỊNH TÀI SẢN BẢO ĐẢM</h1>'
+      + '<div class="sub">Mã hồ sơ REQ-2026-0001 · Xuất báo cáo ngày ' + today + '</div></div></div>'
+
+      + '<h2>I. Thông tin tài sản</h2>'
+      + '<table><tr><td style="width:32%;color:#5B6478;">Địa chỉ</td><td>' + address + '</td></tr>'
+      + '<tr><td style="color:#5B6478;">Loại BĐS</td><td>' + bdsType + '</td></tr>'
+      + '<tr><td style="color:#5B6478;">Diện tích đất</td><td>' + area + '</td></tr></table>'
+
+      + '<h2>II. Kết quả tra cứu khu vực</h2>'
+      + '<p style="font-size:12.5px;">7 nguồn tra cứu (giá thị trường, quy hoạch, pháp lý, tiện ích, môi trường, thanh khoản, dư luận) đã hoàn tất. Phát hiện 1 điểm cần lưu ý: tin đồn dân cư khu vực liên quan sự việc 2019, độ tin cậy nguồn tin thấp (30%) — khuyến nghị xác minh thực địa.</p>'
+
+      + '<h2>III. Định giá</h2>'
+      + '<div class="kpi"><div><div class="l">Giá trị đề xuất</div><div class="v">' + valuation + '</div></div>'
+      + '<div><div class="l">Khoảng tin cậy</div><div class="v" style="font-size:13px;">' + valuationRange + '</div></div>'
+      + '<div><div class="l">Độ tin cậy</div><div class="v">' + confidence + '</div></div></div>'
+      + '<p style="font-size:12.5px;">Kết hợp 3 phương pháp: so sánh trực tiếp (50%), hedonic/ML (30%), chi phí xây dựng (20%).</p>'
+
+      + '<h2>IV. Đánh giá rủi ro &amp; LTV</h2>'
+      + '<div class="kpi"><div><div class="l">Điểm rủi ro tài sản</div><div class="v">' + riskScore + '/100</div></div>'
+      + '<div><div class="l">Xếp loại</div><div class="v" style="font-size:13px;">' + riskLabel + '</div></div>'
+      + '<div><div class="l">LTV đề xuất</div><div class="v">' + ltv + '</div></div></div>'
+      + '<p style="font-size:12.5px;">5 nhóm rủi ro cấu thành: Pháp lý (30%), Thanh khoản (25%), Biến động giá (20%), Vật lý/môi trường (15%), Danh tiếng/tâm linh (10%).</p>'
+
+      + '<h2>V. Khuyến nghị</h2>'
+      + '<div class="note">Cần thẩm định viên xác minh thực địa tin đồn dân cư (2019) trước khi hoàn tất hồ sơ chính thức. Khuyến nghị khách hàng mua bảo hiểm tài sản do khu vực từng ghi nhận ngập nhẹ cục bộ 2022–2023.</div>'
+
+      + '<div class="sig">☐ Chữ ký thẩm định viên &nbsp;&nbsp;&nbsp;&nbsp; ☐ Xác nhận chuyên viên tín dụng</div>'
+      + '<div class="ft">Báo cáo được PAA (Property Appraisal Agent) tạo tự động từ dữ liệu đã tra cứu, định giá và đánh giá rủi ro trong phiên làm việc — thẩm định viên rà soát và xác nhận trước khi sử dụng chính thức.</div>'
+      + '</body></html>';
+  }
+
+  function exportReport() {
+    const html = buildReportHtml();
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'BienBan_ThamDinh_REQ-2026-0001.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    showThread();
+    playSteps([{ type: 'status', text: '📄 Đã xuất báo cáo: BienBan_ThamDinh_REQ-2026-0001.html', delay: 400 }]);
+  }
+
+  document.querySelectorAll('.subtab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  document.getElementById('footerBack').addEventListener('click', () => {
+    const cur = getCurrentTab();
+    if (cur > 1) switchTab(cur - 1);
+  });
+  document.getElementById('footerNext').addEventListener('click', () => {
+    const cur = getCurrentTab();
+    const nextBtn = document.getElementById('footerNext');
+    if (cur < 5) {
+      handleNextStep(cur);
+    } else {
+      nextBtn.textContent = '✓ Đã hoàn tất';
+      nextBtn.disabled = true;
+      document.getElementById('footerHint').textContent = 'Hồ sơ đã hoàn tất rà soát.';
+    }
+  });
+  document.querySelectorAll('.mobile-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mobile-toggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.body.classList.remove('show-chat', 'show-info');
+      document.body.classList.add('show-' + btn.dataset.pane);
+    });
+  });
+  document.getElementById('exportReportBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    exportReport();
+  });
+  document.querySelectorAll('#scr-5 .flag-row[data-jump]').forEach(row => {
+    row.addEventListener('click', () => switchTab(row.dataset.jump));
+  });
+  /* ================= Chat demo flows ================= */
+  const chatThread = document.getElementById('chatThread');
+  const chatWelcome = document.getElementById('chatWelcome');
+
+  function showThread() {
+    chatWelcome.style.display = 'none';
+    chatThread.style.display = 'flex';
+  }
+
+  function appendMsg(cls, who, html) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + cls;
+    div.innerHTML = who ? '<div class="who">' + who + '</div>' + html : html;
+    chatThread.appendChild(div);
+    chatThread.scrollTop = chatThread.scrollHeight;
+    return div;
+  }
+
+  function appendTyping() {
+    const div = document.createElement('div');
+    div.className = 'msg agent typing';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    chatThread.appendChild(div);
+    chatThread.scrollTop = chatThread.scrollHeight;
+    return div;
+  }
+
+  // step: {delay, type: 'user'|'agent'|'status', text, onShow}
+  // Người dùng chủ động chuyển tab bằng cách bấm tab hoặc nút Tiếp theo —
+  // PAA không tự động nhảy tab nữa, chỉ gợi ý trong nội dung tin nhắn.
+  function playSteps(steps, i, onDone) {
+    i = i || 0;
+    if (i >= steps.length) { if (onDone) onDone(); return; }
+    const step = steps[i];
+    if (step.type === 'user') {
+      appendMsg('user', 'Bạn', step.text);
+      setTimeout(() => playSteps(steps, i + 1, onDone), 350);
+      return;
+    }
+    const typingEl = appendTyping();
+    setTimeout(() => {
+      typingEl.remove();
+      const cls = step.type === 'status' ? 'status' : 'agent';
+      appendMsg(cls, step.type === 'status' ? '' : 'PAA', step.text);
+      if (step.onShow) step.onShow();
+      setTimeout(() => playSteps(steps, i + 1, onDone), 450);
+    }, step.delay || 900);
+  }
+
+  /* ================= Chỉnh sửa qua UI / chat — chờ xác nhận rồi mới fill/áp dụng ================= */
+  // markPending: đánh dấu 1 khối là "đang chờ xác nhận" (viền xanh dương) và đăng ký vào
+  // danh sách chờ của đúng tab chứa nó. confirmScreenEdits: khi user bấm Xác nhận ở tab đó,
+  // toàn bộ khối đang chờ được chuyển thành "đã xác nhận" (viền xanh lá).
+  function markPending(container, labelEl, screenNum, badgeText) {
+    container.classList.remove('edited');
+    container.classList.add('pending-edit');
+    let badge = labelEl ? labelEl.querySelector('.edited-badge') : null;
+    if (labelEl && !badge) {
+      badge = document.createElement('span');
+      badge.className = 'edited-badge';
+      labelEl.appendChild(badge);
+    }
+    if (badge) {
+      badge.classList.remove('confirmed');
+      badge.textContent = badgeText || 'Đang chờ xác nhận';
+    }
+    const list = pendingEditsByScreen[screenNum];
+    if (list && !list.includes(container)) list.push(container);
+    updateFooter(getCurrentTab());
+  }
+
+  function unmarkPending(container, screenNum) {
+    container.classList.remove('pending-edit');
+    const badge = container.querySelector('.edited-badge');
+    if (badge) badge.remove();
+    const list = pendingEditsByScreen[screenNum];
+    if (list) {
+      const idx = list.indexOf(container);
+      if (idx > -1) list.splice(idx, 1);
+    }
+    updateFooter(getCurrentTab());
+  }
+
+  function confirmScreenEdits(n) {
+    const list = pendingEditsByScreen[n];
+    if (!list || !list.length) return;
+    list.forEach(container => {
+      container.classList.remove('pending-edit');
+      container.classList.add('edited');
+      const badge = container.querySelector('.edited-badge');
+      if (badge) { badge.textContent = '✓ Đã xác nhận'; badge.classList.add('confirmed'); }
+      // Với trường gõ trực tiếp: coi giá trị vừa xác nhận là mốc gốc mới, để lần sửa sau
+      // so sánh đúng với giá trị đã xác nhận thay vì giá trị ban đầu lúc tải trang.
+      const editableInput = container.querySelector('.fake-input[contenteditable]');
+      if (editableInput) editableInput.dataset.original = editableInput.textContent.trim();
+    });
+    pendingEditsByScreen[n] = [];
+  }
+
+  const DEMO_EDITS = [
+    {
+      keywords: ['diện tích', 'dien tich'],
+      reply: 'Đã sửa diện tích đất thành <b>65 m²</b> theo phản hồi của bạn — trường này đang <b>chờ xác nhận</b> ở tab <b>Nhập thông tin</b>, bấm Xác nhận khi bạn đồng ý.',
+      apply: () => {
+        const fld = document.getElementById('fld-dientich');
+        if (!fld) return;
+        fld.querySelector('.fake-input').textContent = '65 m²';
+        markPending(fld, fld.querySelector('label'), 1);
+      }
+    },
+    {
+      keywords: ['ngập', 'môi trường', 'moi truong'],
+      reply: 'Đã cập nhật lại thông tin môi trường khu vực theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Kết quả tra cứu</b>.',
+      apply: () => {
+        const card = document.getElementById('lc-environment');
+        if (!card) return;
+        const badge = card.querySelector('.ld-head .badge');
+        if (badge) { badge.className = 'badge good'; badge.innerHTML = '<span class="dot"></span>Đã xác thực'; }
+        card.querySelector('.ld-inference p').textContent = 'Đã xác minh lại theo phản hồi của bạn: hệ thống thoát nước khu vực được cải tạo từ 2024, không còn ghi nhận ngập.';
+        card.querySelector('.ld-meta').textContent = 'Nguồn: Xác minh thủ công theo phản hồi thẩm định viên · Độ tin cậy 95%';
+        markPending(card, card.querySelector('.ld-title'), 2);
+      }
+    },
+    {
+      keywords: ['định giá', 'dinh gia', 'giá trị', 'gia tri'],
+      reply: 'Đã điều chỉnh lại giá trị đề xuất theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Định giá</b>.',
+      apply: () => {
+        const tile = document.getElementById('tile-valuation');
+        if (!tile) return;
+        tile.querySelector('.value').textContent = '5.05 tỷ';
+        tile.querySelector('.sub').textContent = '4.75–5.30 tỷ (đã điều chỉnh)';
+        markPending(tile, tile.querySelector('.label'), 3);
+      }
+    },
+    {
+      keywords: ['rủi ro', 'rui ro', 'tâm linh', 'tam linh', 'danh tiếng', 'danh tieng'],
+      reply: 'Đã cập nhật nhóm rủi ro danh tiếng/tâm linh và điểm rủi ro tổng theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Rủi ro</b>.',
+      apply: () => {
+        const bar = document.getElementById('bar-reputation');
+        if (bar) {
+          bar.querySelector('.barfill').style.width = '20%';
+          bar.querySelector('.barfill').style.background = 'var(--good)';
+          bar.querySelector('.rowvalue').textContent = '20';
+          markPending(bar, bar.querySelector('.rowlabel'), 4);
+        }
+        const meterFill = document.getElementById('meter-risk-fill');
+        const meterNum = document.getElementById('meter-risk-num');
+        if (meterFill) { meterFill.style.width = '27%'; }
+        if (meterNum && meterNum.firstChild) meterNum.firstChild.textContent = '27';
+        const flag = document.getElementById('flag-reputation');
+        if (flag) {
+          const badge = flag.querySelector('.badge');
+          badge.className = 'badge good';
+          badge.innerHTML = 'Thấp';
+          flag.querySelector('p').innerHTML = 'Đã xác minh thực địa theo phản hồi của bạn — không phát hiện dấu hiệu bất thường.';
+          flag.querySelector('.meta').textContent = 'Độ tin cậy 90% · Đã xác thực';
+          markPending(flag, flag.querySelector('b'), 4);
+        }
+        const rcCard = document.getElementById('rc-reputation');
+        if (rcCard) {
+          const badge = rcCard.querySelector('.ld-head .badge');
+          if (badge) { badge.className = 'badge good'; badge.innerHTML = '<span class="dot"></span>Điểm 20/100'; }
+          rcCard.querySelector('.ld-inference p').textContent = 'Đã xác minh thực địa theo phản hồi của bạn — không phát hiện dấu hiệu bất thường. Điểm rủi ro nhóm này giảm xuống mức thấp, độ tin cậy nguồn tăng lên nhờ xác minh trực tiếp.';
+          rcCard.querySelector('.ld-meta').textContent = 'Nguồn: Xác minh thủ công theo phản hồi thẩm định viên · Trọng số 10% · Điểm rủi ro 20/100 · Độ tin cậy 90%';
+          markPending(rcCard, rcCard.querySelector('.ld-title'), 4);
+        }
+      }
+    },
+  ];
+
+  function matchDemoEdit(text) {
+    const t = text.toLowerCase();
+    return DEMO_EDITS.find(e => e.keywords.some(k => t.includes(k)));
+  }
+
+  /* ================= Luồng thẩm định — trò chuyện đi từng bước theo tab ================= */
+  // Mỗi lần bấm "Tiếp theo" sẽ gửi 1 câu hỏi/yêu cầu từ phía người dùng cho hệ thống,
+  // rồi màn tiếp theo hiện trạng thái đang tải dữ liệu, và PAA chỉ báo kết quả của
+  // đúng bước đó khi màn đã tải xong — không trả trước kết quả của các bước sau.
+  const appraisalMsgShown = { 2: false, 3: false, 4: false, 5: false };
+
+  const NEXT_USER_MSG = {
+    1: 'Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.',
+    2: 'Kết quả tra cứu ổn, nhờ định giá giúp tôi.',
+    3: 'Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.',
+    4: 'Rủi ro chấp nhận được, cho tôi xem tổng hợp trace xử lý.',
+  };
+
+  const APPRAISAL_STEP_MSG = {
+    2: 'Đã có kết quả tra cứu khu vực — phát hiện 1 điểm cần lưu ý (tin đồn khu vực, chưa xác thực). Bạn xem kỹ rồi bấm <b>Xác nhận</b> khi ổn nhé.',
+    3: 'Định giá đề xuất <b>4.85 tỷ</b>, độ tin cậy 78%.',
+    4: 'Điểm rủi ro BĐS <b>34/100 (Trung bình)</b>, LTV đề xuất 65%.',
+    5: 'Đây là toàn bộ trace xử lý của PAA cho hồ sơ này.',
+  };
+
+  // Gọi khi bấm "Xác nhận & Tiếp theo" ở tab hiện tại (cur) — chốt các thay đổi đang chờ
+  // (chuyển xanh dương → xanh lá), mở khoá tab kế tiếp, gửi yêu cầu của user rồi mới chuyển tab.
+  // Đây là nơi DUY NHẤT được phép chuyển màn — chat/chip không tự nhảy tab nữa.
+  function handleNextStep(cur) {
+    confirmScreenEdits(cur);
+    showThread();
+    document.getElementById('footerNext').disabled = true;
+    const target = cur + 1;
+    unlockTab(target);
+    const steps = [];
+    if (NEXT_USER_MSG[cur]) steps.push({ type: 'user', text: NEXT_USER_MSG[cur] });
+    steps.push({ type: 'status', text: '⏳ ' + (LOADING_TEXT[target] || 'Đang xử lý…'), delay: 500 });
+    playSteps(steps, 0, () => switchTab(target));
+  }
+
+  // Gọi sau khi 1 tab tải xong lần đầu — PAA báo kết quả đúng bước đó, rồi mới
+  // gọi callback (dùng để mở khoá lại nút Tiếp theo/Quay lại).
+  function showAppraisalStepThen(n, done) {
+    if (!APPRAISAL_STEP_MSG[n] || appraisalMsgShown[n]) { done(); return; }
+    appraisalMsgShown[n] = true;
+    showThread();
+    playSteps([{ type: 'agent', text: APPRAISAL_STEP_MSG[n], delay: 700 }], 0, done);
+  }
+
+  const DEMO_FLOWS = {
+    appraise: [
+      { type: 'user', text: 'Thẩm định giúp căn nhà tôi vừa nhập thông tin.' },
+      { type: 'agent', text: 'Được, bạn rà soát kỹ thông tin ở tab <b>Nhập thông tin</b> nhé — chỗ nào cần sửa cứ sửa ngay trên form hoặc chat trực tiếp cho tôi. Khi ổn rồi bấm <b>Xác nhận & Tiếp theo</b> ở dưới để tôi bắt đầu tra cứu dữ liệu khu vực giúp bạn.', delay: 1000 },
+    ],
+    market: [
+      { type: 'user', text: 'Giá thị trường khu vực này hiện nay thế nào?' },
+      { type: 'agent', text: 'Giá trung bình khu vực hiện khoảng <b>85–98 triệu/m²</b>, dựa trên 5 giao dịch so sánh trong bán kính 1.1km, cập nhật gần nhất 02/2026 — xem chi tiết ở tab <b>Kết quả tra cứu</b>.', delay: 1000 },
+    ],
+    legal: [
+      { type: 'user', text: 'Kiểm tra tính pháp lý của tài sản.' },
+      { type: 'agent', text: 'Sổ hồng chính chủ, không ghi nhận tranh chấp hay thế chấp tại tổ chức tín dụng khác. Quy hoạch khu vực không có quy hoạch treo — xem chi tiết ở tab <b>Kết quả tra cứu</b>.', delay: 1000 },
+    ],
+    process: [
+      { type: 'user', text: 'Quy trình thẩm định BĐS thế chấp gồm những bước nào?' },
+      { type: 'agent', text: 'Quy trình gồm 3 bước chính: (1) Tra cứu dữ liệu khu vực &amp; pháp lý, (2) Định giá bằng 3 phương pháp, (3) Chấm điểm rủi ro tài sản &amp; đề xuất LTV — sau đó tổng hợp lại toàn bộ trace xử lý ở tab Dashboard. Ở mỗi bước bạn đều chủ động rà soát và bấm Xác nhận & Tiếp theo.', delay: 1000 },
+    ],
+    'edit-demo': [
+      { type: 'user', text: 'Diện tích đất tôi khai chưa đúng, số thực tế là 65m², sửa lại giúp tôi.' },
+      { type: 'agent', text: DEMO_EDITS[0].reply, delay: 900, onShow: DEMO_EDITS[0].apply },
+    ],
+  };
+
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      // Chip chỉ trò chuyện — không tự chuyển màn. Chuyển màn chỉ xảy ra khi user
+      // bấm nút "Xác nhận & Tiếp theo" ở footer.
+      showThread();
+      chatThread.innerHTML = '';
+      playSteps(DEMO_FLOWS[chip.dataset.flow] || []);
+    });
+  });
+
+  function sendFreeText() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    if (chatWelcome.style.display !== 'none') {
+      showThread();
+      chatThread.innerHTML = '';
+    }
+    input.value = '';
+    const match = matchDemoEdit(text);
+    playSteps([
+      { type: 'user', text: text },
+      match
+        ? { type: 'agent', text: match.reply, delay: 900, onShow: match.apply }
+        : { type: 'agent', text: 'Đã ghi nhận. Đây là bản demo tĩnh — trong hệ thống thật, PAA sẽ điều phối các agent chuyên trách để xử lý yêu cầu này.', delay: 900 },
+    ]);
+  }
+  document.getElementById('chatSend').addEventListener('click', sendFreeText);
+  document.getElementById('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendFreeText(); });
+
+  /* ================= Data source accordion + demo upload ================= */
+  const dsHeader = document.getElementById('dsHeader');
+  const dsBody = document.getElementById('dsBody');
+  const dsChevron = document.getElementById('dsChevron');
+  dsHeader.addEventListener('click', () => {
+    const open = dsBody.style.display !== 'none';
+    dsBody.style.display = open ? 'none' : 'block';
+    dsHeader.classList.toggle('open', !open);
+  });
+
+  const MOCK_FILES = [
+    { name: 'so-hong-scan.pdf', ic: '📜' },
+    { name: 'cccd-chu-so-huu.jpg', ic: '🪪' },
+    { name: 'hop-dong-mua-ban.pdf', ic: '📃' },
+    { name: 'anh-hien-trang-1.jpg', ic: '📷' },
+    { name: 'anh-hien-trang-2.jpg', ic: '📷' },
+    { name: 'giay-phep-xay-dung.pdf', ic: '🏗️' },
+  ];
+  let mockFileIdx = 0;
+
+  function updateDsSummary() {
+    const count = document.querySelectorAll('#uploadedList .upload-row').length;
+    document.getElementById('dsSummary').textContent = count ? count + ' tệp đã tải lên' : 'Chưa có tài liệu nào được tải lên';
+  }
+
+  function addUploadedFile(file) {
+    const list = document.getElementById('uploadedList');
+    const empty = document.getElementById('uploadEmpty');
+    if (empty) empty.remove();
+    const row = document.createElement('div');
+    row.className = 'upload-row';
+    row.innerHTML = '<div class="upload-ic">' + file.ic + '</div>' +
+      '<div class="upload-info"><div class="upload-name">' + file.name + '</div><div class="upload-status">✓ Đã tải lên · vừa xong</div></div>' +
+      '<button class="upload-remove" title="Xoá tệp">✕</button>';
+    list.appendChild(row);
+    row.querySelector('.upload-remove').addEventListener('click', () => {
+      row.remove();
+      updateDsSummary();
+      if (!list.querySelector('.upload-row')) {
+        list.innerHTML = '<div class="upload-empty" id="uploadEmpty">Chưa có tệp nào được tải lên.</div>';
+      }
+    });
+    updateDsSummary();
+  }
+
+  document.getElementById('dropzone').addEventListener('click', () => {
+    const file = MOCK_FILES[mockFileIdx % MOCK_FILES.length];
+    mockFileIdx++;
+    addUploadedFile(file);
+  });
+
+  /* ================= Sửa trực tiếp trên form (màn Nhập thông tin) ================= */
+  // Mỗi trường trở thành có thể gõ trực tiếp; gõ khác giá trị gốc → đánh dấu "chờ xác nhận",
+  // gõ về đúng giá trị gốc → bỏ đánh dấu. Chỉ thật sự "xác nhận" (xanh lá) khi bấm nút Xác nhận.
+  document.querySelectorAll('#scr-1 .fake-input').forEach(el => {
+    el.setAttribute('contenteditable', 'true');
+    el.dataset.original = el.textContent.trim();
+    el.addEventListener('input', () => {
+      const field = el.closest('.field');
+      if (!field) return;
+      const changed = el.textContent.trim() !== el.dataset.original;
+      if (changed) {
+        markPending(field, field.querySelector('label'), 1);
+      } else {
+        unmarkPending(field, 1);
+      }
+    });
+  });
+
+  renderTabLocks();
+  updateFooter(getCurrentTab());
+
+  /* ================= Khung xem tài liệu + bounding box vùng trích xuất ================= */
+  const DOC_PAGES = {
+    'so-hong': { label: 'Sổ hồng', boxes: [
+      { id:'loaigcn',   top:5,  left:12, w:76, h:5, conf:97, field:'Loại giấy chứng nhận', value:'Sổ hồng (QSDĐ & QSH nhà ở)' },
+      { id:'sogcn',     top:14, left:58, w:34, h:5, conf:96, field:'Số giấy chứng nhận', value:'CS 01234567' },
+      { id:'hoten',     top:24, left:8,  w:68, h:5, conf:98, field:'Họ và tên chủ sở hữu', value:'Nguyễn Văn A' },
+      { id:'diachi',    top:33, left:8,  w:80, h:5, conf:94, field:'Địa chỉ', value:'Hẻm 45 Nguyễn Văn A, P.B, Q.C' },
+      { id:'dientich',  top:42, left:8,  w:38, h:5, conf:91, field:'Diện tích đất (⚠ mâu thuẫn)', value:'62 m²' },
+      { id:'mucdich',   top:42, left:50, w:42, h:5, conf:90, field:'Mục đích sử dụng đất', value:'Đất ở tại đô thị' },
+      { id:'thoihan',   top:50, left:8,  w:34, h:5, conf:95, field:'Thời hạn sử dụng', value:'Lâu dài' },
+      { id:'hinhthuc',  top:50, left:46, w:40, h:5, conf:94, field:'Hình thức sở hữu', value:'Sở hữu riêng' },
+      { id:'kichthuoc', top:59, left:55, w:37, h:9, conf:88, field:'Kích thước (sơ đồ thửa)', value:'4.2m × 14.8m' },
+      { id:'sotang',    top:60, left:8,  w:32, h:5, conf:86, field:'Số tầng', value:'2 tầng + sân thượng' },
+      { id:'namxd',     top:68, left:8,  w:26, h:5, conf:90, field:'Năm xây dựng', value:'2016' },
+      { id:'ketcau',    top:68, left:38, w:44, h:5, conf:85, field:'Kết cấu / vật liệu', value:'BTCT, tường gạch' },
+      { id:'thechap',   top:78, left:8,  w:60, h:5, conf:55, field:'Tình trạng thế chấp (chưa đủ căn cứ)', value:'Trang biến động để trống' },
+      { id:'ngaycap',   top:88, left:48, w:44, h:6, conf:93, field:'Ngày cấp / Cơ quan cấp', value:'14/03/2019 · Sở TN&MT' },
+    ]},
+    'to-khai': { label: 'Tờ khai LPTB', boxes: [
+      { id:'hoten',      top:13, left:10, w:70, h:5, conf:90, field:'Họ tên người nộp', value:'Nguyễn Văn A' },
+      { id:'cccd',       top:21, left:10, w:60, h:5, conf:95, field:'Số CMND/CCCD người nộp', value:'079xxxxxxxxx' },
+      { id:'dientich65', top:45, left:10, w:42, h:5, conf:72, field:'Diện tích đất (⚠ mâu thuẫn)', value:'65 m²' },
+    ]},
+    'bien-ban': { label: 'Biên bản BG', boxes: [
+      { id:'dtsan',     top:30, left:10, w:56, h:5, conf:66, field:'Diện tích sàn xây dựng', value:'~98 m²' },
+      { id:'huong',     top:42, left:10, w:40, h:5, conf:60, field:'Hướng nhà', value:'Đông Nam' },
+      { id:'tinhtrang', top:54, left:10, w:66, h:5, conf:85, field:'Tình trạng sử dụng / lối vào', value:'Đang ở · hẻm ô tô vào được' },
+    ]},
+    'tb-thue': { label: 'TB thuế đất (scan)', scan: true, boxes: [
+      { id:'diachi', top:25, left:10, w:70, h:5, conf:80, field:'Địa chỉ thửa đất', value:'Hẻm 45 Nguyễn Văn A' },
+      { id:'sothua', top:35, left:10, w:60, h:6, conf:68, field:'Số thửa / tờ bản đồ', value:'Thửa 45, tờ BĐ 12' },
+    ]},
+  };
+  const DV_ORDER = ['so-hong', 'to-khai', 'bien-ban', 'tb-thue'];
+  const DV_LINES = ['t','m','','s','','m','','s','m','','s','','m','s','','m','','s'];
+  let dvCurrent = 'so-hong';
+  function dvTier(c) { return c >= 85 ? 'high' : c >= 60 ? 'mid' : 'low'; }
+  function renderDvFiles() {
+    const wrap = document.getElementById('dvFiles');
+    if (!wrap) return;
+    wrap.innerHTML = DV_ORDER.map(k =>
+      '<span class="dv-file' + (k === dvCurrent ? ' active' : '') + '" data-k="' + k + '">' + DOC_PAGES[k].label + '</span>'
+    ).join('');
+    wrap.querySelectorAll('.dv-file').forEach(f => f.addEventListener('click', () => renderDoc(f.dataset.k)));
+  }
+  function renderDoc(key, boxId) {
+    const doc = DOC_PAGES[key];
+    const page = document.getElementById('dvPage');
+    if (!doc || !page) return;
+    dvCurrent = key;
+    page.className = 'dv-page' + (doc.scan ? ' scan' : '');
+    const lines = '<div class="dv-lines">' + DV_LINES.map(c => '<div class="ln ' + c + '"></div>').join('') + '</div>';
+    const boxes = doc.boxes.map(b => {
+      const t = dvTier(b.conf);
+      return '<div class="dv-box ' + t + '" id="dvbox-' + key + '-' + b.id + '" style="top:' + b.top + '%;left:' + b.left + '%;width:' + b.w + '%;height:' + b.h + '%;">'
+        + '<span class="dv-conf">' + b.conf + '%</span>'
+        + '<span class="dv-tip"><b>' + b.field + '</b><br>' + b.value + '</span></div>';
+    }).join('');
+    page.innerHTML = '<div class="dv-watermark">SHB</div>' + lines + boxes;
+    renderDvFiles();
+    if (boxId) {
+      const el = document.getElementById('dvbox-' + key + '-' + boxId);
+      if (el) { void el.offsetWidth; el.classList.add('pulse'); }
+    }
+  }
+  document.querySelectorAll('.src-ref[data-doc]').forEach(ref => {
+    ref.addEventListener('click', () => {
+      const doc = ref.dataset.doc, box = ref.dataset.box;
+      const hint = document.getElementById('dvHint');
+      if (!DOC_PAGES[doc]) {
+        if (hint) hint.textContent = 'Trường này do PAA suy luận hoặc nhập tay — không có vùng nguồn trực tiếp trên tài liệu.';
+        return;
+      }
+      renderDoc(doc, box);
+      const card = document.querySelector('.doc-viewer-card');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  });
+  renderDoc('so-hong');
+
+  (function drawSpark() {
+    const data = [100.0, 103.1, 106.2, 110.4, 114.8, 116.9, 118.3];
+    const w = 300, h = 100, padX = 8, padTop = 10, padBottom = 12;
+    const min = Math.min(...data), max = Math.max(...data);
+    const xStep = (w - padX * 2) / (data.length - 1);
+    const pts = data.map((v, i) => {
+      const x = padX + i * xStep;
+      const y = padTop + (1 - (v - min) / (max - min)) * (h - padTop - padBottom);
+      return [x, y];
+    });
+    const lineStr = pts.map(p => p.join(',')).join(' ');
+    const areaStr = `${padX},${h - padBottom} ` + lineStr + ` ${w - padX},${h - padBottom}`;
+    document.getElementById('sparkLine').setAttribute('points', lineStr);
+    document.getElementById('sparkArea').setAttribute('points', areaStr);
+    const last = pts[pts.length - 1];
+    document.getElementById('sparkEnd').setAttribute('cx', last[0]);
+    document.getElementById('sparkEnd').setAttribute('cy', last[1]);
+  })();
+</script>
+</body>
+</html>

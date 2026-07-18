@@ -1,0 +1,14 @@
+assert_used:
+  skips:
+    - "*/test_*.py"
+    - "*/*_test.py"
+
+exclude_dirs:
+  - tests
+  - .venv
+  - venv
+  - migrations
+
+skips:
+  - B101
+  - B601
