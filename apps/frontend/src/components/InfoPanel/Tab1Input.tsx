@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, type CSSProperties } from 'react';
 import type { Tab1Field, Tab1SectionKey } from '../../types';
 import { getEditStatus, useCaseStore } from '../../state/caseStore';
 import { Card, EditedBadge, SourceChip } from '../common/ui';
@@ -59,6 +59,8 @@ function DataSourceAccordion() {
   const runExtraction = useCaseStore((s) => s.runExtraction);
   const fillSampleData = useCaseStore((s) => s.fillSampleData);
   const extractionWarnings = useCaseStore((s) => s.extractionWarnings);
+  const progressPct = Math.max(0, Math.min(100, extractionProgress ?? 0));
+  const extractionButtonStyle = isExtracting ? ({ flex: 1, '--progress': `${progressPct}%` } as CSSProperties) : { flex: 1 };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -135,12 +137,12 @@ function DataSourceAccordion() {
               <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                 <button
                   type="button"
-                  className="primary-btn"
-                  style={{ flex: 1 }}
+                  className="primary-btn extraction-progress-btn"
+                  style={extractionButtonStyle}
                   disabled={!documents.length || isExtracting}
                   onClick={() => void runExtraction()}
                 >
-                  {isExtracting ? `Đang trích xuất dữ liệu… ${extractionProgress ?? 0}%` : 'Trích xuất dữ liệu từ tài liệu'}
+                  <span>{isExtracting ? `Đang trích xuất dữ liệu... ${progressPct}%` : 'Trích xuất dữ liệu từ tài liệu'}</span>
                 </button>
                 <button
                   type="button"
@@ -221,13 +223,29 @@ function DocViewerCard() {
       </div>
       <div className="dv-stage">
         <div className={'dv-page' + (doc.scan ? ' scan' : '')}>
-          <div className="dv-watermark">SHB</div>
-          <div className="dv-lines">
-            {DV_LINES.map((c, i) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <div key={i} className={'ln' + (c ? ' ' + c : '')} />
-            ))}
-          </div>
+          {doc.previewUrl ? (
+            doc.contentType?.startsWith('image/') ? (
+              <img className="dv-preview-media" src={doc.previewUrl} alt={doc.fileName ?? doc.label} />
+            ) : doc.contentType?.includes('pdf') ? (
+              <iframe
+                className="dv-preview-media"
+                title={doc.fileName ?? doc.label}
+                src={`${doc.previewUrl}#page=${doc.pageNumber ?? 1}&toolbar=0&navpanes=0`}
+              />
+            ) : (
+              <div className="dv-no-preview">Không hỗ trợ preview trực tiếp cho loại tệp này.</div>
+            )
+          ) : (
+            <>
+              <div className="dv-watermark">SHB</div>
+              <div className="dv-lines">
+                {DV_LINES.map((c, i) => (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <div key={i} className={'ln' + (c ? ' ' + c : '')} />
+                ))}
+              </div>
+            </>
+          )}
           {boxes.map((f) => {
             const isPulsing = f.key === dvPulseBoxId;
             const conf = f.confidencePct ?? 0;

@@ -13,7 +13,7 @@ import {
   matchDemoEdit,
 } from '../mocks/chatScripts';
 import { downloadStandaloneReport } from '../utils/exportReport';
-import { isApiConfigured, runPropertyIntake, runPropertyLookup, runPropertyValuation, uploadFile } from '../services/apiClient';
+import { apiFileUrl, isApiConfigured, runPropertyIntake, runPropertyLookup, runPropertyValuation, uploadFile } from '../services/apiClient';
 import { mapPropertyIntakeOutput } from '../utils/mapPropertyIntake';
 import { mapPropertyLookupOutput } from '../utils/mapPropertyLookup';
 import { mapPropertyValuationOutput } from '../utils/mapPropertyValuation';
@@ -483,6 +483,8 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
           icon: isPdf ? 'PDF' : isImage ? 'IMG' : 'DOC',
           docCategory: 'khac',
           uploadedAtLabel: 'vừa xong',
+          contentType: uploaded.content_type,
+          previewUrl: apiFileUrl(uploaded.id),
         };
         set((s) => ({ documents: [...s.documents, doc] }));
       }
@@ -504,7 +506,7 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
         s.caseData.caseId,
         (progress) => set({ extractionProgress: progress }),
       );
-      const { tab1Fields: extractedFields, docPages: extractedPages } = mapPropertyIntakeOutput(output);
+      const { tab1Fields: extractedFields, docPages: extractedPages } = mapPropertyIntakeOutput(output, s.documents);
 
       set((state) => {
         // Gộp theo key: trường trích xuất được ghi đè đúng ô tương ứng trong bộ trường mockup;

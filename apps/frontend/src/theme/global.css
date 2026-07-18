@@ -102,6 +102,11 @@ html, body { overflow: hidden; font-family: SVN-Gilroy, ui-sans-serif, system-ui
 
 .primary-btn { background: var(--orange-600); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
 .primary-btn:hover { background: #a83f09; }
+.extraction-progress-btn { position: relative; overflow: hidden; isolation: isolate; flex: 1; color: #fff; background: #E5E7EB; }
+.extraction-progress-btn::before { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--progress, 0%); background: var(--orange-600); transition: width .2s ease; z-index: -1; }
+.extraction-progress-btn:disabled { opacity: 1; background: #E5E7EB; }
+.extraction-progress-btn:disabled:hover { background: #E5E7EB; }
+.extraction-progress-btn span { position: relative; z-index: 1; }
 
 /* q-mark tooltip */
 .qmark { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 1.3px solid var(--navy-300); color: var(--navy-600); font-size: 9px; font-weight: 700; cursor: help; position: relative; flex: none; }
@@ -141,6 +146,8 @@ input.fake-input:focus, .fake-input:focus { outline: 2px solid var(--navy-300); 
 .dv-page { position: relative; width: 100%; max-width: 500px; aspect-ratio: 1 / 1.414; background: var(--white); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 4px 18px rgba(16,27,66,0.12); overflow: hidden; }
 .dv-page.scan .dv-lines { filter: blur(1.1px); opacity: 0.55; }
 .dv-page.scan::after { content: 'BẢN SCAN'; position: absolute; top: 10px; right: 10px; font-size: 8.5px; font-weight: 800; color: var(--critical); border: 1px solid var(--critical); border-radius: 4px; padding: 2px 6px; transform: rotate(6deg); letter-spacing: 0.05em; z-index: 6; }
+.dv-preview-media { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: contain; background: var(--white); }
+.dv-no-preview { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; font-size: 12px; color: var(--text-muted); }
 .dv-watermark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 62px; font-weight: 800; color: rgba(16,27,66,0.045); pointer-events: none; }
 .dv-lines { position: absolute; inset: 0; padding: 9% 8%; display: flex; flex-direction: column; gap: 2.4%; }
 .dv-lines .ln { height: 1.5%; background: var(--gridline); border-radius: 2px; width: 100%; }
@@ -148,7 +155,7 @@ input.fake-input:focus, .fake-input:focus { outline: 2px solid var(--navy-300); 
 .dv-lines .ln.s { width: 45%; }
 .dv-lines .ln.m { width: 75%; }
 
-.dv-box { position: absolute; border: 2px solid; border-radius: 4px; cursor: pointer; transition: box-shadow .15s; }
+.dv-box { position: absolute; border: 2px solid; border-radius: 4px; cursor: pointer; transition: box-shadow .15s; z-index: 4; }
 .dv-box .dv-conf { position: absolute; top: -9px; left: 6px; font-size: 8.5px; font-weight: 800; padding: 1px 5px; border-radius: 999px; color: #fff; white-space: nowrap; }
 .dv-box.high { border-color: var(--good); background: rgba(12,163,12,0.12); } .dv-box.high .dv-conf { background: var(--good); }
 .dv-box.mid  { border-color: var(--warning); background: rgba(250,178,25,0.18); } .dv-box.mid .dv-conf { background: #b07d00; }
