@@ -30,6 +30,10 @@ class AIServiceContext:
     update_progress: Callable[[int], None] | None = None
     llm_client: Any = None
     storage_service: Any = None
+    # Factory returning an AsyncSession context manager (e.g. AsyncSessionLocal).
+    # Injected by the worker/API so DB-reading services (e.g. property_lookup)
+    # can open their own session without importing the engine directly.
+    db_session_factory: Any = None
 
 
 class BaseAIService(ABC):

@@ -11,7 +11,6 @@ calls an LLM; these are pure data-access tools.
 
 from __future__ import annotations
 
-import asyncio
 from decimal import Decimal
 
 from pydantic import BaseModel, Field
@@ -35,6 +34,8 @@ class AdapterResult(BaseModel):
     """
 
     adapter_key: str
+    category: str | None = None  # LookupCategory value, e.g. 'market_price'
+    label: str | None = None  # display title, e.g. 'Quy hoạch'
     data: dict
     confidence: float = Field(ge=0.0, le=1.0)
     source: str | None = None
@@ -68,7 +69,14 @@ class LookupAdapter:
             # No research data yet for this case/category — unverified, zero confidence.
             return AdapterResult(
                 adapter_key=self.key,
-                data={"raw_findings": [], "inference": None},
+                category=self.category.value,
+                label=self.label,
+                data={
+                    "title": self.label,
+                    "tool_name": self.key,
+                    "raw_findings": [],
+                    "inference": None,
+                },
                 confidence=0.0,
                 source=None,
                 verified=False,
@@ -76,8 +84,11 @@ class LookupAdapter:
             )
         return AdapterResult(
             adapter_key=self.key,
+            category=self.category.value,
+            label=self.label,
             data={
                 "title": finding.title,
+                "tool_name": finding.tool_name,
                 "raw_findings": list(finding.raw_findings or []),
                 "inference": finding.inference_text,
             },
@@ -117,13 +128,15 @@ class AdapterRegistry:
         return list(self._adapters.values())
 
     async def run_all(self, case_id: str, session: AsyncSession) -> list[AdapterResult]:
-        """Fan out all 7 adapters concurrently for one case.
+        """Read every adapter's finding for one case, in registry order.
 
-        Matches the "fan-out song song" lookup node in the PAA graph
-        (docs/ARCHITECTURE.md §5.2) — this is the function that node calls.
+        The adapters share the caller's single :class:`AsyncSession`, so they run
+        **sequentially** — an ``AsyncSession`` cannot service concurrent queries
+        (``asyncio.gather`` over one session raises ``IllegalStateChangeError`` on
+        asyncpg). Each lookup is a single indexed SELECT, so serial reads are
+        cheap; true parallelism would require a session per adapter.
         """
-        return list(
-            await asyncio.gather(
-                *(adapter.lookup(case_id, session) for adapter in self._adapters.values())
-            )
-        )
+        results: list[AdapterResult] = []
+        for adapter in self._adapters.values():
+            results.append(await adapter.lookup(case_id, session))
+        return results

@@ -27,3 +27,17 @@
 - Mọi request (trừ Register/Health) cần header `X-API-Key: {{api_key}}` (đã set sẵn).
 - Trích xuất gọi **LLM thật** theo `LLM_*` trong `.env`. Nếu key sai/không tới được, field sẽ thành `nhap_tay` + có `warnings`, nhưng job vẫn `completed`.
 - Chạy uvicorn thủ công (port 8000)? Đổi biến collection `host` → `http://localhost:8000` và `base_url` → `http://localhost:8000/api/v1`.
+
+---
+
+# Chức năng 2 — Kết quả tra cứu (`property_lookup`)
+
+Import `postman/PAA_property_lookup.postman_collection.json`. Service **đồng bộ** — gọi là trả kết quả ngay, **không cần poll `/jobs`**.
+
+Chạy: **0 Health → 1 Register → 2 List services → 3 Run property_lookup**. Đổi biến `case_id` rồi Send lại. Kết quả xem ở tab **Visualize** (bảng 7 nguồn + giao dịch so sánh) hoặc **Console**.
+
+Prerequisite: đã nạp seed vào DB (`bash scripts/load_seed.sh`).
+
+Case mẫu (60 hồ sơ `REQ-2026-2000..2059`):
+- Giàu dữ liệu: `REQ-2026-2000`, `REQ-2026-2001`, `REQ-2026-2002`.
+- Rỗng (demo cảnh báo "Chưa có dữ liệu"): `REQ-2026-2007`, `REQ-2026-2024`, `REQ-2026-2026`.
