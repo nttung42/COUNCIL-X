@@ -1,0 +1,102 @@
+{
+  "info": {
+    "_postman_id": "f5e1a4b2-5e6f-7081-c2d3-4e5f60718293",
+    "name": "SHB AI - property_dashboard (Chức năng 5 / Màn 5)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Dashboard tổng hợp (property_dashboard) — ASYNC + SSE. Tổng hợp Màn 1–4: KPI + kết luận cho vay + hạn mức (XÁC ĐỊNH 100%), 4 tóm tắt (LLM diễn giải, fail-safe template), trace, lịch sử.\n\n*** API PUBLIC — KHÔNG cần Register, KHÔNG cần X-API-Key. ***\n\nCHẠY: 0 Health → 1 List services → 2 Run → 3 Stream (SSE) hoặc 4 Get job (poll).\n\nCASE MẪU đủ dữ liệu (có verdict): REQ-2026-2002 (thap→đề xuất cho vay), REQ-2026-2004 (cao→cân nhắc). REQ-2026-2000 thiếu Màn 4 → verdict=null + warning.\n\nPrerequisite: đã nạp seed (ai/scripts/load_seed.sh)."
+  },
+  "variable": [
+    { "key": "host", "value": "http://localhost:8888" },
+    { "key": "base_url", "value": "http://localhost:8888/api/v1" },
+    { "key": "case_id", "value": "REQ-2026-2002" },
+    { "key": "job_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{host}}/health", "host": ["{{host}}"], "path": ["health"] }
+      }
+    },
+    {
+      "name": "1. List services (public)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/services", "host": ["{{base_url}}"], "path": ["services"] },
+        "description": "Không cần header. property_dashboard phải có trong danh sách."
+      }
+    },
+    {
+      "name": "2. Run property_dashboard (async → job_id)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('accepted', () => pm.expect(pm.response.code).to.be.oneOf([200, 201, 202]));",
+              "const j = pm.response.json();",
+              "if (j.job_id) { pm.collectionVariables.set('job_id', j.job_id); }",
+              "console.log('job_id =', j.job_id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"input\": {\n    \"case_id\": \"{{case_id}}\"\n  }\n}" },
+        "url": {
+          "raw": "{{base_url}}/services/property_dashboard/run",
+          "host": ["{{base_url}}"],
+          "path": ["services", "property_dashboard", "run"]
+        },
+        "description": "PUBLIC — không cần X-API-Key. Trả { job_id, status }."
+      }
+    },
+    {
+      "name": "3. Stream (SSE realtime)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "text/event-stream" }],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{job_id}}/stream",
+          "host": ["{{base_url}}"],
+          "path": ["jobs", "{{job_id}}", "stream"]
+        },
+        "description": "SSE — không cần ?api_key. Events: snapshot → status → progress(50→100) → done { result: PropertyDashboardOutput }."
+      }
+    },
+    {
+      "name": "4. Get job (poll)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.test('status', () => pm.response.to.have.status(200));",
+              "if (j.status && j.status !== 'completed' && j.status !== 'failed') {",
+              "  console.log('còn', j.status, (j.progress||0) + '%');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{job_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["jobs", "{{job_id}}"]
+        },
+        "description": "Poll tới completed. result = PropertyDashboardOutput { kpi, verdict{decision,max_loan_vnd,reasons}, step_summaries[4], overall_narrative, trace[], case_history[], warnings[] }."
+      }
+    }
+  ]
+}
