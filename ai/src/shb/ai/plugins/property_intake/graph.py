@@ -1,4 +1,11 @@
-"""LangGraph pipeline wiring for property_intake: ingest -> extract -> assemble."""
+"""LangGraph wiring for property_intake.
+
+Pipeline: ingest -> extract -> verify -> merge -> validate -> assemble.
+Extract collects per-field candidates from every document; verify judges each
+against its evidence (#5); merge reconciles by source priority and flags
+conflicts (``mau_thuan``); validate runs rule/arithmetic cross-checks (feature 4);
+assemble applies confidence tiering (#9) and emits the form.
+"""
 
 from __future__ import annotations
 
@@ -6,7 +13,14 @@ from functools import lru_cache
 
 from langgraph.graph import END, StateGraph
 
-from shb.ai.plugins.property_intake.nodes import assemble_node, extract_node, ingest_node
+from shb.ai.plugins.property_intake.nodes import (
+    assemble_node,
+    extract_node,
+    ingest_node,
+    merge_node,
+    validate_node,
+    verify_node,
+)
 from shb.ai.plugins.property_intake.schema import PropertyIntakeInput, PropertyIntakeOutput
 from shb.ai.plugins.property_intake.state import IntakeState
 
@@ -16,11 +30,17 @@ def build_graph():
     graph = StateGraph(IntakeState)
     graph.add_node("ingest", ingest_node)
     graph.add_node("extract", extract_node)
+    graph.add_node("verify", verify_node)
+    graph.add_node("merge", merge_node)
+    graph.add_node("validate", validate_node)
     graph.add_node("assemble", assemble_node)
 
     graph.set_entry_point("ingest")
     graph.add_edge("ingest", "extract")
-    graph.add_edge("extract", "assemble")
+    graph.add_edge("extract", "verify")
+    graph.add_edge("verify", "merge")
+    graph.add_edge("merge", "validate")
+    graph.add_edge("validate", "assemble")
     graph.add_edge("assemble", END)
     return graph.compile()
 

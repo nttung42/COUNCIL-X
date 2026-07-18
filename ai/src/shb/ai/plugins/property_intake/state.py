@@ -31,7 +31,8 @@ class IntakeState(TypedDict, total=False):
     input: PropertyIntakeInput
     ctx: Any  # AIServiceContext (kept as Any to avoid a hard import cycle)
     docs: list[IngestedDoc]
-    canonical: dict[str, FieldValue]
+    candidates: dict[str, list[FieldValue]]  # per-key candidates before merge
+    canonical: dict[str, FieldValue]  # reconciled single value per key (post-merge)
     documents_info: list[DocumentInfo]
     warnings: list[str]
     output: PropertyIntakeOutput

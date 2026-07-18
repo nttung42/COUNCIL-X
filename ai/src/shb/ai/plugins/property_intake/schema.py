@@ -83,34 +83,152 @@ class SoHongExtraction(BaseModel):
     land_area_sqm: ExtractedField | None = None
     floor_area_sqm: ExtractedField | None = None
     num_floors_desc: ExtractedField | None = None
+    frontage_m: ExtractedField | None = None
+    depth_m: ExtractedField | None = None
+    alley_width_m: ExtractedField | None = None
     construction_year: ExtractedField | None = None
     structure_material: ExtractedField | None = None
     house_direction: ExtractedField | None = None
+
+
+class ToKhaiLPTBExtraction(BaseModel):
+    """Fields extracted from a Tờ khai lệ phí trước bạ nhà, đất.
+
+    The declaration restates the taxpayer/owner, the property address and its
+    physical characteristics used to compute the registration fee. Every field
+    is optional; return ``null`` when the form does not state it.
+    """
+
+    owner_full_name: ExtractedField | None = None
+    owner_national_id: ExtractedField | None = None
+    address: ExtractedField | None = None
+    property_type: ExtractedField | None = None
+    certificate_number: ExtractedField | None = None
+    land_plot_number: ExtractedField | None = None
+    map_sheet_number: ExtractedField | None = None
+    land_area_sqm: ExtractedField | None = None
+    floor_area_sqm: ExtractedField | None = None
+    construction_year: ExtractedField | None = None
+
+
+class BienBanBanGiaoExtraction(BaseModel):
+    """Fields extracted from a Biên bản bàn giao (nhà/căn hộ).
+
+    The handover record identifies the receiving party and describes the
+    delivered property (address, area, floors, condition). Every field is
+    optional; return ``null`` when the record does not state it.
+    """
+
+    owner_full_name: ExtractedField | None = None
+    address: ExtractedField | None = None
+    property_type: ExtractedField | None = None
+    land_area_sqm: ExtractedField | None = None
+    floor_area_sqm: ExtractedField | None = None
+    num_floors_desc: ExtractedField | None = None
+    construction_year: ExtractedField | None = None
+    current_usage_status: ExtractedField | None = None
+
+
+class ThongBaoThueDatExtraction(BaseModel):
+    """Fields extracted from a Thông báo nộp thuế sử dụng đất.
+
+    The tax notice names the taxpayer and the taxed land parcel (address, area,
+    use purpose, parcel/map numbers). Every field is optional; return ``null``
+    when the notice does not state it.
+    """
+
+    owner_full_name: ExtractedField | None = None
+    owner_national_id: ExtractedField | None = None
+    address: ExtractedField | None = None
+    land_area_sqm: ExtractedField | None = None
+    land_use_purpose: ExtractedField | None = None
+    land_plot_number: ExtractedField | None = None
+    map_sheet_number: ExtractedField | None = None
+
+
+class DocClassification(BaseModel):
+    """LLM verdict on which property document type a text belongs to."""
+
+    doc_type: DocType = Field(
+        ...,
+        description="Loại tài liệu phù hợp nhất trong danh sách cho phép.",
+    )
+    confidence: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Độ tin cậy phân loại 0..1.",
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Verification layer (LLM-judge output, feature #5)
+# --------------------------------------------------------------------------- #
+class FieldVerification(BaseModel):
+    """LLM-judge verdict on whether one extracted value is supported by evidence."""
+
+    index: int = Field(..., description="Chỉ số mục cần kiểm tra (khớp yêu cầu).")
+    supported: bool = Field(
+        ...,
+        description="True nếu giá trị được đoạn trích nguồn xác nhận rõ ràng.",
+    )
+    reason: str | None = Field(default=None, description="Lý do ngắn gọn (tuỳ chọn).")
+
+
+class VerificationResult(BaseModel):
+    """Batch verification verdicts for a set of extracted values."""
+
+    checks: list[FieldVerification] = Field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #
 # Canonical layer (reconciled value + provenance)
 # --------------------------------------------------------------------------- #
 class BBox(BaseModel):
-    """Bounding box (percent of page) for a source span on a document image."""
+    """Bounding box for a source span on a document page image.
 
-    page: int
+    Coordinates are normalized to ``0..1`` (origin = top-left). The page number
+    is carried separately by ``source_page`` — mirroring the DB columns
+    ``field_provenance.bbox_x/y/width/height`` + ``source_page``.
+    """
+
     x: float
     y: float
-    w: float
-    h: float
+    width: float
+    height: float
 
 
 class FieldValue(BaseModel):
-    """A reconciled value for a single canonical field, with provenance."""
+    """A reconciled value for a single canonical field, with provenance.
+
+    ``value`` keeps the **verbatim** text as read from the document; ``normalized``
+    holds the code-normalized, typed value (money → int VND, area → float m²,
+    date → ISO ``YYYY-MM-DD``) or ``None`` when the field has no normalizer or is
+    unparseable.
+
+    Later pipeline stages annotate the value: ``verifier_passed`` records the
+    LLM-judge verdict (#5), ``validation_flags`` lists failed rule/arithmetic
+    checks (feature 4), and ``alternatives`` retains the competing values from
+    other documents when the merge could not reconcile them (``mau_thuan``).
+    """
 
     value: str | None = None
-    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    normalized: int | float | str | None = None
+    confidence: float = Field(
+        default=0.0, ge=0.0, le=1.0
+    )  # internal 0..1; output uses confidence_pct
     status: FieldStatus = FieldStatus.NHAP_TAY
-    source_doc: str | None = None
+    source_doc: str | None = None  # file name (display)
+    source_file_id: str | None = (
+        None  # attached_document.id (for field_provenance.source_document_id)
+    )
+    source_doc_type: DocType | None = None
     source_page: int | None = None
     source_snippet: str | None = None
     bbox: BBox | None = None
+    verifier_passed: bool | None = None
+    validation_flags: list[str] = Field(default_factory=list)
+    alternatives: list["FieldValue"] = Field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #
@@ -129,28 +247,56 @@ class PropertyIntakeInput(BaseModel):
 
 
 class DocumentInfo(BaseModel):
-    """Per-document metadata surfaced in the output."""
+    """Per-document metadata surfaced in the output (→ ``attached_document``)."""
 
-    file_id: str
+    file_id: str  # = attached_document.id
     file_name: str
-    doc_type: DocType
-    is_scanned: bool
+    detected_doc_type: DocType  # → attached_document.detected_doc_type
+    is_scan: bool  # → attached_document.is_scan
     page_count: int
 
 
+class AlternativeValue(BaseModel):
+    """A competing value from another document for a ``mau_thuan`` field.
+
+    Each maps to one extra ``field_provenance`` row with ``is_selected = false``.
+    """
+
+    value: str | None = None
+    normalized: int | float | str | None = None
+    status: FieldStatus = FieldStatus.MAU_THUAN
+    confidence_pct: int = Field(default=0, ge=0, le=100)
+    source_file_id: str | None = None
+    source_doc_type: DocType | None = None
+    source_page: int | None = None
+    source_snippet: str | None = None
+    bbox: BBox | None = None
+
+
 class FormField(BaseModel):
-    """A single form field ready to render on the "Nhập thông tin" tab."""
+    """A single form field ready to render on the "Nhập thông tin" tab.
+
+    Carries the DB write target (``target_table``/``target_field``) and provenance
+    so the backend can persist it into the 4 Màn-1 tables + ``field_provenance``
+    without extra lookups. See ai/docs/contracts/property-intake-contract.md.
+    """
 
     key: str
     section: str  # 'A' | 'B' | 'C' | 'D'
     label: str
+    target_table: str
+    target_field: str
     value: str | None
-    confidence: float
+    normalized: int | float | str | None = None
     status: FieldStatus
-    source_doc: str | None = None
+    confidence_pct: int = Field(default=0, ge=0, le=100)
+    source_file_id: str | None = None
     source_page: int | None = None
     source_snippet: str | None = None
     bbox: BBox | None = None
+    verifier_passed: bool | None = None
+    validation_flags: list[str] = Field(default_factory=list)
+    alternatives: list[AlternativeValue] = Field(default_factory=list)
 
 
 class PropertyIntakeOutput(BaseModel):
