@@ -156,11 +156,3 @@ export interface ApiPluginRunAsyncResponse {
 export interface ApiPluginRunResponse {
   result: Record<string, unknown>;
 }
-
-export interface ApiRegisterResponse {
-  id: string;
-  email: string;
-  is_active: boolean;
-  created_at: string;
-  api_key: string;
-}

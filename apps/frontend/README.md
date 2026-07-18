@@ -53,10 +53,8 @@ VITE_API_BASE_URL=http://127.0.0.1:8000   # hoặc http://localhost:8888 nếu c
 thêm bất kỳ dòng code nào khác để chuyển chế độ** — mọi component đều đọc dữ liệu qua
 store, không component nào đọc thẳng từ fixture.
 
-Việc xác thực hoàn toàn tự động: ở lần gọi API đầu tiên, ứng dụng tự đăng ký một tài
-khoản dùng một lần (`POST /auth/register` với email ngẫu nhiên) và lưu `X-API-Key` nhận
-được vào `localStorage` (`paa_api_key`) — không có màn đăng nhập, không cần nhập tay API
-key.
+Không có xác thực: backend không yêu cầu API key hay đăng nhập, mọi request gọi thẳng
+tới `VITE_API_BASE_URL`.
 
 ### Màn nào đã nối API thật, màn nào còn là dữ liệu mẫu
 
