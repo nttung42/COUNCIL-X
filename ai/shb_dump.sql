@@ -1,0 +1,4489 @@
+--
+-- PostgreSQL database dump
+--
+
+\restrict gPuxS8DlRjuBvjp8kfR6eQa0cJytVU0uHnv7fU1D1SQgcE10ox24qaflf8OalWk
+
+-- Dumped from database version 15.18
+-- Dumped by pg_dump version 15.18
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- Name: case_status; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.case_status AS ENUM (
+    'dang_xu_ly',
+    'hoan_tat',
+    'huy'
+);
+
+
+ALTER TYPE public.case_status OWNER TO shb;
+
+--
+-- Name: chat_role; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.chat_role AS ENUM (
+    'user',
+    'agent',
+    'status'
+);
+
+
+ALTER TYPE public.chat_role OWNER TO shb;
+
+--
+-- Name: confidence_factor_key; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.confidence_factor_key AS ENUM (
+    'comp_quantity_quality',
+    'method_consensus',
+    'legal_planning_completeness',
+    'market_volatility',
+    'comp_similarity'
+);
+
+
+ALTER TYPE public.confidence_factor_key OWNER TO shb;
+
+--
+-- Name: document_category; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.document_category AS ENUM (
+    'so_do_so_hong',
+    'cmnd_cccd',
+    'hop_dong',
+    'anh_hien_trang',
+    'khac'
+);
+
+
+ALTER TYPE public.document_category OWNER TO shb;
+
+--
+-- Name: edit_source; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.edit_source AS ENUM (
+    'ui_form',
+    'chat'
+);
+
+
+ALTER TYPE public.edit_source OWNER TO shb;
+
+--
+-- Name: edit_status; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.edit_status AS ENUM (
+    'pending',
+    'confirmed'
+);
+
+
+ALTER TYPE public.edit_status OWNER TO shb;
+
+--
+-- Name: extracted_doc_type; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.extracted_doc_type AS ENUM (
+    'so_do_so_hong',
+    'to_khai_lptb',
+    'bien_ban_ban_giao',
+    'thong_bao_thue_dat',
+    'khac'
+);
+
+
+ALTER TYPE public.extracted_doc_type OWNER TO shb;
+
+--
+-- Name: extraction_field_status; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.extraction_field_status AS ENUM (
+    'da_xac_thuc',
+    'can_xac_minh',
+    'mau_thuan',
+    'nhap_tay',
+    'suy_luan'
+);
+
+
+ALTER TYPE public.extraction_field_status OWNER TO shb;
+
+--
+-- Name: jobstatus; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.jobstatus AS ENUM (
+    'pending',
+    'running',
+    'completed',
+    'failed',
+    'cancelled'
+);
+
+
+ALTER TYPE public.jobstatus OWNER TO shb;
+
+--
+-- Name: lookup_badge; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.lookup_badge AS ENUM (
+    'da_xac_thuc',
+    'luu_y',
+    'chua_xac_thuc'
+);
+
+
+ALTER TYPE public.lookup_badge OWNER TO shb;
+
+--
+-- Name: lookup_category; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.lookup_category AS ENUM (
+    'market_price',
+    'planning_zoning',
+    'legal_status',
+    'neighborhood_amenity',
+    'environmental_risk',
+    'liquidity_stat',
+    'stigma_reputation'
+);
+
+
+ALTER TYPE public.lookup_category OWNER TO shb;
+
+--
+-- Name: risk_group_key; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.risk_group_key AS ENUM (
+    'legal',
+    'liquidity',
+    'price_volatility',
+    'physical_environment',
+    'reputation'
+);
+
+
+ALTER TYPE public.risk_group_key OWNER TO shb;
+
+--
+-- Name: severity_level; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.severity_level AS ENUM (
+    'thap',
+    'trung_binh',
+    'cao',
+    'nghiem_trong'
+);
+
+
+ALTER TYPE public.severity_level OWNER TO shb;
+
+--
+-- Name: step_status; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.step_status AS ENUM (
+    'locked',
+    'unlocked',
+    'confirmed'
+);
+
+
+ALTER TYPE public.step_status OWNER TO shb;
+
+--
+-- Name: valuation_method_key; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.valuation_method_key AS ENUM (
+    'sales_comparison',
+    'hedonic_ml',
+    'cost_approach'
+);
+
+
+ALTER TYPE public.valuation_method_key OWNER TO shb;
+
+--
+-- Name: verification_status; Type: TYPE; Schema: public; Owner: shb
+--
+
+CREATE TYPE public.verification_status AS ENUM (
+    'da_xac_thuc',
+    'chua_xac_thuc'
+);
+
+
+ALTER TYPE public.verification_status OWNER TO shb;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: agent_trace_event; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.agent_trace_event (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    seconds_offset numeric(6,2) NOT NULL,
+    actor character varying NOT NULL,
+    title character varying NOT NULL,
+    description text,
+    event_order smallint DEFAULT '0'::smallint NOT NULL
+);
+
+
+ALTER TABLE public.agent_trace_event OWNER TO shb;
+
+--
+-- Name: alembic_version; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.alembic_version (
+    version_num character varying(32) NOT NULL
+);
+
+
+ALTER TABLE public.alembic_version OWNER TO shb;
+
+--
+-- Name: appraisal_case; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.appraisal_case (
+    case_id character varying NOT NULL,
+    status public.case_status DEFAULT 'dang_xu_ly'::public.case_status NOT NULL,
+    current_step smallint DEFAULT '1'::smallint NOT NULL,
+    requested_by character varying,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ck_appraisal_case_current_step CHECK (((current_step >= 1) AND (current_step <= 5)))
+);
+
+
+ALTER TABLE public.appraisal_case OWNER TO shb;
+
+--
+-- Name: attached_document; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.attached_document (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    file_name character varying NOT NULL,
+    file_type character varying NOT NULL,
+    file_size_kb integer,
+    doc_category public.document_category DEFAULT 'khac'::public.document_category NOT NULL,
+    detected_doc_type public.extracted_doc_type,
+    is_scan boolean DEFAULT false NOT NULL,
+    ocr_engine character varying,
+    page_count smallint,
+    uploaded_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.attached_document OWNER TO shb;
+
+--
+-- Name: case_borrower; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.case_borrower (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    full_name character varying NOT NULL,
+    national_id character varying NOT NULL,
+    phone_number character varying,
+    relationship_to_asset character varying,
+    is_primary boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.case_borrower OWNER TO shb;
+
+--
+-- Name: case_edit_log; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.case_edit_log (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    step_number smallint NOT NULL,
+    target_table character varying NOT NULL,
+    target_field character varying NOT NULL,
+    old_value text,
+    new_value text,
+    edit_source public.edit_source NOT NULL,
+    status public.edit_status DEFAULT 'pending'::public.edit_status NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    confirmed_at timestamp with time zone,
+    CONSTRAINT ck_case_edit_log_step_number CHECK (((step_number >= 1) AND (step_number <= 5)))
+);
+
+
+ALTER TABLE public.case_edit_log OWNER TO shb;
+
+--
+-- Name: case_step_progress; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.case_step_progress (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    step_number smallint NOT NULL,
+    status public.step_status DEFAULT 'locked'::public.step_status NOT NULL,
+    unlocked_at timestamp with time zone,
+    confirmed_at timestamp with time zone,
+    CONSTRAINT ck_case_step_progress_step_number CHECK (((step_number >= 1) AND (step_number <= 5)))
+);
+
+
+ALTER TABLE public.case_step_progress OWNER TO shb;
+
+--
+-- Name: chat_message; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.chat_message (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    role public.chat_role NOT NULL,
+    message_text text NOT NULL,
+    related_edit_log_id character varying,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.chat_message OWNER TO shb;
+
+--
+-- Name: dashboard_step_summary; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.dashboard_step_summary (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    step_number smallint NOT NULL,
+    title character varying NOT NULL,
+    summary_text text NOT NULL,
+    CONSTRAINT ck_dashboard_step_summary_step_number CHECK (((step_number >= 1) AND (step_number <= 4)))
+);
+
+
+ALTER TABLE public.dashboard_step_summary OWNER TO shb;
+
+--
+-- Name: exported_report; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.exported_report (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    file_name character varying NOT NULL,
+    format character varying DEFAULT 'html'::character varying NOT NULL,
+    generated_by character varying,
+    generated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.exported_report OWNER TO shb;
+
+--
+-- Name: field_provenance; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.field_provenance (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    source_document_id character varying,
+    target_table character varying NOT NULL,
+    target_field character varying NOT NULL,
+    target_record_id character varying,
+    extracted_value text,
+    source_snippet text,
+    source_page smallint,
+    bbox_x numeric(6,4),
+    bbox_y numeric(6,4),
+    bbox_width numeric(6,4),
+    bbox_height numeric(6,4),
+    confidence_pct smallint,
+    status public.extraction_field_status DEFAULT 'can_xac_minh'::public.extraction_field_status NOT NULL,
+    is_selected boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ck_field_provenance_confidence_pct CHECK (((confidence_pct IS NULL) OR ((confidence_pct >= 0) AND (confidence_pct <= 100)))),
+    CONSTRAINT ck_field_provenance_source_or_manual CHECK (((source_document_id IS NOT NULL) OR (status = ANY (ARRAY['nhap_tay'::public.extraction_field_status, 'suy_luan'::public.extraction_field_status]))))
+);
+
+
+ALTER TABLE public.field_provenance OWNER TO shb;
+
+--
+-- Name: files; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.files (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    user_id character varying NOT NULL,
+    original_name character varying NOT NULL,
+    stored_path character varying NOT NULL,
+    content_type character varying NOT NULL,
+    size_bytes integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.files OWNER TO shb;
+
+--
+-- Name: jobs; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.jobs (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    user_id character varying NOT NULL,
+    plugin_id character varying NOT NULL,
+    status public.jobstatus DEFAULT 'pending'::public.jobstatus NOT NULL,
+    input json NOT NULL,
+    input_file_path character varying,
+    result json,
+    error text,
+    progress integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    started_at timestamp with time zone,
+    finished_at timestamp with time zone,
+    celery_task_id character varying(255),
+    celery_retries integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public.jobs OWNER TO shb;
+
+--
+-- Name: loan_info; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.loan_info (
+    case_id character varying NOT NULL,
+    loan_amount_vnd bigint NOT NULL,
+    loan_purpose character varying,
+    loan_term_years smallint
+);
+
+
+ALTER TABLE public.loan_info OWNER TO shb;
+
+--
+-- Name: lookup_finding; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.lookup_finding (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    category public.lookup_category NOT NULL,
+    tool_name character varying NOT NULL,
+    status_badge public.lookup_badge DEFAULT 'chua_xac_thuc'::public.lookup_badge NOT NULL,
+    title character varying NOT NULL,
+    raw_findings json NOT NULL,
+    inference_text text,
+    source_label character varying,
+    confidence_pct smallint,
+    CONSTRAINT ck_lookup_finding_confidence_pct CHECK (((confidence_pct IS NULL) OR ((confidence_pct >= 0) AND (confidence_pct <= 100))))
+);
+
+
+ALTER TABLE public.lookup_finding OWNER TO shb;
+
+--
+-- Name: market_comparable; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.market_comparable (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    comp_address character varying NOT NULL,
+    distance_km numeric(4,2),
+    area_sqm numeric(8,2),
+    transaction_date date,
+    price_per_sqm_vnd bigint NOT NULL,
+    display_order smallint DEFAULT '0'::smallint NOT NULL
+);
+
+
+ALTER TABLE public.market_comparable OWNER TO shb;
+
+--
+-- Name: plugin_runs; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.plugin_runs (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    job_id character varying NOT NULL,
+    plugin_id character varying NOT NULL,
+    tokens_used integer,
+    latency_ms integer NOT NULL,
+    model character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.plugin_runs OWNER TO shb;
+
+--
+-- Name: property_legal_info; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.property_legal_info (
+    case_id character varying NOT NULL,
+    certificate_type character varying NOT NULL,
+    certificate_number character varying NOT NULL,
+    issue_date date,
+    issuing_authority character varying,
+    land_plot_number character varying,
+    map_sheet_number character varying,
+    land_use_purpose character varying,
+    use_term character varying,
+    ownership_form character varying,
+    current_mortgage_status character varying
+);
+
+
+ALTER TABLE public.property_legal_info OWNER TO shb;
+
+--
+-- Name: property_physical_info; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.property_physical_info (
+    case_id character varying NOT NULL,
+    address character varying NOT NULL,
+    ward character varying,
+    district character varying,
+    city character varying,
+    latitude numeric(9,6),
+    longitude numeric(9,6),
+    property_type character varying NOT NULL,
+    land_area_sqm numeric(8,2) NOT NULL,
+    floor_area_sqm numeric(8,2),
+    num_floors_desc character varying,
+    frontage_m numeric(5,2),
+    depth_m numeric(5,2),
+    construction_year smallint,
+    structure_material character varying,
+    house_direction character varying,
+    road_type_desc character varying,
+    alley_width_m numeric(4,2),
+    current_usage_status character varying
+);
+
+
+ALTER TABLE public.property_physical_info OWNER TO shb;
+
+--
+-- Name: risk_assessment_result; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.risk_assessment_result (
+    case_id character varying NOT NULL,
+    risk_score smallint NOT NULL,
+    risk_label public.severity_level NOT NULL,
+    ltv_proposed_pct smallint NOT NULL,
+    risk_inference_text text,
+    computed_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ck_risk_assessment_ltv_proposed_pct CHECK (((ltv_proposed_pct >= 0) AND (ltv_proposed_pct <= 100))),
+    CONSTRAINT ck_risk_assessment_score CHECK (((risk_score >= 0) AND (risk_score <= 100)))
+);
+
+
+ALTER TABLE public.risk_assessment_result OWNER TO shb;
+
+--
+-- Name: risk_flag; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.risk_flag (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    severity public.severity_level NOT NULL,
+    title character varying NOT NULL,
+    description text,
+    confidence_pct smallint,
+    verified_status public.verification_status DEFAULT 'chua_xac_thuc'::public.verification_status NOT NULL,
+    linked_risk_group character varying,
+    display_order smallint DEFAULT '0'::smallint NOT NULL,
+    CONSTRAINT ck_risk_flag_confidence_pct CHECK (((confidence_pct IS NULL) OR ((confidence_pct >= 0) AND (confidence_pct <= 100))))
+);
+
+
+ALTER TABLE public.risk_flag OWNER TO shb;
+
+--
+-- Name: risk_group; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.risk_group (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    group_key public.risk_group_key NOT NULL,
+    label character varying NOT NULL,
+    weight_pct smallint NOT NULL,
+    score smallint NOT NULL,
+    raw_findings json NOT NULL,
+    inference_text text,
+    source_label character varying,
+    tool_name character varying,
+    CONSTRAINT ck_risk_group_score CHECK (((score >= 0) AND (score <= 100))),
+    CONSTRAINT ck_risk_group_weight_pct CHECK (((weight_pct >= 0) AND (weight_pct <= 100)))
+);
+
+
+ALTER TABLE public.risk_group OWNER TO shb;
+
+--
+-- Name: risk_ltv_policy_band; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.risk_ltv_policy_band (
+    id smallint NOT NULL,
+    min_score smallint NOT NULL,
+    max_score smallint,
+    max_ltv_pct smallint NOT NULL,
+    label character varying NOT NULL
+);
+
+
+ALTER TABLE public.risk_ltv_policy_band OWNER TO shb;
+
+--
+-- Name: risk_ltv_policy_band_id_seq; Type: SEQUENCE; Schema: public; Owner: shb
+--
+
+CREATE SEQUENCE public.risk_ltv_policy_band_id_seq
+    AS smallint
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.risk_ltv_policy_band_id_seq OWNER TO shb;
+
+--
+-- Name: risk_ltv_policy_band_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: shb
+--
+
+ALTER SEQUENCE public.risk_ltv_policy_band_id_seq OWNED BY public.risk_ltv_policy_band.id;
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.users (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    email character varying NOT NULL,
+    api_key_hash character varying NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.users OWNER TO shb;
+
+--
+-- Name: valuation_confidence_factor; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.valuation_confidence_factor (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    factor_key public.confidence_factor_key NOT NULL,
+    label character varying NOT NULL,
+    weight_pct smallint NOT NULL,
+    score smallint NOT NULL,
+    CONSTRAINT ck_valuation_conf_factor_score CHECK (((score >= 0) AND (score <= 100))),
+    CONSTRAINT ck_valuation_conf_factor_weight CHECK (((weight_pct >= 0) AND (weight_pct <= 100)))
+);
+
+
+ALTER TABLE public.valuation_confidence_factor OWNER TO shb;
+
+--
+-- Name: valuation_method; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.valuation_method (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    method_key public.valuation_method_key NOT NULL,
+    estimated_value_vnd bigint NOT NULL,
+    weight_pct smallint NOT NULL,
+    contribution_value_vnd bigint,
+    method_confidence_pct smallint,
+    inputs json NOT NULL,
+    inference_text text,
+    source_label character varying,
+    CONSTRAINT ck_valuation_method_weight_pct CHECK (((weight_pct >= 0) AND (weight_pct <= 100)))
+);
+
+
+ALTER TABLE public.valuation_method OWNER TO shb;
+
+--
+-- Name: valuation_price_index_point; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.valuation_price_index_point (
+    id character varying DEFAULT (gen_random_uuid())::text NOT NULL,
+    case_id character varying NOT NULL,
+    period_label character varying NOT NULL,
+    index_value numeric(6,2) NOT NULL,
+    display_order smallint DEFAULT '0'::smallint NOT NULL
+);
+
+
+ALTER TABLE public.valuation_price_index_point OWNER TO shb;
+
+--
+-- Name: valuation_result; Type: TABLE; Schema: public; Owner: shb
+--
+
+CREATE TABLE public.valuation_result (
+    case_id character varying NOT NULL,
+    proposed_value_vnd bigint NOT NULL,
+    value_range_low_vnd bigint NOT NULL,
+    value_range_high_vnd bigint NOT NULL,
+    price_per_sqm_vnd bigint,
+    confidence_pct smallint NOT NULL,
+    comparable_count smallint,
+    price_index_period character varying,
+    price_index_value numeric(6,2),
+    price_index_base numeric(6,2) DEFAULT '100'::numeric,
+    confidence_inference_text text,
+    computed_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ck_valuation_result_confidence_pct CHECK (((confidence_pct >= 0) AND (confidence_pct <= 100)))
+);
+
+
+ALTER TABLE public.valuation_result OWNER TO shb;
+
+--
+-- Name: risk_ltv_policy_band id; Type: DEFAULT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.risk_ltv_policy_band ALTER COLUMN id SET DEFAULT nextval('public.risk_ltv_policy_band_id_seq'::regclass);
+
+
+--
+-- Data for Name: agent_trace_event; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.agent_trace_event (id, case_id, seconds_offset, actor, title, description, event_order) FROM stdin;
+d0f9461e-209f-4164-867d-41c4c71e4f8c	REQ-2026-2002	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+75dcb0c8-2d4b-4aa3-9537-a1612e3d2478	REQ-2026-2002	1.00	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+84f22948-9d6a-4049-b201-7917517f8831	REQ-2026-2002	1.60	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 49.94 tỷ	2
+1e3ccfcc-c736-4066-a16f-5365a3a7b473	REQ-2026-2002	2.70	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 18/100 · Thap	3
+1a61b3ec-e601-4067-8187-c45705685be9	REQ-2026-2002	3.60	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+8969a98b-c7ea-4dcd-9a4d-e4139c6de7be	REQ-2026-2006	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+e3233995-f097-4ef7-8fa3-f3b5fc46b095	REQ-2026-2006	0.40	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+6acbcfad-9c4c-4898-9c77-76613c0b11fd	REQ-2026-2006	1.00	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 4.57 tỷ	2
+f89878e0-b49e-4bb1-98e4-ba890427c2b0	REQ-2026-2006	2.40	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 40/100 · Trung Binh	3
+80512a53-6779-431c-8b20-0a8abf6c6984	REQ-2026-2006	3.60	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+e5e9ff0e-ab44-49ef-b89e-da593412b51a	REQ-2026-2008	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+237b298c-1557-4bf1-bbe3-5190ae5b4347	REQ-2026-2008	0.60	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+8d157631-67cd-43dd-b579-647114a7d603	REQ-2026-2008	1.10	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 9.78 tỷ	2
+71bb1b29-b01c-4ddd-ac9d-8cebb0d37287	REQ-2026-2008	1.50	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 32/100 · Trung Binh	3
+d6773300-bead-4e6a-b057-5e1c9717052e	REQ-2026-2008	2.70	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+247f78f8-5cf9-40f8-a83e-dbded0b8bfec	REQ-2026-2012	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+8bb05a3d-9e6f-492b-b0e8-5bffd8de1f53	REQ-2026-2012	0.40	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+5fc83ab0-0739-4ce2-9a6a-51a662ac813e	REQ-2026-2012	1.50	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 56.91 tỷ	2
+b0d0eff9-b24d-4d49-8711-a2a4f58f1fdd	REQ-2026-2012	2.20	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 25/100 · Trung Binh	3
+fe7a55ff-2544-438d-9749-ec0bf5974da9	REQ-2026-2012	3.60	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+39b79c01-68db-4967-adf6-2c1dfc3c7837	REQ-2026-2016	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+a63fbe19-fe82-47f3-a6b2-71a561cefd34	REQ-2026-2016	0.70	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+af6f3e4c-0b2e-4b48-9c84-8e5c45b59402	REQ-2026-2016	1.10	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 3.95 tỷ	2
+bb0089de-faae-452b-a713-45ff5fe5be5e	REQ-2026-2016	2.20	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 37/100 · Trung Binh	3
+4c3b83c1-6a19-47d4-87e7-4aa9609e9a32	REQ-2026-2016	3.00	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+e53f39ad-15e9-4904-990d-550bbb883390	REQ-2026-2018	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+7ff40532-ec36-4036-b782-e02d006e3269	REQ-2026-2018	0.30	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+89be473c-4d80-4d62-b406-12498a2620c6	REQ-2026-2018	0.90	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 5.15 tỷ	2
+a0ff135f-125b-4e97-9e55-88300bcb75a0	REQ-2026-2018	2.20	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 51/100 · Cao	3
+b4898d6a-098a-4e8f-8b2c-6b1933836044	REQ-2026-2018	3.50	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+7ad219dc-e146-456a-afad-a06db587ae61	REQ-2026-2019	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+7d23744b-1f49-4795-90e2-ab6cdd679c5e	REQ-2026-2019	0.60	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+a778a76e-ca7b-43af-9700-934668dc9eec	REQ-2026-2019	1.20	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 2.87 tỷ	2
+f4821f19-547e-4553-843d-c98f145ae43d	REQ-2026-2019	1.60	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 27/100 · Trung Binh	3
+b2d3603e-d1e7-4d78-9dfa-212819ec4874	REQ-2026-2019	2.20	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+6d36f873-0186-4e20-9dfc-4d99a7ae6cb3	REQ-2026-2022	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+73373504-ea0d-4fb3-9091-bf25c83dea61	REQ-2026-2022	1.00	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+5ebe0789-32ab-4433-aad3-3cffaa7631d0	REQ-2026-2022	2.10	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 17.04 tỷ	2
+e0de2c88-28b9-444a-9294-318780763a09	REQ-2026-2022	3.20	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 25/100 · Trung Binh	3
+f7e62865-9bb6-407c-8916-0dba81d1c67f	REQ-2026-2022	4.20	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+ab0deaf4-ae5b-4866-9298-c7bc06e76496	REQ-2026-2023	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+c769846d-7654-4eee-bb3f-b67dbebb3c2d	REQ-2026-2023	0.80	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+752e2c68-3d55-4a01-89d4-fcfc35b1f759	REQ-2026-2023	1.20	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 7.12 tỷ	2
+5c024820-14f8-4980-856d-810595695f22	REQ-2026-2023	2.40	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 33/100 · Trung Binh	3
+cb8938e9-96ff-43f0-aa8b-030e9a92ebad	REQ-2026-2023	3.70	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+364e0125-4aea-4cca-ae2d-e9cb06836c02	REQ-2026-2027	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+6cb44e94-cf80-4105-9b16-63845eb5a176	REQ-2026-2027	0.90	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+d896d60c-d601-4d25-a3b7-be1cefd065ce	REQ-2026-2027	1.30	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 4.64 tỷ	2
+6644aae2-d39c-4872-b213-900c0517639d	REQ-2026-2027	2.10	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 39/100 · Trung Binh	3
+c15933a8-3bfc-4c09-a61e-f832fba796b4	REQ-2026-2027	3.20	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+458efa18-efe3-49f9-9ee5-b6282801426e	REQ-2026-2028	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+a6049946-cc39-46c0-bf5e-c1b08afd348f	REQ-2026-2028	0.40	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+20308a24-fa56-49b8-b0f1-32dda0d77c85	REQ-2026-2028	0.90	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 25.92 tỷ	2
+827a0d1b-2cc2-4352-a99f-2c4e190f9cd3	REQ-2026-2028	1.40	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 32/100 · Trung Binh	3
+4ecf29ee-1804-4f3b-a96d-0abae257c04b	REQ-2026-2028	2.80	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+791796b2-263b-4a63-b174-46e71158260f	REQ-2026-2030	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+65235da4-2c28-4d63-aa05-89baec26da2c	REQ-2026-2030	1.30	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+576c84ca-8181-4d5e-803f-7e738d168fd4	REQ-2026-2030	2.30	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 34.31 tỷ	2
+e9ebb194-9769-4845-b66d-62942ef00a6e	REQ-2026-2030	3.60	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 38/100 · Trung Binh	3
+272eb2f1-5e93-4284-a549-5c42fae86c85	REQ-2026-2030	4.30	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+3a69c537-1780-42a0-abc9-1e7ae81feac0	REQ-2026-2036	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+fb59b1ce-340d-4b3b-ab8d-c03174aa8c04	REQ-2026-2036	1.00	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+c5d121a5-52db-4c07-bf80-3da111f01db2	REQ-2026-2036	1.60	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 20.86 tỷ	2
+3e864525-0e4f-404c-abaf-6ebf581a2d5d	REQ-2026-2036	2.40	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 30/100 · Trung Binh	3
+6d2419a4-fb1d-4939-a379-67a42eb273dd	REQ-2026-2036	3.60	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+f3d6fc20-dced-4130-8aa7-f90af25a4be3	REQ-2026-2039	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+943dab20-caff-4bc9-a51c-1309e9cade68	REQ-2026-2039	1.30	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+ce72d660-9435-4863-a55a-92252f2be660	REQ-2026-2039	2.70	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 11.26 tỷ	2
+7beed72b-47ab-4735-a5e3-6ac1a8cdb1a1	REQ-2026-2039	3.00	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 39/100 · Trung Binh	3
+aa786004-e658-4211-8f02-f5ca47b02b70	REQ-2026-2039	3.90	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+e6ce1e5d-c61b-4120-b27e-cbf315be51ab	REQ-2026-2040	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+692622d0-7dae-4efc-a125-73d6a5837a79	REQ-2026-2040	0.60	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+e1014d3f-1ac5-4573-92d4-95df1c77c03a	REQ-2026-2040	1.00	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 8.39 tỷ	2
+763df681-f8fe-4a0e-a4b1-1560c0c46a9a	REQ-2026-2040	1.30	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 47/100 · Cao	3
+6e0b8e08-e91f-49a9-a7d7-0386e3128f98	REQ-2026-2040	1.60	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+c6d24ebe-a72a-44ec-ad19-d58533c5340c	REQ-2026-2044	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+6a41e34f-5b63-420a-8eed-c7c563dd47e2	REQ-2026-2044	1.10	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+1e531573-4133-42dc-9571-934dd1689ab9	REQ-2026-2044	1.90	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 27.58 tỷ	2
+e3230afb-a397-4e9c-ae2d-1f3f08eeacd1	REQ-2026-2044	2.60	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 48/100 · Cao	3
+98750d9a-43b9-46c1-aa9a-419de544ed74	REQ-2026-2044	2.90	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+92a7b249-f9f0-410f-88b3-c4ec9c91b475	REQ-2026-2045	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+e362d5b8-b2d3-4a78-a298-33f5a40fe4e0	REQ-2026-2045	0.60	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+edb56a7d-38e7-48ec-b5ce-62a60215973d	REQ-2026-2045	0.90	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 16.10 tỷ	2
+4416a860-a64d-4fab-8241-336b843abf2b	REQ-2026-2045	1.30	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 35/100 · Trung Binh	3
+0eaa1f77-8aed-4e10-b67f-994f79e5f8da	REQ-2026-2045	1.80	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+e76d53a3-fcff-4cb5-b420-81597ab59b57	REQ-2026-2048	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+187cad94-85bf-43d6-869d-9247cb7e2c10	REQ-2026-2048	0.60	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+0d4141f7-1e53-4e92-b5eb-5e3706ebefa9	REQ-2026-2048	1.30	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 49.74 tỷ	2
+ec0655ee-dd4f-4c79-ac5d-feef267cca89	REQ-2026-2048	2.30	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 36/100 · Trung Binh	3
+47b6bd78-9fd0-4088-8277-138b6c41e053	REQ-2026-2048	3.40	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+db1c5046-ac25-4c24-9fd6-9fd5ddfb3dfe	REQ-2026-2049	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+75839428-e599-45a2-9343-35310bdfb726	REQ-2026-2049	1.30	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+83cd2ca3-19f1-4480-be7e-4e4c42c27e43	REQ-2026-2049	1.90	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 9.03 tỷ	2
+05dbf81c-3eba-4466-ad6f-800a34b55e1a	REQ-2026-2049	3.20	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 30/100 · Trung Binh	3
+8b88073a-3e10-4093-85bb-f73d3fccd38b	REQ-2026-2049	4.20	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+d6895e77-04b0-462b-a000-57e2c2d0e687	REQ-2026-2050	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+733cb932-c420-4ad0-9bfd-7069f012bc2a	REQ-2026-2050	0.30	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+1e58bd7f-6ad5-48a6-a6c5-0503731f0835	REQ-2026-2050	1.30	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 11.84 tỷ	2
+66130637-16df-478a-897e-6deaf5fb7fc7	REQ-2026-2050	2.10	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 30/100 · Trung Binh	3
+56584794-f315-4435-b7cf-bf373c4ffba6	REQ-2026-2050	2.90	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+4f172c90-da42-4df9-81c1-c73f835a3e46	REQ-2026-2051	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+2a825f45-1b0a-48bc-a217-8fb6de8328c1	REQ-2026-2051	0.50	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+74d8b1db-8da1-45bb-8b5e-671ccd6296d6	REQ-2026-2051	1.20	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 41.08 tỷ	2
+beb81f4a-247a-4573-9072-aa12fbb8b5be	REQ-2026-2051	2.50	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 41/100 · Cao	3
+9ba7357d-fbf7-46c3-afa2-29fbb87e96ed	REQ-2026-2051	3.80	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+37c6eb08-2e2b-43ee-8f15-2edc67ae2266	REQ-2026-2052	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+c9af5f74-9a2c-441c-95be-a6393e428ba9	REQ-2026-2052	0.30	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+35cf8ad4-173f-418d-9f7e-933d167fe71e	REQ-2026-2052	1.20	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 24.84 tỷ	2
+fd19965b-f4c6-47af-bfec-5952ce55937c	REQ-2026-2052	1.60	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 26/100 · Trung Binh	3
+4ef2fa6f-3f9f-4207-8aa8-91d8742540ba	REQ-2026-2052	1.90	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+f1443f2e-2cc0-4198-a2b6-7ca61bd100b8	REQ-2026-2053	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+4da18f85-ea22-46a2-aa89-16e5e8edb725	REQ-2026-2053	0.90	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+04ee7f9b-8d21-4777-8d14-eed2b0f7cce1	REQ-2026-2053	2.00	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 2.67 tỷ	2
+2eece04e-01b6-4666-9251-259ab9c44c2b	REQ-2026-2053	2.80	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 28/100 · Trung Binh	3
+326ec3e3-b10a-41ee-8d5c-908864a43c6f	REQ-2026-2053	3.50	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+fdc6e59a-9516-48d3-9e95-ddae3aa12adf	REQ-2026-2057	0.00	Planner Agent	Hệ thống tiếp nhận yêu cầu	Từ hệ thống điều phối chung (Planner Agent)	0
+e9082f91-17b0-4ccc-9f76-37cb759832b5	REQ-2026-2057	1.10	Research Agent	7 nguồn tra cứu chạy song song	Giá thị trường, quy hoạch, pháp lý, tiện ích, dư luận, môi trường, thanh khoản...	1
+fe308a1a-3c2c-47e4-8354-89ccfb6e5682	REQ-2026-2057	1.70	Valuation Agent	Bộ máy định giá hoàn tất	Giá trị ước tính: 40.43 tỷ	2
+b4bcb69d-e05a-4da0-a0e5-fa4e3e660c0d	REQ-2026-2057	2.80	Risk Assessment Agent	Bộ máy chấm điểm rủi ro hoàn tất	Điểm rủi ro tài sản: 44/100 · Cao	3
+c4cdced5-5fec-4e6d-9384-f7a5bb5fd720	REQ-2026-2057	3.50	Advisory Agent	Copilot tổng hợp báo cáo	Sẵn sàng để thẩm định viên xuất báo cáo và ký xác nhận	4
+\.
+
+
+--
+-- Data for Name: alembic_version; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.alembic_version (version_num) FROM stdin;
+002
+\.
+
+
+--
+-- Data for Name: appraisal_case; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.appraisal_case (case_id, status, current_step, requested_by, created_at, updated_at) FROM stdin;
+REQ-2026-2000	dang_xu_ly	3	pham.appraiser05	2026-07-14 09:00:00+00	2026-07-14 09:00:00+00
+REQ-2026-2001	dang_xu_ly	3	pham.appraiser05	2026-03-28 14:00:00+00	2026-03-28 14:00:00+00
+REQ-2026-2002	hoan_tat	5	pham.appraiser05	2026-06-12 04:00:00+00	2026-06-12 04:00:00+00
+REQ-2026-2003	dang_xu_ly	3	pham.appraiser05	2026-03-27 06:00:00+00	2026-03-27 06:00:00+00
+REQ-2026-2004	dang_xu_ly	4	le.appraiser04	2026-05-17 06:00:00+00	2026-05-17 06:00:00+00
+REQ-2026-2005	dang_xu_ly	4	ntv.appraiser03	2026-05-19 11:00:00+00	2026-05-19 11:00:00+00
+REQ-2026-2006	hoan_tat	5	ntv.appraiser02	2026-06-30 02:00:00+00	2026-06-30 02:00:00+00
+REQ-2026-2007	dang_xu_ly	1	le.appraiser04	2026-06-07 09:00:00+00	2026-06-07 09:00:00+00
+REQ-2026-2008	hoan_tat	5	le.appraiser04	2026-05-08 11:00:00+00	2026-05-08 11:00:00+00
+REQ-2026-2009	dang_xu_ly	4	ntv.appraiser01	2026-04-08 01:00:00+00	2026-04-08 01:00:00+00
+REQ-2026-2010	dang_xu_ly	2	ntv.appraiser03	2026-04-25 23:00:00+00	2026-04-25 23:00:00+00
+REQ-2026-2011	dang_xu_ly	4	ntv.appraiser03	2026-06-26 11:00:00+00	2026-06-26 11:00:00+00
+REQ-2026-2012	hoan_tat	5	ntv.appraiser03	2026-05-17 19:00:00+00	2026-05-17 19:00:00+00
+REQ-2026-2013	dang_xu_ly	3	pham.appraiser05	2026-06-21 03:00:00+00	2026-06-21 03:00:00+00
+REQ-2026-2014	dang_xu_ly	4	pham.appraiser05	2026-05-05 16:00:00+00	2026-05-05 16:00:00+00
+REQ-2026-2015	dang_xu_ly	4	pham.appraiser05	2026-05-08 23:00:00+00	2026-05-08 23:00:00+00
+REQ-2026-2016	hoan_tat	5	ntv.appraiser01	2026-07-18 00:00:00+00	2026-07-18 00:00:00+00
+REQ-2026-2017	dang_xu_ly	4	ntv.appraiser01	2026-03-27 03:00:00+00	2026-03-27 03:00:00+00
+REQ-2026-2018	hoan_tat	5	ntv.appraiser01	2026-03-20 22:00:00+00	2026-03-20 22:00:00+00
+REQ-2026-2019	hoan_tat	5	ntv.appraiser01	2026-06-28 16:00:00+00	2026-06-28 16:00:00+00
+REQ-2026-2020	dang_xu_ly	4	ntv.appraiser01	2026-07-13 03:00:00+00	2026-07-13 03:00:00+00
+REQ-2026-2021	huy	4	ntv.appraiser03	2026-06-05 10:00:00+00	2026-06-05 10:00:00+00
+REQ-2026-2022	dang_xu_ly	5	le.appraiser04	2026-05-07 06:00:00+00	2026-05-07 06:00:00+00
+REQ-2026-2023	hoan_tat	5	ntv.appraiser02	2026-05-08 04:00:00+00	2026-05-08 04:00:00+00
+REQ-2026-2024	dang_xu_ly	1	ntv.appraiser02	2026-07-04 05:00:00+00	2026-07-04 05:00:00+00
+REQ-2026-2025	dang_xu_ly	4	le.appraiser04	2026-04-24 10:00:00+00	2026-04-24 10:00:00+00
+REQ-2026-2026	dang_xu_ly	1	ntv.appraiser01	2026-07-05 09:00:00+00	2026-07-05 09:00:00+00
+REQ-2026-2027	hoan_tat	5	pham.appraiser05	2026-04-03 02:00:00+00	2026-04-03 02:00:00+00
+REQ-2026-2028	dang_xu_ly	5	pham.appraiser05	2026-06-24 12:00:00+00	2026-06-24 12:00:00+00
+REQ-2026-2029	dang_xu_ly	4	ntv.appraiser02	2026-05-18 04:00:00+00	2026-05-18 04:00:00+00
+REQ-2026-2030	hoan_tat	5	le.appraiser04	2026-05-14 01:00:00+00	2026-05-14 01:00:00+00
+REQ-2026-2031	dang_xu_ly	1	ntv.appraiser02	2026-06-15 10:00:00+00	2026-06-15 10:00:00+00
+REQ-2026-2032	dang_xu_ly	2	pham.appraiser05	2026-03-21 01:00:00+00	2026-03-21 01:00:00+00
+REQ-2026-2033	dang_xu_ly	4	ntv.appraiser02	2026-05-19 11:00:00+00	2026-05-19 11:00:00+00
+REQ-2026-2034	dang_xu_ly	4	ntv.appraiser03	2026-05-07 10:00:00+00	2026-05-07 10:00:00+00
+REQ-2026-2035	dang_xu_ly	2	ntv.appraiser01	2026-04-12 10:00:00+00	2026-04-12 10:00:00+00
+REQ-2026-2036	hoan_tat	5	pham.appraiser05	2026-06-29 13:00:00+00	2026-06-29 13:00:00+00
+REQ-2026-2037	dang_xu_ly	3	ntv.appraiser01	2026-04-23 15:00:00+00	2026-04-23 15:00:00+00
+REQ-2026-2038	dang_xu_ly	1	ntv.appraiser02	2026-06-26 06:00:00+00	2026-06-26 06:00:00+00
+REQ-2026-2039	huy	5	ntv.appraiser02	2026-04-14 00:00:00+00	2026-04-14 00:00:00+00
+REQ-2026-2040	hoan_tat	5	ntv.appraiser01	2026-05-26 05:00:00+00	2026-05-26 05:00:00+00
+REQ-2026-2041	dang_xu_ly	3	le.appraiser04	2026-04-27 19:00:00+00	2026-04-27 19:00:00+00
+REQ-2026-2042	dang_xu_ly	2	ntv.appraiser03	2026-06-13 05:00:00+00	2026-06-13 05:00:00+00
+REQ-2026-2043	dang_xu_ly	2	pham.appraiser05	2026-06-03 01:00:00+00	2026-06-03 01:00:00+00
+REQ-2026-2044	hoan_tat	5	pham.appraiser05	2026-06-06 02:00:00+00	2026-06-06 02:00:00+00
+REQ-2026-2045	hoan_tat	5	ntv.appraiser02	2026-03-25 20:00:00+00	2026-03-25 20:00:00+00
+REQ-2026-2046	dang_xu_ly	1	ntv.appraiser02	2026-05-11 09:00:00+00	2026-05-11 09:00:00+00
+REQ-2026-2047	dang_xu_ly	4	le.appraiser04	2026-04-01 19:00:00+00	2026-04-01 19:00:00+00
+REQ-2026-2048	hoan_tat	5	pham.appraiser05	2026-06-04 18:00:00+00	2026-06-04 18:00:00+00
+REQ-2026-2049	dang_xu_ly	5	le.appraiser04	2026-03-30 04:00:00+00	2026-03-30 04:00:00+00
+REQ-2026-2050	hoan_tat	5	le.appraiser04	2026-07-12 19:00:00+00	2026-07-12 19:00:00+00
+REQ-2026-2051	hoan_tat	5	le.appraiser04	2026-05-23 13:00:00+00	2026-05-23 13:00:00+00
+REQ-2026-2052	hoan_tat	5	pham.appraiser05	2026-07-10 21:00:00+00	2026-07-10 21:00:00+00
+REQ-2026-2053	hoan_tat	5	le.appraiser04	2026-04-15 23:00:00+00	2026-04-15 23:00:00+00
+REQ-2026-2054	dang_xu_ly	4	ntv.appraiser02	2026-04-20 09:00:00+00	2026-04-20 09:00:00+00
+REQ-2026-2055	dang_xu_ly	4	ntv.appraiser02	2026-05-14 16:00:00+00	2026-05-14 16:00:00+00
+REQ-2026-2056	dang_xu_ly	4	ntv.appraiser03	2026-06-22 12:00:00+00	2026-06-22 12:00:00+00
+REQ-2026-2057	hoan_tat	5	le.appraiser04	2026-06-01 07:00:00+00	2026-06-01 07:00:00+00
+REQ-2026-2058	dang_xu_ly	2	ntv.appraiser02	2026-06-24 08:00:00+00	2026-06-24 08:00:00+00
+REQ-2026-2059	dang_xu_ly	4	pham.appraiser05	2026-06-26 20:00:00+00	2026-06-26 20:00:00+00
+REQ-E2E-0001	dang_xu_ly	1	e2e-harness	2026-07-18 14:13:25.913875+00	2026-07-18 14:13:25.913875+00
+REQ-E2E-0002	dang_xu_ly	1	e2e-f1f2f3	2026-07-18 16:02:59.477923+00	2026-07-18 16:02:59.477923+00
+\.
+
+
+--
+-- Data for Name: attached_document; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.attached_document (id, case_id, file_name, file_type, file_size_kb, doc_category, detected_doc_type, is_scan, ocr_engine, page_count, uploaded_at) FROM stdin;
+adoc-0-REQ-E2E-0001	REQ-E2E-0001	01_so_hong.pdf	pdf	\N	khac	so_do_so_hong	f	\N	1	2026-07-18 14:13:25.932573+00
+adoc-1-REQ-E2E-0001	REQ-E2E-0001	02_to_khai_lptb.pdf	pdf	\N	khac	to_khai_lptb	f	\N	1	2026-07-18 14:13:25.932573+00
+adoc-2-REQ-E2E-0001	REQ-E2E-0001	03_bien_ban_ban_giao.pdf	pdf	\N	khac	bien_ban_ban_giao	f	\N	1	2026-07-18 14:13:25.932573+00
+adoc-3-REQ-E2E-0001	REQ-E2E-0001	04_thong_bao_thue_dat.pdf	pdf	\N	khac	thong_bao_thue_dat	f	\N	1	2026-07-18 14:13:25.932573+00
+adoc-0-REQ-E2E-0002	REQ-E2E-0002	01_so_hong.pdf	pdf	\N	khac	so_do_so_hong	f	\N	1	2026-07-18 16:02:59.496469+00
+adoc-1-REQ-E2E-0002	REQ-E2E-0002	02_to_khai_lptb.pdf	pdf	\N	khac	to_khai_lptb	f	\N	1	2026-07-18 16:02:59.496469+00
+adoc-2-REQ-E2E-0002	REQ-E2E-0002	03_bien_ban_ban_giao.pdf	pdf	\N	khac	bien_ban_ban_giao	f	\N	1	2026-07-18 16:02:59.496469+00
+adoc-3-REQ-E2E-0002	REQ-E2E-0002	04_thong_bao_thue_dat.pdf	pdf	\N	khac	thong_bao_thue_dat	f	\N	1	2026-07-18 16:02:59.496469+00
+\.
+
+
+--
+-- Data for Name: case_borrower; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.case_borrower (id, case_id, full_name, national_id, phone_number, relationship_to_asset, is_primary, created_at) FROM stdin;
+38030290-61be-4018-8106-36c9960728e2	REQ-E2E-0001	Nguyen Van A	079088001234	\N	Chủ sở hữu đứng tên trên GCN	t	2026-07-18 14:13:25.940477+00
+d36846a5-3252-4705-a317-8ce6f32d30b4	REQ-E2E-0002	Nguyen Van A	079088001234	\N	Chủ sở hữu đứng tên trên GCN	t	2026-07-18 16:02:59.509076+00
+\.
+
+
+--
+-- Data for Name: case_edit_log; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.case_edit_log (id, case_id, step_number, target_table, target_field, old_value, new_value, edit_source, status, created_at, confirmed_at) FROM stdin;
+fd0a73df-4639-43c0-8fb7-424c61eb0e36	REQ-2026-2006	1	loan_info	loan_term_years	15	10	ui_form	confirmed	2026-06-30 02:55:00+00	2026-06-30 03:00:00+00
+a6849c0a-832f-4a29-87be-47f22cb57fd4	REQ-2026-2027	1	property_physical_info	land_area_sqm	67.0	69.6	ui_form	confirmed	2026-04-03 02:40:00+00	2026-04-03 02:42:00+00
+d2a2d25d-b4ba-4ab1-a129-c96b10007518	REQ-2026-2027	1	property_physical_info	land_area_sqm	67.0	69.6	chat	confirmed	2026-04-03 02:43:00+00	2026-04-03 02:52:00+00
+591b0d22-5abc-44bb-87a4-ce296b45f3b4	REQ-2026-2027	1	property_physical_info	current_usage_status	Đang ở, không cho thuê	Đang cho thuê nguyên căn	ui_form	pending	2026-04-03 02:24:00+00	\N
+f2680046-a378-4c76-ba1a-5a4fae2b1efb	REQ-2026-2040	1	loan_info	loan_term_years	15	20	ui_form	confirmed	2026-05-26 05:06:00+00	2026-05-26 05:07:00+00
+7e0dad1c-5169-4456-8a67-71e06718cf62	REQ-2026-2040	1	property_physical_info	current_usage_status	Đang ở, không cho thuê	Đang cho thuê nguyên căn	ui_form	confirmed	2026-05-26 05:58:00+00	2026-05-26 06:08:00+00
+\.
+
+
+--
+-- Data for Name: case_step_progress; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.case_step_progress (id, case_id, step_number, status, unlocked_at, confirmed_at) FROM stdin;
+9337de18-51bc-4366-8245-a28efaa9c715	REQ-2026-2000	1	confirmed	2026-07-14 09:00:00+00	2026-07-14 09:03:00+00
+720ee964-eb4c-44e9-ae20-7546758205ef	REQ-2026-2000	2	confirmed	2026-07-14 09:03:00+00	2026-07-14 09:23:00+00
+22cf1431-d9f9-481e-b76c-0e0300a9051a	REQ-2026-2000	3	unlocked	2026-07-14 09:23:00+00	\N
+2a969de3-5a84-4586-977d-2416667cd9f3	REQ-2026-2000	4	locked	\N	\N
+f86701d4-dc01-4548-b68d-35b23228556c	REQ-2026-2000	5	locked	\N	\N
+6f2c1367-283c-4425-9c5f-33abe3fd840b	REQ-2026-2001	1	confirmed	2026-03-28 14:00:00+00	2026-03-28 14:25:00+00
+4c0d0c74-9c3a-4806-a6c6-233af07f8a35	REQ-2026-2001	2	confirmed	2026-03-28 14:25:00+00	2026-03-28 14:34:00+00
+7c8c492f-1219-40f0-9dcf-a0da87129665	REQ-2026-2001	3	unlocked	2026-03-28 14:34:00+00	\N
+44dc0891-82e8-4f14-8137-b2cef74913b2	REQ-2026-2001	4	locked	\N	\N
+1fcd826a-4bb4-48df-a04e-04f403c0bf38	REQ-2026-2001	5	locked	\N	\N
+c8e04ed2-e457-45c3-8334-f08017f9b722	REQ-2026-2002	1	confirmed	2026-06-12 04:00:00+00	2026-06-12 04:03:00+00
+26ac1c4b-17ea-4ea8-a0d7-f1f77c0115b5	REQ-2026-2002	2	confirmed	2026-06-12 04:03:00+00	2026-06-12 04:27:00+00
+3767ea3d-10d3-40a1-a3c6-5a3396aa5822	REQ-2026-2002	3	confirmed	2026-06-12 04:27:00+00	2026-06-12 04:47:00+00
+f203e174-faad-47bc-848b-b282b605d119	REQ-2026-2002	4	confirmed	2026-06-12 04:47:00+00	2026-06-12 04:59:00+00
+7620cb0e-374c-4194-941c-59174db60bd9	REQ-2026-2002	5	confirmed	2026-06-12 04:59:00+00	2026-06-12 05:23:00+00
+de7890ba-c1bf-4663-a56d-5a89ad3aaccd	REQ-2026-2003	1	confirmed	2026-03-27 06:00:00+00	2026-03-27 06:17:00+00
+6868f42d-81e2-4a5e-847e-65945650e730	REQ-2026-2003	2	confirmed	2026-03-27 06:17:00+00	2026-03-27 06:21:00+00
+196d53c8-1e56-4d90-96a7-ac83098d9595	REQ-2026-2003	3	unlocked	2026-03-27 06:21:00+00	\N
+9c2181b7-198f-4273-887d-3c07cdaa7e29	REQ-2026-2003	4	locked	\N	\N
+fde7afac-7246-4035-804d-0958f25282a2	REQ-2026-2003	5	locked	\N	\N
+0bd6f403-667e-4ffa-89b1-552a9b19f310	REQ-2026-2004	1	confirmed	2026-05-17 06:00:00+00	2026-05-17 06:25:00+00
+f79f5395-10f7-459e-bc28-9795d18108ec	REQ-2026-2004	2	confirmed	2026-05-17 06:25:00+00	2026-05-17 06:32:00+00
+d74bf78d-03a5-4e6d-ada0-39e342f6d21e	REQ-2026-2004	3	confirmed	2026-05-17 06:32:00+00	2026-05-17 06:48:00+00
+2abbaa4b-0f7c-414a-a780-87a2d0a10fd0	REQ-2026-2004	4	unlocked	2026-05-17 06:48:00+00	\N
+73f61655-e491-496c-9685-0ae34d625cd9	REQ-2026-2004	5	locked	\N	\N
+d9b5128a-724d-4201-aa7f-feb1b4e90fa2	REQ-2026-2005	1	confirmed	2026-05-19 11:00:00+00	2026-05-19 11:19:00+00
+b9e59a2e-bc50-4c5d-8fca-a28b4d6c16b3	REQ-2026-2005	2	confirmed	2026-05-19 11:19:00+00	2026-05-19 11:39:00+00
+4843dcbd-94c8-41aa-8739-0f2539efb9cf	REQ-2026-2005	3	confirmed	2026-05-19 11:39:00+00	2026-05-19 11:57:00+00
+7f4c8cb0-7dc7-4803-9357-b37e842708db	REQ-2026-2005	4	unlocked	2026-05-19 11:57:00+00	\N
+c01cdc4f-7c8a-4deb-8662-1f946da4390a	REQ-2026-2005	5	locked	\N	\N
+1a26748d-3f10-42f1-a64d-f876accf4f56	REQ-2026-2006	1	confirmed	2026-06-30 02:00:00+00	2026-06-30 02:08:00+00
+9209f0a0-84ab-4a8a-8d1d-87fbbda0d8ca	REQ-2026-2006	2	confirmed	2026-06-30 02:08:00+00	2026-06-30 02:13:00+00
+13c649e4-9221-4712-a0ed-2ee8084660c9	REQ-2026-2006	3	confirmed	2026-06-30 02:13:00+00	2026-06-30 02:35:00+00
+6e6c9275-befb-4f7a-90d6-f1a19b608ef3	REQ-2026-2006	4	confirmed	2026-06-30 02:35:00+00	2026-06-30 02:50:00+00
+4823ce5c-d13b-4d8b-8f2e-c9ec2c3f451c	REQ-2026-2006	5	confirmed	2026-06-30 02:50:00+00	2026-06-30 03:12:00+00
+7d469bb7-9a44-40c6-bf98-4d74235248a1	REQ-2026-2007	1	unlocked	2026-06-07 09:00:00+00	\N
+32b522d7-83ab-402a-90a4-d46703f2e43a	REQ-2026-2007	2	locked	\N	\N
+3e69153e-1773-4440-982e-bfd098c3b2c1	REQ-2026-2007	3	locked	\N	\N
+62036661-a0b0-4113-a46b-516fd4472b1b	REQ-2026-2007	4	locked	\N	\N
+d44a20ee-8308-4924-931c-4f0e7c0db059	REQ-2026-2007	5	locked	\N	\N
+c9735f74-badf-475c-b551-670a850f54f3	REQ-2026-2008	1	confirmed	2026-05-08 11:00:00+00	2026-05-08 11:19:00+00
+4b57fcff-4ff1-43c5-8fcf-bb3499825ef1	REQ-2026-2008	2	confirmed	2026-05-08 11:19:00+00	2026-05-08 11:41:00+00
+feb30763-303a-43fa-8361-9da141d9ae74	REQ-2026-2008	3	confirmed	2026-05-08 11:41:00+00	2026-05-08 11:57:00+00
+d96dd022-e009-4d70-b652-2446a97e9a6b	REQ-2026-2008	4	confirmed	2026-05-08 11:57:00+00	2026-05-08 12:03:00+00
+2475cde1-c415-4af4-ab88-d3e97c9b9598	REQ-2026-2008	5	confirmed	2026-05-08 12:03:00+00	2026-05-08 12:28:00+00
+cbab6411-64ef-4df0-a6cf-915efcef77ee	REQ-2026-2009	1	confirmed	2026-04-08 01:00:00+00	2026-04-08 01:12:00+00
+0068abae-33e8-4487-9f3f-2751bf9d060f	REQ-2026-2009	2	confirmed	2026-04-08 01:12:00+00	2026-04-08 01:29:00+00
+023fc16d-41d8-44bf-90fb-209587dd638d	REQ-2026-2009	3	confirmed	2026-04-08 01:29:00+00	2026-04-08 01:46:00+00
+5b6ff8b1-027a-41fb-88c7-6a182ee053f5	REQ-2026-2009	4	unlocked	2026-04-08 01:46:00+00	\N
+7a89bca0-a36c-47a2-b2b3-87cd7408cc2f	REQ-2026-2009	5	locked	\N	\N
+dd905aba-b15e-4c04-8942-da3236a42bc9	REQ-2026-2010	1	confirmed	2026-04-25 23:00:00+00	2026-04-25 23:18:00+00
+9b01e4df-7522-4bbd-9005-e48498176cbd	REQ-2026-2010	2	unlocked	2026-04-25 23:18:00+00	\N
+64e7069b-191b-40cf-afad-a6d074750bb7	REQ-2026-2010	3	locked	\N	\N
+fb69de9b-a2ef-4dd8-92e8-413cddc8d992	REQ-2026-2010	4	locked	\N	\N
+55062ea9-6293-440d-9180-af562e97997d	REQ-2026-2010	5	locked	\N	\N
+279fc4b9-2652-4a3e-8d2f-861dc8cdf15a	REQ-2026-2011	1	confirmed	2026-06-26 11:00:00+00	2026-06-26 11:22:00+00
+23da18fe-f247-493b-be01-cc9e93e1e06a	REQ-2026-2011	2	confirmed	2026-06-26 11:22:00+00	2026-06-26 11:38:00+00
+029d4f89-e5dc-4631-b501-3e7fd8cb8378	REQ-2026-2011	3	confirmed	2026-06-26 11:38:00+00	2026-06-26 11:49:00+00
+cc18ecee-5294-4ea3-bf49-e2ae50afb84f	REQ-2026-2011	4	unlocked	2026-06-26 11:49:00+00	\N
+e50d0716-b619-4d00-896b-e5140f1f34bd	REQ-2026-2011	5	locked	\N	\N
+0659f9ca-4e1d-4ae3-abc6-9a40f814446e	REQ-2026-2012	1	confirmed	2026-05-17 19:00:00+00	2026-05-17 19:14:00+00
+d8b35f90-2587-46f8-aae2-e891ca5d9931	REQ-2026-2012	2	confirmed	2026-05-17 19:14:00+00	2026-05-17 19:29:00+00
+0e68b605-7556-4748-b1a8-3d34ee66f268	REQ-2026-2012	3	confirmed	2026-05-17 19:29:00+00	2026-05-17 19:36:00+00
+f11426af-e481-4cb7-8420-096aef0457ec	REQ-2026-2012	4	confirmed	2026-05-17 19:36:00+00	2026-05-17 19:50:00+00
+3a0b7599-8c63-4526-9cd6-ce0a63015185	REQ-2026-2012	5	confirmed	2026-05-17 19:50:00+00	2026-05-17 20:09:00+00
+4f44ba76-ab04-4738-8dbb-2d4122627777	REQ-2026-2013	1	confirmed	2026-06-21 03:00:00+00	2026-06-21 03:25:00+00
+b904f0cc-fd8e-4a7b-a22f-09e5c54132d6	REQ-2026-2013	2	confirmed	2026-06-21 03:25:00+00	2026-06-21 03:36:00+00
+447d9a88-13c4-4372-a9fb-38c40ea9b728	REQ-2026-2013	3	unlocked	2026-06-21 03:36:00+00	\N
+7500c385-0599-4982-8855-1d9ea1fa245a	REQ-2026-2013	4	locked	\N	\N
+e79d700d-1c78-44de-ac6f-6e62319d8552	REQ-2026-2013	5	locked	\N	\N
+54723746-f8a3-4d2f-871b-f20a51d6cbb4	REQ-2026-2014	1	confirmed	2026-05-05 16:00:00+00	2026-05-05 16:17:00+00
+d1f5aeec-e457-4ec6-a07a-567bf70f8f10	REQ-2026-2014	2	confirmed	2026-05-05 16:17:00+00	2026-05-05 16:23:00+00
+e45ca306-90bd-4cbf-a897-754aa52ab66f	REQ-2026-2014	3	confirmed	2026-05-05 16:23:00+00	2026-05-05 16:47:00+00
+3aac2a77-36e9-440d-b63e-f6b33715df14	REQ-2026-2014	4	unlocked	2026-05-05 16:47:00+00	\N
+73f392a0-53c6-4de8-8d57-5aa771671f45	REQ-2026-2014	5	locked	\N	\N
+453322ea-f691-4192-a8fb-e7125b037705	REQ-2026-2015	1	confirmed	2026-05-08 23:00:00+00	2026-05-08 23:23:00+00
+63785300-e883-4ebc-9b33-bad92cbf9307	REQ-2026-2015	2	confirmed	2026-05-08 23:23:00+00	2026-05-08 23:37:00+00
+8dcff99e-3425-4145-9dfc-15275243dc97	REQ-2026-2015	3	confirmed	2026-05-08 23:37:00+00	2026-05-08 23:49:00+00
+09c7ab6e-392b-4289-9118-6595823855fd	REQ-2026-2015	4	unlocked	2026-05-08 23:49:00+00	\N
+d1a8059d-6384-4ce1-aff2-e4bc7df3600e	REQ-2026-2015	5	locked	\N	\N
+dadbf9dd-658a-427c-8edd-0949de5c8d67	REQ-2026-2016	1	confirmed	2026-07-18 00:00:00+00	2026-07-18 00:08:00+00
+b58391d5-079c-4267-989b-6aff1f6ff30a	REQ-2026-2016	2	confirmed	2026-07-18 00:08:00+00	2026-07-18 00:24:00+00
+ffc35321-1252-4ed2-87c2-2ee2bdbbdba8	REQ-2026-2016	3	confirmed	2026-07-18 00:24:00+00	2026-07-18 00:41:00+00
+fe79d229-7dd1-4776-92af-903b9b19dd0d	REQ-2026-2016	4	confirmed	2026-07-18 00:41:00+00	2026-07-18 01:01:00+00
+70bf5772-0c86-4051-bfa8-96a305724991	REQ-2026-2016	5	confirmed	2026-07-18 01:01:00+00	2026-07-18 01:21:00+00
+fcb7d8f4-b07e-4926-8506-309155852c20	REQ-2026-2017	1	confirmed	2026-03-27 03:00:00+00	2026-03-27 03:25:00+00
+379c2b0e-5e3f-462d-a0fc-76af5bf9a3e2	REQ-2026-2017	2	confirmed	2026-03-27 03:25:00+00	2026-03-27 03:34:00+00
+8a362be0-e0ad-4570-9071-5b5683c92e85	REQ-2026-2017	3	confirmed	2026-03-27 03:34:00+00	2026-03-27 03:43:00+00
+5bb1c4fe-a8bf-49cb-a1c5-e3a137f2aa8a	REQ-2026-2017	4	unlocked	2026-03-27 03:43:00+00	\N
+b57f653c-161a-49b7-9915-f1decb762da1	REQ-2026-2017	5	locked	\N	\N
+a5959c8c-1e39-4b6a-a948-8006b58433d2	REQ-2026-2018	1	confirmed	2026-03-20 22:00:00+00	2026-03-20 22:17:00+00
+adf9a608-1883-4208-bb90-a841d78954dc	REQ-2026-2018	2	confirmed	2026-03-20 22:17:00+00	2026-03-20 22:40:00+00
+43b0e21d-862b-4a3e-b2aa-5e1e99812d78	REQ-2026-2018	3	confirmed	2026-03-20 22:40:00+00	2026-03-20 23:04:00+00
+5f69b785-3833-4ffe-8bfe-42a24211e5ff	REQ-2026-2018	4	confirmed	2026-03-20 23:04:00+00	2026-03-20 23:29:00+00
+aac24bf4-1542-433f-a687-7dde4242c5b4	REQ-2026-2018	5	confirmed	2026-03-20 23:29:00+00	2026-03-20 23:43:00+00
+92f8478f-3635-4e96-97ae-c8f4f9664d98	REQ-2026-2019	1	confirmed	2026-06-28 16:00:00+00	2026-06-28 16:12:00+00
+0426adf3-28ef-487f-9fdf-930c425a7d03	REQ-2026-2019	2	confirmed	2026-06-28 16:12:00+00	2026-06-28 16:37:00+00
+062a3519-29c5-4b9a-8f5f-c87d4cdc368e	REQ-2026-2019	3	confirmed	2026-06-28 16:37:00+00	2026-06-28 16:53:00+00
+e8bba34d-49f3-4d87-b7f6-da271654eaeb	REQ-2026-2019	4	confirmed	2026-06-28 16:53:00+00	2026-06-28 17:03:00+00
+0ab1b1ac-a12c-47fa-9ce2-796653ddffd7	REQ-2026-2019	5	confirmed	2026-06-28 17:03:00+00	2026-06-28 17:07:00+00
+85801c1d-8ec5-4221-955e-85b0b3a662b1	REQ-2026-2020	1	confirmed	2026-07-13 03:00:00+00	2026-07-13 03:25:00+00
+82626ab2-94be-4c62-9635-3afd0d6d8d4d	REQ-2026-2020	2	confirmed	2026-07-13 03:25:00+00	2026-07-13 03:35:00+00
+7d988a57-bfdf-4736-9d11-55a5f7e1db08	REQ-2026-2020	3	confirmed	2026-07-13 03:35:00+00	2026-07-13 03:49:00+00
+642afaa2-63f1-4865-8617-ae035f653a1c	REQ-2026-2020	4	unlocked	2026-07-13 03:49:00+00	\N
+82112fd6-0981-4853-a632-6902d7c7fee8	REQ-2026-2020	5	locked	\N	\N
+eeb23bb1-d10a-484a-ac75-fadadf807a48	REQ-2026-2021	1	confirmed	2026-06-05 10:00:00+00	2026-06-05 10:08:00+00
+7ca8fe96-5eb4-446f-bcfa-d452bc767039	REQ-2026-2021	2	confirmed	2026-06-05 10:08:00+00	2026-06-05 10:31:00+00
+2c99cc36-7e94-4f50-a214-d62cac4f47ca	REQ-2026-2021	3	confirmed	2026-06-05 10:31:00+00	2026-06-05 10:36:00+00
+b6aae34f-fd4a-4671-9a51-0517af037c9d	REQ-2026-2021	4	unlocked	2026-06-05 10:36:00+00	\N
+b12994b8-4de2-4a0e-b75f-fa765a5ca774	REQ-2026-2021	5	locked	\N	\N
+07b7317d-349b-4841-9173-a129e0c2af7c	REQ-2026-2022	1	confirmed	2026-05-07 06:00:00+00	2026-05-07 06:11:00+00
+d00c1369-b169-44ab-b4c8-b1c5103bf7c8	REQ-2026-2022	2	confirmed	2026-05-07 06:11:00+00	2026-05-07 06:26:00+00
+fe8bbb51-f3c6-4847-be19-82b20ed1fab6	REQ-2026-2022	3	confirmed	2026-05-07 06:26:00+00	2026-05-07 06:49:00+00
+4e57e9f3-455d-44db-bef8-dcc9e584e2ca	REQ-2026-2022	4	confirmed	2026-05-07 06:49:00+00	2026-05-07 07:07:00+00
+adafc437-f4de-49b6-89c6-5fd24350fca4	REQ-2026-2022	5	unlocked	2026-05-07 07:07:00+00	\N
+418e0173-aae1-4563-90ff-4dc827a337cc	REQ-2026-2023	1	confirmed	2026-05-08 04:00:00+00	2026-05-08 04:14:00+00
+9e86739f-afbe-44cb-8222-deb995cb4b1a	REQ-2026-2023	2	confirmed	2026-05-08 04:14:00+00	2026-05-08 04:24:00+00
+e6fe9446-95a9-4245-9ad6-bfc5ad457f3e	REQ-2026-2023	3	confirmed	2026-05-08 04:24:00+00	2026-05-08 04:36:00+00
+cf7e227d-727a-4f93-9ce1-03899b50a4cc	REQ-2026-2023	4	confirmed	2026-05-08 04:36:00+00	2026-05-08 04:52:00+00
+aba20b08-9258-4b39-9d6f-ff68a1a905ba	REQ-2026-2023	5	confirmed	2026-05-08 04:52:00+00	2026-05-08 05:05:00+00
+732b8bb2-5d55-4f46-965e-4ad489902cc3	REQ-2026-2024	1	unlocked	2026-07-04 05:00:00+00	\N
+4a0d995d-b417-4421-9905-6b9bb0752873	REQ-2026-2024	2	locked	\N	\N
+6451a53b-1931-410c-930f-7b49395a67e7	REQ-2026-2024	3	locked	\N	\N
+abd6349f-b4e6-4150-8930-b1f08cd957bd	REQ-2026-2024	4	locked	\N	\N
+f2b6f6fb-75d9-49be-b808-c37ed055895c	REQ-2026-2024	5	locked	\N	\N
+c62eaf1a-ef17-43c5-8f41-49318718dfd4	REQ-2026-2025	1	confirmed	2026-04-24 10:00:00+00	2026-04-24 10:07:00+00
+cb9b35b1-808c-484e-85f7-50b1d684e858	REQ-2026-2025	2	confirmed	2026-04-24 10:07:00+00	2026-04-24 10:27:00+00
+14e78ef7-38a6-4fe0-be5e-9b76aa5e939b	REQ-2026-2025	3	confirmed	2026-04-24 10:27:00+00	2026-04-24 10:49:00+00
+99e430be-1bfb-44c4-bd50-e4a78c2881f2	REQ-2026-2025	4	unlocked	2026-04-24 10:49:00+00	\N
+f4b4bf31-4166-408c-8c22-c391bce0de81	REQ-2026-2025	5	locked	\N	\N
+80b3c2c1-33a2-4244-a782-53194a062c7e	REQ-2026-2026	1	unlocked	2026-07-05 09:00:00+00	\N
+fc63c93b-674d-45a2-b81b-f8284456a221	REQ-2026-2026	2	locked	\N	\N
+df4afe63-0eaf-4ee8-b7e1-dd98872f207f	REQ-2026-2026	3	locked	\N	\N
+26680504-9a2c-4a9a-a34c-53b17aa40e1d	REQ-2026-2026	4	locked	\N	\N
+6fc85196-5a7e-439b-9034-350de2b68cd9	REQ-2026-2026	5	locked	\N	\N
+8b13ba67-b1fb-4fbc-8f96-9eba3937d9db	REQ-2026-2027	1	confirmed	2026-04-03 02:00:00+00	2026-04-03 02:20:00+00
+4d193c83-7acf-4f04-9da6-86b542447210	REQ-2026-2027	2	confirmed	2026-04-03 02:20:00+00	2026-04-03 02:42:00+00
+5efbaa6c-0db2-4d69-b9ca-9c177170eb4a	REQ-2026-2027	3	confirmed	2026-04-03 02:42:00+00	2026-04-03 02:51:00+00
+c4b1e669-767d-4734-a17a-47d07dbeba12	REQ-2026-2027	4	confirmed	2026-04-03 02:51:00+00	2026-04-03 03:00:00+00
+0009526f-5174-43a0-bfc7-574aefae52c9	REQ-2026-2027	5	confirmed	2026-04-03 03:00:00+00	2026-04-03 03:12:00+00
+b26082be-e08c-4615-8e6b-ee66d69f974c	REQ-2026-2028	1	confirmed	2026-06-24 12:00:00+00	2026-06-24 12:17:00+00
+04bfd300-a073-4613-8265-4df3ce82f4f8	REQ-2026-2028	2	confirmed	2026-06-24 12:17:00+00	2026-06-24 12:40:00+00
+31b1590f-f7a4-478d-ad92-939337cbf640	REQ-2026-2028	3	confirmed	2026-06-24 12:40:00+00	2026-06-24 13:00:00+00
+ac7c159f-37c6-402c-abc9-05b3c4eddbc3	REQ-2026-2028	4	confirmed	2026-06-24 13:00:00+00	2026-06-24 13:05:00+00
+dd2e0a22-f562-4687-9ae8-1c27ff8213e3	REQ-2026-2028	5	unlocked	2026-06-24 13:05:00+00	\N
+f75cf841-9d7e-4a71-a878-897341ace91c	REQ-2026-2029	1	confirmed	2026-05-18 04:00:00+00	2026-05-18 04:21:00+00
+d61cad5b-6d8e-43c6-8139-2ee5a90c534b	REQ-2026-2029	2	confirmed	2026-05-18 04:21:00+00	2026-05-18 04:29:00+00
+0b507aed-0f14-4c82-877a-c935dcf44eec	REQ-2026-2029	3	confirmed	2026-05-18 04:29:00+00	2026-05-18 04:51:00+00
+651a9412-8245-4745-b345-ac177cd60f61	REQ-2026-2029	4	unlocked	2026-05-18 04:51:00+00	\N
+e00a5b97-435d-41ff-9c23-aa8da0d7392c	REQ-2026-2029	5	locked	\N	\N
+85427d56-6be6-4dad-a88d-d89432fab986	REQ-2026-2030	1	confirmed	2026-05-14 01:00:00+00	2026-05-14 01:15:00+00
+5f618760-800c-4467-9178-d157de517f4b	REQ-2026-2030	2	confirmed	2026-05-14 01:15:00+00	2026-05-14 01:36:00+00
+53255150-ac13-44e7-9f6e-1c9e2db36f50	REQ-2026-2030	3	confirmed	2026-05-14 01:36:00+00	2026-05-14 01:54:00+00
+a225f0df-6360-4e8b-8b84-7acce27efce8	REQ-2026-2030	4	confirmed	2026-05-14 01:54:00+00	2026-05-14 02:04:00+00
+8b043563-a158-4488-a39d-72754caa57cb	REQ-2026-2030	5	confirmed	2026-05-14 02:04:00+00	2026-05-14 02:17:00+00
+03e01eee-2c46-4786-ad62-1e7018c9c1d6	REQ-2026-2031	1	unlocked	2026-06-15 10:00:00+00	\N
+f2cb86ec-8cd8-40b0-ae4a-8ece7707fd71	REQ-2026-2031	2	locked	\N	\N
+0b6d6f1a-d5fe-4dd0-b470-522b62110746	REQ-2026-2031	3	locked	\N	\N
+bb32640d-23ab-4467-a5d7-907bc29631e8	REQ-2026-2031	4	locked	\N	\N
+59ec7bbd-7b6a-4c5f-87d2-6e5469b5b2c3	REQ-2026-2031	5	locked	\N	\N
+840f66fe-cd5e-4b46-9dbf-1e71e1d530b9	REQ-2026-2032	1	confirmed	2026-03-21 01:00:00+00	2026-03-21 01:08:00+00
+e81ef2c2-6487-47f0-9497-2af47ee9708f	REQ-2026-2032	2	unlocked	2026-03-21 01:08:00+00	\N
+416408ef-0684-4b12-bb22-3f7f9a9d8dc3	REQ-2026-2032	3	locked	\N	\N
+8ece04a1-810a-4403-ae9a-5ddd83bc364c	REQ-2026-2032	4	locked	\N	\N
+df2689c1-4b46-4215-aeae-b1c22e7b32fe	REQ-2026-2032	5	locked	\N	\N
+4a2066bd-ba96-40f3-b16c-bf3b08fbdb04	REQ-2026-2033	1	confirmed	2026-05-19 11:00:00+00	2026-05-19 11:04:00+00
+eeb0e7d7-019b-451a-874b-011eb93e4fd9	REQ-2026-2033	2	confirmed	2026-05-19 11:04:00+00	2026-05-19 11:15:00+00
+ff8da4e5-4d41-4e1d-8834-ef4614594662	REQ-2026-2033	3	confirmed	2026-05-19 11:15:00+00	2026-05-19 11:30:00+00
+24229f0e-958b-4dd4-8506-4ca05098bac8	REQ-2026-2033	4	unlocked	2026-05-19 11:30:00+00	\N
+e865a333-5fb1-4918-adc9-42e3cc5bd365	REQ-2026-2033	5	locked	\N	\N
+00f245b9-64a1-4084-8ae5-188264fcc0aa	REQ-2026-2034	1	confirmed	2026-05-07 10:00:00+00	2026-05-07 10:25:00+00
+7a351afc-f391-4528-bcea-d3fd90729008	REQ-2026-2034	2	confirmed	2026-05-07 10:25:00+00	2026-05-07 10:29:00+00
+72737d14-a15b-4e23-be35-61641f11b765	REQ-2026-2034	3	confirmed	2026-05-07 10:29:00+00	2026-05-07 10:51:00+00
+d42cce6e-e6db-4606-b0a3-4286f032265f	REQ-2026-2034	4	unlocked	2026-05-07 10:51:00+00	\N
+eb2a93cc-b5ec-4557-8d33-ae4e80ae41d7	REQ-2026-2034	5	locked	\N	\N
+3db85a52-57ad-4242-9d15-6a1d65cdfd1c	REQ-2026-2035	1	confirmed	2026-04-12 10:00:00+00	2026-04-12 10:10:00+00
+d9a818e1-3364-424e-874b-029b2f80bddd	REQ-2026-2035	2	unlocked	2026-04-12 10:10:00+00	\N
+8af156ef-9c71-470a-820a-3fba6f73eb7b	REQ-2026-2035	3	locked	\N	\N
+7d49b911-c91d-438e-8c85-ee0f5a26dab5	REQ-2026-2035	4	locked	\N	\N
+0207fb2b-2d3a-4fdd-b42b-d183cd286724	REQ-2026-2035	5	locked	\N	\N
+60b4aa51-a344-414a-b862-7d24518234d6	REQ-2026-2036	1	confirmed	2026-06-29 13:00:00+00	2026-06-29 13:20:00+00
+b15d54e9-1240-4cf2-a154-acee5036d9eb	REQ-2026-2036	2	confirmed	2026-06-29 13:20:00+00	2026-06-29 13:26:00+00
+137be0a2-b192-4acb-a6a2-b219fa73313f	REQ-2026-2036	3	confirmed	2026-06-29 13:26:00+00	2026-06-29 13:34:00+00
+f60f16ea-f63a-4650-aa5e-66074fd3a10c	REQ-2026-2036	4	confirmed	2026-06-29 13:34:00+00	2026-06-29 13:47:00+00
+a3009c49-32f1-48af-85e4-01f2576c6a38	REQ-2026-2036	5	confirmed	2026-06-29 13:47:00+00	2026-06-29 13:54:00+00
+cc5d6a55-26fb-401d-9fd2-4092eecba6af	REQ-2026-2037	1	confirmed	2026-04-23 15:00:00+00	2026-04-23 15:04:00+00
+12bbb7b0-0311-48be-bd33-fd6e2e0f79d2	REQ-2026-2037	2	confirmed	2026-04-23 15:04:00+00	2026-04-23 15:10:00+00
+6daf79ef-ca05-4ecd-9915-b7420de6da1e	REQ-2026-2037	3	unlocked	2026-04-23 15:10:00+00	\N
+0022c74e-4e95-4410-b8d4-3f93a7e87d51	REQ-2026-2037	4	locked	\N	\N
+250e17af-f556-483e-a412-c8dcbb10881d	REQ-2026-2037	5	locked	\N	\N
+11566c18-8bb2-424f-bf8e-6fdb2d223575	REQ-2026-2038	1	unlocked	2026-06-26 06:00:00+00	\N
+a6d0cf91-8275-48f1-9c9e-49ebffa9007a	REQ-2026-2038	2	locked	\N	\N
+fda51af5-1620-4ed4-8be2-586de5e9dd29	REQ-2026-2038	3	locked	\N	\N
+c08d2618-bf42-4eef-9412-2ac1ea567b7f	REQ-2026-2038	4	locked	\N	\N
+36d3d663-54c2-4ece-997a-8910586b77ba	REQ-2026-2038	5	locked	\N	\N
+97cdfe0b-a2f3-4c06-9d14-547d73053b79	REQ-2026-2039	1	confirmed	2026-04-14 00:00:00+00	2026-04-14 00:13:00+00
+1e040fc8-ef70-44cb-8c6d-e41be057525e	REQ-2026-2039	2	confirmed	2026-04-14 00:13:00+00	2026-04-14 00:22:00+00
+95e7d29f-9221-4207-9707-9c4f511a4587	REQ-2026-2039	3	confirmed	2026-04-14 00:22:00+00	2026-04-14 00:31:00+00
+f6d50867-1c11-4afb-814a-ad13fcb557ad	REQ-2026-2039	4	confirmed	2026-04-14 00:31:00+00	2026-04-14 00:43:00+00
+66b0ae2c-a569-433c-b9ff-266503f6eb72	REQ-2026-2039	5	unlocked	2026-04-14 00:43:00+00	\N
+45994c2e-5f0b-443f-af21-992732e2fcde	REQ-2026-2040	1	confirmed	2026-05-26 05:00:00+00	2026-05-26 05:05:00+00
+29a4c617-3042-4268-be66-63051ec2ca1d	REQ-2026-2040	2	confirmed	2026-05-26 05:05:00+00	2026-05-26 05:28:00+00
+3a75d742-f852-4543-b5e0-8e344d2d8f3c	REQ-2026-2040	3	confirmed	2026-05-26 05:28:00+00	2026-05-26 05:31:00+00
+9de4989c-4b47-44ff-be8e-6cf5e0886bc3	REQ-2026-2040	4	confirmed	2026-05-26 05:31:00+00	2026-05-26 05:38:00+00
+0197306f-61a3-4131-85b9-d24b30a60b9b	REQ-2026-2040	5	confirmed	2026-05-26 05:38:00+00	2026-05-26 05:56:00+00
+fa4be2ad-4738-45bc-8a02-53c4bb2b6dad	REQ-2026-2041	1	confirmed	2026-04-27 19:00:00+00	2026-04-27 19:25:00+00
+98ce2ead-98c4-446e-9f53-90a17fc7e153	REQ-2026-2041	2	confirmed	2026-04-27 19:25:00+00	2026-04-27 19:49:00+00
+f529f760-ab3d-4d9a-ad84-96578fa28b9f	REQ-2026-2041	3	unlocked	2026-04-27 19:49:00+00	\N
+4aafad04-1de8-4f28-a608-f6ae645019f0	REQ-2026-2041	4	locked	\N	\N
+bfa55eba-6081-42cf-b892-367278c79b2e	REQ-2026-2041	5	locked	\N	\N
+eca19477-8d6d-464a-98b4-cb7ebe7f6fd1	REQ-2026-2042	1	confirmed	2026-06-13 05:00:00+00	2026-06-13 05:20:00+00
+91a8cbe0-28ea-4fdf-979f-d503ad39ec61	REQ-2026-2042	2	unlocked	2026-06-13 05:20:00+00	\N
+7c8615b0-466c-4307-94a7-e259974b08db	REQ-2026-2042	3	locked	\N	\N
+7495f519-2bcc-44f2-b2cf-a29e7bb69252	REQ-2026-2042	4	locked	\N	\N
+42365c9e-543a-4982-bb63-64db64bf36ef	REQ-2026-2042	5	locked	\N	\N
+44a2c410-665a-45f0-a640-bb5fbc03423d	REQ-2026-2043	1	confirmed	2026-06-03 01:00:00+00	2026-06-03 01:04:00+00
+cda2551e-a53c-4efb-83a1-d001e4152854	REQ-2026-2043	2	unlocked	2026-06-03 01:04:00+00	\N
+d86e4df8-24d8-406f-9a9d-43a95d0817e7	REQ-2026-2043	3	locked	\N	\N
+fa9151a7-2c6f-4aff-a69f-4ebcf26d276c	REQ-2026-2043	4	locked	\N	\N
+ae24bda2-b584-481e-ae86-0ba47caf9395	REQ-2026-2043	5	locked	\N	\N
+09a120e9-d816-45d0-a0be-26e92b038084	REQ-2026-2044	1	confirmed	2026-06-06 02:00:00+00	2026-06-06 02:25:00+00
+c260e33b-bd88-438d-ab26-73594a490e8c	REQ-2026-2044	2	confirmed	2026-06-06 02:25:00+00	2026-06-06 02:34:00+00
+c03b502a-1ad3-4f01-9d25-9fe61f40a3ae	REQ-2026-2044	3	confirmed	2026-06-06 02:34:00+00	2026-06-06 02:44:00+00
+c6a5f088-1976-4d79-8fe4-3f49cfe05862	REQ-2026-2044	4	confirmed	2026-06-06 02:44:00+00	2026-06-06 02:57:00+00
+4d1c8de0-1c67-46a6-a5ad-650c5bfa69ba	REQ-2026-2044	5	confirmed	2026-06-06 02:57:00+00	2026-06-06 03:11:00+00
+26b36589-1caa-440f-86fc-2435e09d2fee	REQ-2026-2045	1	confirmed	2026-03-25 20:00:00+00	2026-03-25 20:12:00+00
+99202482-d75a-41b2-980a-cbfd8d577b0d	REQ-2026-2045	2	confirmed	2026-03-25 20:12:00+00	2026-03-25 20:30:00+00
+e14c8115-0eb2-4e02-8bb6-481448e18e44	REQ-2026-2045	3	confirmed	2026-03-25 20:30:00+00	2026-03-25 20:49:00+00
+d966afb3-b58e-4158-9fec-f07582ad684f	REQ-2026-2045	4	confirmed	2026-03-25 20:49:00+00	2026-03-25 21:02:00+00
+27cd8474-c18a-4f5b-9974-01fdbfa9d7bb	REQ-2026-2045	5	confirmed	2026-03-25 21:02:00+00	2026-03-25 21:07:00+00
+443843e3-f992-4b2b-81b6-3c14766824ac	REQ-2026-2046	1	unlocked	2026-05-11 09:00:00+00	\N
+fdc6c166-5fae-4a45-829c-2bad767aff73	REQ-2026-2046	2	locked	\N	\N
+e4d4d77d-cd23-4a42-b884-2a46a86ccf50	REQ-2026-2046	3	locked	\N	\N
+61bf3c68-9525-4a70-b72b-934ebb0269dc	REQ-2026-2046	4	locked	\N	\N
+d804e7bb-2a4f-4ca1-b6f5-b9fe334a069c	REQ-2026-2046	5	locked	\N	\N
+f7f59f79-f93c-4159-a9e2-fef5b8b7580e	REQ-2026-2047	1	confirmed	2026-04-01 19:00:00+00	2026-04-01 19:09:00+00
+0ffbe182-0330-4dff-860a-e050b7c7b25f	REQ-2026-2047	2	confirmed	2026-04-01 19:09:00+00	2026-04-01 19:14:00+00
+bf8e1a51-1c59-4228-858a-207948b44515	REQ-2026-2047	3	confirmed	2026-04-01 19:14:00+00	2026-04-01 19:32:00+00
+3f109eff-b07d-4f7f-aa19-4c4defc8bfc5	REQ-2026-2047	4	unlocked	2026-04-01 19:32:00+00	\N
+c4bf72e2-028c-4824-9bff-2754fc5e4354	REQ-2026-2047	5	locked	\N	\N
+f1ffb941-2d2b-4c03-8a5c-eae884c8d41e	REQ-2026-2048	1	confirmed	2026-06-04 18:00:00+00	2026-06-04 18:12:00+00
+4e6d841a-66d3-4e72-9e92-dcc973b671bb	REQ-2026-2048	2	confirmed	2026-06-04 18:12:00+00	2026-06-04 18:26:00+00
+e66ab4ff-eb3c-4b90-a646-5d79dc723fc8	REQ-2026-2048	3	confirmed	2026-06-04 18:26:00+00	2026-06-04 18:42:00+00
+8baf6d0d-e6f8-44e3-850f-1d30e92cb52b	REQ-2026-2048	4	confirmed	2026-06-04 18:42:00+00	2026-06-04 18:51:00+00
+37e27fc7-ccf8-4cfa-9919-eeb17cb9d91a	REQ-2026-2048	5	confirmed	2026-06-04 18:51:00+00	2026-06-04 19:09:00+00
+55295111-925b-4e1a-a80c-95246081e832	REQ-2026-2049	1	confirmed	2026-03-30 04:00:00+00	2026-03-30 04:04:00+00
+6151af2b-8fec-4b6d-8bbb-4be878a00fdd	REQ-2026-2049	2	confirmed	2026-03-30 04:04:00+00	2026-03-30 04:15:00+00
+e957943c-67c7-422f-a1b4-ff2c17e102e2	REQ-2026-2049	3	confirmed	2026-03-30 04:15:00+00	2026-03-30 04:20:00+00
+a30cfe9d-77f9-4082-ba24-ad11b98a09da	REQ-2026-2049	4	confirmed	2026-03-30 04:20:00+00	2026-03-30 04:38:00+00
+78c472d8-ca6a-4268-8d9c-22b07fde1811	REQ-2026-2049	5	unlocked	2026-03-30 04:38:00+00	\N
+6f2aa1fc-3132-4c06-98cb-b54a34ea6f83	REQ-2026-2050	1	confirmed	2026-07-12 19:00:00+00	2026-07-12 19:06:00+00
+ad43544e-92cf-4426-9c37-0ff97523b5e1	REQ-2026-2050	2	confirmed	2026-07-12 19:06:00+00	2026-07-12 19:13:00+00
+f5f62bc3-c8c9-442e-acf6-4f14a4689a07	REQ-2026-2050	3	confirmed	2026-07-12 19:13:00+00	2026-07-12 19:19:00+00
+aa935b9b-2f2c-4bd4-8fd3-5b1ead412268	REQ-2026-2050	4	confirmed	2026-07-12 19:19:00+00	2026-07-12 19:33:00+00
+c604280c-277f-441b-8cae-7672806aeae1	REQ-2026-2050	5	confirmed	2026-07-12 19:33:00+00	2026-07-12 19:38:00+00
+4d8c3f9b-61c0-4068-8ec6-5045e8738374	REQ-2026-2051	1	confirmed	2026-05-23 13:00:00+00	2026-05-23 13:07:00+00
+d820ae33-b2b5-47bd-8c85-05d38b97f990	REQ-2026-2051	2	confirmed	2026-05-23 13:07:00+00	2026-05-23 13:25:00+00
+1aca95c8-1d11-41e9-ada5-68544fec35c5	REQ-2026-2051	3	confirmed	2026-05-23 13:25:00+00	2026-05-23 13:41:00+00
+3610d5bf-f31f-4cc2-a440-98ba735fd1b3	REQ-2026-2051	4	confirmed	2026-05-23 13:41:00+00	2026-05-23 13:44:00+00
+e69e898c-ad54-4e7b-ba6d-dcc348c299c7	REQ-2026-2051	5	confirmed	2026-05-23 13:44:00+00	2026-05-23 13:50:00+00
+bd952130-6e50-4579-b73c-69efdcb70ad1	REQ-2026-2052	1	confirmed	2026-07-10 21:00:00+00	2026-07-10 21:04:00+00
+4655d3b5-c1a8-42de-8258-a1c80b521f6b	REQ-2026-2052	2	confirmed	2026-07-10 21:04:00+00	2026-07-10 21:27:00+00
+a46a22df-1cea-4947-8fd0-a8e68f8a0013	REQ-2026-2052	3	confirmed	2026-07-10 21:27:00+00	2026-07-10 21:52:00+00
+6c47036a-311e-46f9-9de1-45c8bcc36473	REQ-2026-2052	4	confirmed	2026-07-10 21:52:00+00	2026-07-10 22:16:00+00
+fd990288-cd07-4b17-b8de-5e7ae137268f	REQ-2026-2052	5	confirmed	2026-07-10 22:16:00+00	2026-07-10 22:35:00+00
+02db1b89-a1e4-4e85-8000-94ed77d4b395	REQ-2026-2053	1	confirmed	2026-04-15 23:00:00+00	2026-04-15 23:10:00+00
+0e96d467-4e3b-4000-82ce-61a3b954a0eb	REQ-2026-2053	2	confirmed	2026-04-15 23:10:00+00	2026-04-15 23:25:00+00
+bf4f8345-f041-4be4-81de-e6f3bba64a13	REQ-2026-2053	3	confirmed	2026-04-15 23:25:00+00	2026-04-15 23:38:00+00
+aad4f2fb-5bed-4c25-891a-ec836a9b160b	REQ-2026-2053	4	confirmed	2026-04-15 23:38:00+00	2026-04-15 23:58:00+00
+85437ef0-674f-4e6d-bbbe-e247984942f0	REQ-2026-2053	5	confirmed	2026-04-15 23:58:00+00	2026-04-16 00:02:00+00
+195eabbc-feb3-4ab2-9433-cc30d5190c8e	REQ-2026-2054	1	confirmed	2026-04-20 09:00:00+00	2026-04-20 09:17:00+00
+6c6e61fc-8de3-4fa3-9778-686f9445bf3d	REQ-2026-2054	2	confirmed	2026-04-20 09:17:00+00	2026-04-20 09:20:00+00
+4c0ea61f-c93d-4e96-8a69-3f4ddc8274b5	REQ-2026-2054	3	confirmed	2026-04-20 09:20:00+00	2026-04-20 09:30:00+00
+34cad5b0-0543-44f1-983e-d3e3b3946391	REQ-2026-2054	4	unlocked	2026-04-20 09:30:00+00	\N
+fdaf332f-e6c9-4842-b186-137bfaa23978	REQ-2026-2054	5	locked	\N	\N
+06689089-1d64-4b5e-b15e-fbcafe875e1f	REQ-2026-2055	1	confirmed	2026-05-14 16:00:00+00	2026-05-14 16:09:00+00
+d3919fc8-253c-41d9-b1f0-f1c9091140a8	REQ-2026-2055	2	confirmed	2026-05-14 16:09:00+00	2026-05-14 16:32:00+00
+3c72b86e-f2dc-4613-a11a-3f5ab62abb97	REQ-2026-2055	3	confirmed	2026-05-14 16:32:00+00	2026-05-14 16:41:00+00
+8acf477c-3043-40f3-9df3-7d7aece75829	REQ-2026-2055	4	unlocked	2026-05-14 16:41:00+00	\N
+c3ff6b42-dad0-4b7c-859f-ee168231a6de	REQ-2026-2055	5	locked	\N	\N
+4503fbad-b5be-4e58-a59a-558cb9b3cd4d	REQ-2026-2056	1	confirmed	2026-06-22 12:00:00+00	2026-06-22 12:09:00+00
+380a4b6b-5f99-4f7d-9cc1-474eb2e2045d	REQ-2026-2056	2	confirmed	2026-06-22 12:09:00+00	2026-06-22 12:34:00+00
+38004ca9-ae46-4173-849d-0c124b222686	REQ-2026-2056	3	confirmed	2026-06-22 12:34:00+00	2026-06-22 12:56:00+00
+1cdbe5ef-539b-4089-87ca-4af27456e848	REQ-2026-2056	4	unlocked	2026-06-22 12:56:00+00	\N
+65beca08-4118-455c-9a7f-56052ac42a3a	REQ-2026-2056	5	locked	\N	\N
+517bd94f-be9e-4826-95f6-428a2c31650f	REQ-2026-2057	1	confirmed	2026-06-01 07:00:00+00	2026-06-01 07:17:00+00
+b28ae2fe-286d-406f-acba-350a960971de	REQ-2026-2057	2	confirmed	2026-06-01 07:17:00+00	2026-06-01 07:25:00+00
+4579c9e9-aa55-4125-a1ee-8af562d01a9c	REQ-2026-2057	3	confirmed	2026-06-01 07:25:00+00	2026-06-01 07:36:00+00
+cb152d37-a45a-4261-b2bf-8eebd1ab3402	REQ-2026-2057	4	confirmed	2026-06-01 07:36:00+00	2026-06-01 07:45:00+00
+f2b19b75-df13-45ba-abfd-41bfa5dd1526	REQ-2026-2057	5	confirmed	2026-06-01 07:45:00+00	2026-06-01 08:04:00+00
+3167ee8f-1d97-4208-a4c5-f2f4d664bd60	REQ-2026-2058	1	confirmed	2026-06-24 08:00:00+00	2026-06-24 08:07:00+00
+3be0b298-ca61-4c16-a223-89e3efcae308	REQ-2026-2058	2	unlocked	2026-06-24 08:07:00+00	\N
+03174209-1885-4ff9-a74b-83eaa8cda08b	REQ-2026-2058	3	locked	\N	\N
+608faccb-118d-4b38-9fad-8ace13642e3a	REQ-2026-2058	4	locked	\N	\N
+22b1cd30-b430-46f5-97df-d20019243160	REQ-2026-2058	5	locked	\N	\N
+8e450b3e-0ac9-4ff2-8bd1-da6b1e7177cb	REQ-2026-2059	1	confirmed	2026-06-26 20:00:00+00	2026-06-26 20:24:00+00
+87abb12f-560c-4a74-8fc5-69ceebd205b7	REQ-2026-2059	2	confirmed	2026-06-26 20:24:00+00	2026-06-26 20:39:00+00
+18e35137-d239-4b27-8701-b5f98f290505	REQ-2026-2059	3	confirmed	2026-06-26 20:39:00+00	2026-06-26 21:00:00+00
+765a7d4a-e80f-424a-8b29-9536694e624c	REQ-2026-2059	4	unlocked	2026-06-26 21:00:00+00	\N
+d06eca41-38c5-4e72-afc5-49c242cfcb66	REQ-2026-2059	5	locked	\N	\N
+\.
+
+
+--
+-- Data for Name: chat_message; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.chat_message (id, case_id, role, message_text, related_edit_log_id, created_at) FROM stdin;
+a32e6bf9-bc8a-481e-a65d-c083cbd7d6b9	REQ-2026-2002	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-06-12 04:00:45+00
+b71886a3-398b-47cc-a55c-8b0755bed144	REQ-2026-2002	status	Đang tra cứu dữ liệu khu vực…	\N	2026-06-12 04:01:23+00
+246cc83b-68e4-4e91-9fcc-bf921906e840	REQ-2026-2002	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-06-12 04:01:46+00
+5c768357-c379-4b46-93cf-ae2dd4a81fdc	REQ-2026-2002	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-06-12 04:02:11+00
+eac7657f-9433-46dd-b622-3125ed0da9a2	REQ-2026-2002	status	Đang tính toán định giá…	\N	2026-06-12 04:03:02+00
+aeac0438-08d9-4eeb-bc1d-8b543009028b	REQ-2026-2002	agent	Định giá đề xuất 49.94 tỷ, độ tin cậy 83%.	\N	2026-06-12 04:04:22+00
+d95f6a09-78ab-4a61-a588-f7afc5bd3c2b	REQ-2026-2002	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-06-12 04:04:51+00
+9e0da8b4-13d8-423e-ac60-a504ae70e57f	REQ-2026-2002	status	Đang chấm điểm rủi ro…	\N	2026-06-12 04:06:09+00
+eb33ecd3-b7fe-4c06-8988-bd8d8c9bd659	REQ-2026-2002	agent	Điểm rủi ro BĐS 18/100 (thap), LTV đề xuất 75%.	\N	2026-06-12 04:07:22+00
+66592feb-fa75-4f57-b14e-da9658da382f	REQ-2026-2016	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-07-18 00:01:03+00
+14f16bd4-9280-4eab-b476-084118398be2	REQ-2026-2016	status	Đang tra cứu dữ liệu khu vực…	\N	2026-07-18 00:01:36+00
+49bd4fcd-20db-4c94-9ff0-9cd045f4661a	REQ-2026-2016	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-07-18 00:02:17+00
+61fe6621-f49a-48d6-b120-e7d8988182b0	REQ-2026-2016	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-07-18 00:03:08+00
+afd14e4d-e04a-4284-ae0b-6d7fc1e8601a	REQ-2026-2016	status	Đang tính toán định giá…	\N	2026-07-18 00:04:34+00
+5628b0ce-03f7-484c-a523-658a2a50b3bc	REQ-2026-2016	agent	Định giá đề xuất 3.95 tỷ, độ tin cậy 72%.	\N	2026-07-18 00:05:16+00
+b419fc1b-01d8-4d57-8bc7-a6afac51489f	REQ-2026-2016	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-07-18 00:06:46+00
+fffabf20-5f0d-4846-b89c-718beba6186c	REQ-2026-2016	status	Đang chấm điểm rủi ro…	\N	2026-07-18 00:07:26+00
+6827da0c-967f-44b5-ae08-dd37ff40ffd1	REQ-2026-2016	agent	Điểm rủi ro BĐS 37/100 (trung binh), LTV đề xuất 65%.	\N	2026-07-18 00:08:28+00
+8f8870b1-5369-4eee-a09a-e64a002380aa	REQ-2026-2019	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-06-28 16:00:41+00
+4207f480-07b4-42ee-a05b-68669b1679bc	REQ-2026-2019	status	Đang tra cứu dữ liệu khu vực…	\N	2026-06-28 16:01:58+00
+20784b20-ad3b-4b1c-b044-d8b1d88c0c59	REQ-2026-2019	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-06-28 16:03:17+00
+6aacfe8d-c476-489d-93c0-14d7ec408ae7	REQ-2026-2019	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-06-28 16:04:17+00
+10372b63-7b9c-436d-9ae8-f91aa502f950	REQ-2026-2019	status	Đang tính toán định giá…	\N	2026-06-28 16:05:29+00
+071e0cff-2fd1-4531-b247-68763948886b	REQ-2026-2019	agent	Định giá đề xuất 2.87 tỷ, độ tin cậy 54%.	\N	2026-06-28 16:06:04+00
+870fc7ec-7302-4f8a-a5a7-63ecf420163e	REQ-2026-2019	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-06-28 16:07:32+00
+38140071-2b36-475a-8e76-e83905aeb3ab	REQ-2026-2019	status	Đang chấm điểm rủi ro…	\N	2026-06-28 16:08:37+00
+20717152-6d54-471f-b76f-c667d1563b61	REQ-2026-2019	agent	Điểm rủi ro BĐS 27/100 (trung binh), LTV đề xuất 65%.	\N	2026-06-28 16:09:23+00
+b5ff8323-7d5e-4919-a015-3b75605ea1bd	REQ-2026-2022	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-05-07 06:01:13+00
+c59bb746-2391-4045-9cee-aa9023744e51	REQ-2026-2022	status	Đang tra cứu dữ liệu khu vực…	\N	2026-05-07 06:02:24+00
+7eb4b0b1-8c98-40a5-85f9-fc84ae3d1220	REQ-2026-2022	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-05-07 06:03:33+00
+9c939ef5-b917-48b5-83b7-bbc868c8cdb6	REQ-2026-2022	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-05-07 06:03:57+00
+ad997860-3c1a-4cd2-b613-5f57e9f360ea	REQ-2026-2022	status	Đang tính toán định giá…	\N	2026-05-07 06:04:41+00
+9babeede-0d6a-47ee-ba55-3c986f651632	REQ-2026-2022	agent	Định giá đề xuất 17.04 tỷ, độ tin cậy 69%.	\N	2026-05-07 06:05:44+00
+8a6e32ee-c333-451d-aff4-3adb9681c138	REQ-2026-2022	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-05-07 06:06:32+00
+27d9e8cc-0445-4a7c-820a-5e746b0ed910	REQ-2026-2022	status	Đang chấm điểm rủi ro…	\N	2026-05-07 06:08:00+00
+0dd548e9-26f2-44b3-b422-0403642f7a7e	REQ-2026-2022	agent	Điểm rủi ro BĐS 25/100 (trung binh), LTV đề xuất 65%.	\N	2026-05-07 06:09:20+00
+5dda8b70-31e4-467f-8bc3-a73d8a72c1ba	REQ-2026-2023	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-05-08 04:01:05+00
+c4fad856-f78a-4d39-94df-87d389a187e4	REQ-2026-2023	status	Đang tra cứu dữ liệu khu vực…	\N	2026-05-08 04:02:21+00
+9973cc57-7633-4319-94c8-0db09b048cb8	REQ-2026-2023	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-05-08 04:03:15+00
+dd3ce924-47ec-4aa9-8a70-609b15c5788b	REQ-2026-2023	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-05-08 04:03:46+00
+93c61eb5-d47b-47ad-a668-21f7a5f94a08	REQ-2026-2023	status	Đang tính toán định giá…	\N	2026-05-08 04:04:53+00
+bf61d770-c926-418b-822d-2cbd76d5ce12	REQ-2026-2023	agent	Định giá đề xuất 7.12 tỷ, độ tin cậy 72%.	\N	2026-05-08 04:05:56+00
+325ac51b-7a02-4980-9f08-4c39e94e6469	REQ-2026-2023	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-05-08 04:06:39+00
+16d7a5b9-1a10-48a8-a4f6-14ca7150bbf4	REQ-2026-2023	status	Đang chấm điểm rủi ro…	\N	2026-05-08 04:07:13+00
+c33e0b22-7dc9-40f7-bd74-e62b81ea4450	REQ-2026-2023	agent	Điểm rủi ro BĐS 33/100 (trung binh), LTV đề xuất 65%.	\N	2026-05-08 04:08:24+00
+0109b700-c460-4f86-8a72-b3737914394d	REQ-2026-2030	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-05-14 01:00:40+00
+ee16ecd6-346c-45d1-b35e-13877d77638d	REQ-2026-2030	status	Đang tra cứu dữ liệu khu vực…	\N	2026-05-14 01:01:43+00
+4fc53f93-17d3-44a6-930c-881f478ded39	REQ-2026-2030	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-05-14 01:02:32+00
+f49a2bbd-788e-4ad8-927d-c9db2d131839	REQ-2026-2030	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-05-14 01:03:32+00
+4677994c-3737-4308-ad72-2d2f84fb9095	REQ-2026-2030	status	Đang tính toán định giá…	\N	2026-05-14 01:04:32+00
+68aaad53-3f12-4474-bb87-4ff5aa69fbc9	REQ-2026-2030	agent	Định giá đề xuất 34.31 tỷ, độ tin cậy 74%.	\N	2026-05-14 01:05:29+00
+99f1a4d2-80fc-4c7d-8e96-1a6b059c887f	REQ-2026-2030	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-05-14 01:06:23+00
+daa841e7-fb67-42c1-b269-2c1c5f991162	REQ-2026-2030	status	Đang chấm điểm rủi ro…	\N	2026-05-14 01:07:33+00
+23cf6a54-7949-48f2-98e3-fae0b7e6f655	REQ-2026-2030	agent	Điểm rủi ro BĐS 38/100 (trung binh), LTV đề xuất 65%.	\N	2026-05-14 01:08:27+00
+90b5b2e5-462e-4dc5-ac50-bc9568ff0082	REQ-2026-2036	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-06-29 13:00:47+00
+50e0e322-e01b-488d-9b60-c4cdb9133ad7	REQ-2026-2036	status	Đang tra cứu dữ liệu khu vực…	\N	2026-06-29 13:02:07+00
+01ddee48-2987-4bd8-ae8a-5e1db57ac473	REQ-2026-2036	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-06-29 13:03:25+00
+06faba6c-e1a6-425f-91f9-394fe0aecf09	REQ-2026-2036	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-06-29 13:04:37+00
+a142b5ed-5958-4c2f-ab7a-6285f875ba90	REQ-2026-2036	status	Đang tính toán định giá…	\N	2026-06-29 13:05:53+00
+4fe1d222-3526-4d1f-979a-3b799bb24a35	REQ-2026-2036	agent	Định giá đề xuất 20.86 tỷ, độ tin cậy 70%.	\N	2026-06-29 13:06:23+00
+20bb9554-e95c-4de8-b216-0ab6c6e9eed7	REQ-2026-2036	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-06-29 13:06:43+00
+7a582d53-a271-465e-ab3d-600b90d2b529	REQ-2026-2036	status	Đang chấm điểm rủi ro…	\N	2026-06-29 13:07:34+00
+9a1894ca-888d-498f-8a26-45d82be7634e	REQ-2026-2036	agent	Điểm rủi ro BĐS 30/100 (trung binh), LTV đề xuất 65%.	\N	2026-06-29 13:09:04+00
+6fc5fe19-c325-45ed-8af9-e4477b4f7f7a	REQ-2026-2039	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-04-14 00:00:56+00
+bfab7caf-c574-4078-a5f3-4bb2b8ab778c	REQ-2026-2039	status	Đang tra cứu dữ liệu khu vực…	\N	2026-04-14 00:01:19+00
+fa2e6062-ca68-4e59-ba2c-bc8462ccfc74	REQ-2026-2039	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-04-14 00:02:09+00
+b1d1ca1f-af8c-4106-8f00-64502db41913	REQ-2026-2039	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-04-14 00:03:24+00
+efa58e69-8d5d-42fa-a9ec-932fa9a3b631	REQ-2026-2039	status	Đang tính toán định giá…	\N	2026-04-14 00:04:34+00
+088fff08-6993-4f8f-aa5d-9b1c6c77f1af	REQ-2026-2039	agent	Định giá đề xuất 11.26 tỷ, độ tin cậy 66%.	\N	2026-04-14 00:05:34+00
+3c939b99-0ffc-49ae-988d-c3bd3542d25b	REQ-2026-2039	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-04-14 00:06:42+00
+7f7d94e8-5da4-4392-88f9-2c234cf3a2dc	REQ-2026-2039	status	Đang chấm điểm rủi ro…	\N	2026-04-14 00:07:53+00
+acbf47e7-727e-4f2c-8821-d3d42eb5a764	REQ-2026-2039	agent	Điểm rủi ro BĐS 39/100 (trung binh), LTV đề xuất 65%.	\N	2026-04-14 00:09:01+00
+bdc2a4b2-bea1-467f-8194-ac5ceca80d28	REQ-2026-2045	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-03-25 20:01:04+00
+17070b39-0a4e-425b-9ca3-12779b24345d	REQ-2026-2045	status	Đang tra cứu dữ liệu khu vực…	\N	2026-03-25 20:01:27+00
+08311e4e-002c-401d-88a4-bafec75305b4	REQ-2026-2045	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-03-25 20:01:58+00
+4cd0d5ca-f1a4-4367-bc40-9632a4bec3fa	REQ-2026-2045	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-03-25 20:02:36+00
+01f4a745-26f1-4900-84dd-cc54122e0b4e	REQ-2026-2045	status	Đang tính toán định giá…	\N	2026-03-25 20:03:31+00
+0934db15-cb95-4ff9-9978-df211776bdc5	REQ-2026-2045	agent	Định giá đề xuất 16.10 tỷ, độ tin cậy 71%.	\N	2026-03-25 20:04:35+00
+bf930892-a9a8-46a8-94ba-6db5b1e58b5f	REQ-2026-2045	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-03-25 20:05:40+00
+5489bc21-5a34-46d8-8816-692b9969aa4f	REQ-2026-2045	status	Đang chấm điểm rủi ro…	\N	2026-03-25 20:06:20+00
+d64b2306-d224-451b-8ccb-b00ca0fe6980	REQ-2026-2045	agent	Điểm rủi ro BĐS 35/100 (trung binh), LTV đề xuất 65%.	\N	2026-03-25 20:07:44+00
+699f7067-ab1d-4621-a4e4-6645b8fa9386	REQ-2026-2049	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-03-30 04:01:00+00
+91df2c9d-d377-49e9-aff6-4200f2e83a2f	REQ-2026-2049	status	Đang tra cứu dữ liệu khu vực…	\N	2026-03-30 04:02:15+00
+1e5438dc-2c1b-414c-86ed-45b39f9af34c	REQ-2026-2049	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-03-30 04:02:56+00
+4764f0ec-e370-4493-80b1-dcbd02694664	REQ-2026-2049	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-03-30 04:03:56+00
+ad4ac783-383a-40ac-aa5f-aded761cdf9b	REQ-2026-2049	status	Đang tính toán định giá…	\N	2026-03-30 04:05:18+00
+9e449a4a-e13b-472d-8f55-771a09e63738	REQ-2026-2049	agent	Định giá đề xuất 9.03 tỷ, độ tin cậy 55%.	\N	2026-03-30 04:05:57+00
+b32905bb-20ab-407e-a5e8-f02a4a176020	REQ-2026-2049	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-03-30 04:07:13+00
+33dcfcb7-d6aa-4b17-bc19-c1bceb952e52	REQ-2026-2049	status	Đang chấm điểm rủi ro…	\N	2026-03-30 04:07:39+00
+697962c8-2208-4a9c-8ca4-3bf382dac902	REQ-2026-2049	agent	Điểm rủi ro BĐS 30/100 (trung binh), LTV đề xuất 65%.	\N	2026-03-30 04:08:23+00
+f7960613-31a6-4dc0-8946-cad71307e676	REQ-2026-2050	user	Tôi đã điền xong thông tin tài sản, nhờ hệ thống tra cứu dữ liệu khu vực giúp tôi.	\N	2026-07-12 19:01:06+00
+687f03ba-2b28-4fd6-b669-82e28989fe12	REQ-2026-2050	status	Đang tra cứu dữ liệu khu vực…	\N	2026-07-12 19:02:16+00
+7e0c277e-e452-4864-a989-3fde5cf26d60	REQ-2026-2050	agent	Đã có kết quả tra cứu khu vực — bạn xem kỹ rồi bấm Xác nhận khi ổn nhé.	\N	2026-07-12 19:03:14+00
+87c93269-60cd-435a-838a-d004438e08ce	REQ-2026-2050	user	Kết quả tra cứu ổn, nhờ định giá giúp tôi.	\N	2026-07-12 19:03:45+00
+b665456f-525a-404a-b58b-4db4b58110be	REQ-2026-2050	status	Đang tính toán định giá…	\N	2026-07-12 19:04:21+00
+f385b874-1b0a-4dc5-8f7e-9d2bb5fddf23	REQ-2026-2050	agent	Định giá đề xuất 11.84 tỷ, độ tin cậy 65%.	\N	2026-07-12 19:04:58+00
+0af59cf6-950d-4a6e-bc16-0e9bc06f02c9	REQ-2026-2050	user	Định giá hợp lý, nhờ đánh giá rủi ro giúp tôi.	\N	2026-07-12 19:05:19+00
+0419b295-65e6-42d0-8ab7-c101be6830d1	REQ-2026-2050	status	Đang chấm điểm rủi ro…	\N	2026-07-12 19:06:03+00
+5d21d66d-3f51-4bb0-89e5-641b66d78eb7	REQ-2026-2050	agent	Điểm rủi ro BĐS 30/100 (trung binh), LTV đề xuất 65%.	\N	2026-07-12 19:06:37+00
+\.
+
+
+--
+-- Data for Name: dashboard_step_summary; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.dashboard_step_summary (id, case_id, step_number, title, summary_text) FROM stdin;
+c773d2c1-1f45-4b66-8090-721b5774d1c8	REQ-2026-2002	1	Nhập thông tin	Hẻm 69 Phan Đình Phùng, Phường 12, Quận 10, TP.HCM · 197.1 m² · Sổ đỏ (QSDĐ).
+465961ba-6467-41de-bb56-cefb6d268f67	REQ-2026-2002	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+748c76c6-4518-45d6-8a40-94bde53c709e	REQ-2026-2002	3	Định giá	49.94 tỷ (46.71–53.38 tỷ) · độ tin cậy 83%, kết hợp 3 phương pháp.
+618a25f9-33b2-4b7d-9a47-0a4ee3cec1d6	REQ-2026-2002	4	Rủi ro	Điểm rủi ro tài sản 18/100 (thap) · LTV đề xuất 75%.
+c3f068f0-8c21-4ae8-958e-c6c4cd55e613	REQ-2026-2006	1	Nhập thông tin	179 Nguyễn Thị F, Phường 14, Quận 10, TP.HCM · 38.8 m² · Sổ hồng (QSDĐ & QSH nhà ở).
+6d7e24aa-9a2e-4c57-a012-c1c8b04111cd	REQ-2026-2006	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+c4fccddf-c3bc-448a-8c03-4a595dabe1b0	REQ-2026-2006	3	Định giá	4.57 tỷ (4.22–4.81 tỷ) · độ tin cậy 77%, kết hợp 3 phương pháp.
+59c802c1-cfb0-492b-bcff-54c355839cce	REQ-2026-2006	4	Rủi ro	Điểm rủi ro tài sản 40/100 (trung binh) · LTV đề xuất 65%.
+21c6e8a1-59c3-4fe2-adcc-76df251572e1	REQ-2026-2008	1	Nhập thông tin	Hẻm 15 Nguyễn Trãi, Phường 14, Quận 10, TP.HCM · 52.2 m² · Sổ đỏ (QSDĐ).
+43dc7253-b94f-4f90-ad63-57daa92f2b5a	REQ-2026-2008	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+b62d5271-7892-4fe3-b3dc-bc3f46acaee3	REQ-2026-2008	3	Định giá	9.78 tỷ (9.17–10.23 tỷ) · độ tin cậy 67%, kết hợp 3 phương pháp.
+d142a949-6cf5-44c3-aab0-065e3d3c3a77	REQ-2026-2008	4	Rủi ro	Điểm rủi ro tài sản 32/100 (trung binh) · LTV đề xuất 65%.
+8b1c15d5-8127-4eaf-b967-554bd29f2fee	REQ-2026-2012	1	Nhập thông tin	Hẻm 36 Đỗ Trọng K, Cửa Nam, Hoàn Kiếm, Hà Nội · 160.2 m² · Sổ hồng chung cư.
+bfdf485a-cef8-446e-9c41-3f0d9553faa6	REQ-2026-2012	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+2dd6dbf3-b68a-48e5-ae4d-76e62a30510c	REQ-2026-2012	3	Định giá	56.91 tỷ (54.12–60.27 tỷ) · độ tin cậy 68%, kết hợp 3 phương pháp.
+5f1211ac-b07d-4b7b-a514-b3a213ed113d	REQ-2026-2012	4	Rủi ro	Điểm rủi ro tài sản 25/100 (trung binh) · LTV đề xuất 65%.
+a2f3963f-c07a-41d3-adbf-54cd39382320	REQ-2026-2016	1	Nhập thông tin	41 Võ Thành I, Tân Phong, Quận 7, TP.HCM · 48.5 m² · Giấy chứng nhận QSDĐ & tài sản gắn liền với đất.
+5df9b166-b708-448d-8e68-805ed80c0d7c	REQ-2026-2016	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+b2091caf-50ee-4f89-bab7-c1bcc0ba3484	REQ-2026-2016	3	Định giá	3.95 tỷ (3.70–4.18 tỷ) · độ tin cậy 72%, kết hợp 3 phương pháp.
+eba4d1a7-1f0f-47ae-b905-44d4375c94ee	REQ-2026-2016	4	Rủi ro	Điểm rủi ro tài sản 37/100 (trung binh) · LTV đề xuất 65%.
+64c904b6-31ea-4d85-af92-c5972e88fcd6	REQ-2026-2018	1	Nhập thông tin	21 Nguyễn Trãi, Gia Thuỵ, Long Biên, Hà Nội · 81.4 m² · Sổ hồng (QSDĐ & QSH nhà ở).
+145bd03d-ae8e-4779-af54-790811331db2	REQ-2026-2018	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+e170c9fa-e298-42a0-b253-26a5461e8dcc	REQ-2026-2018	3	Định giá	5.15 tỷ (4.92–5.39 tỷ) · độ tin cậy 71%, kết hợp 3 phương pháp.
+c7d22ec4-6e3f-448c-8614-0e9f8a2f6a37	REQ-2026-2018	4	Rủi ro	Điểm rủi ro tài sản 51/100 (cao) · LTV đề xuất 55%.
+ab6ef696-038b-405a-8f8c-dd7139713d5d	REQ-2026-2019	1	Nhập thông tin	23 Điện Biên Phủ, Gia Thuỵ, Long Biên, Hà Nội · 43.2 m² · Sổ hồng chung cư.
+2895a76d-436b-4d8e-b9aa-75faa5e202ea	REQ-2026-2019	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+a6b6c752-ef1e-4900-ac41-7f60e265b27d	REQ-2026-2019	3	Định giá	2.87 tỷ (2.67–3.04 tỷ) · độ tin cậy 54%, kết hợp 3 phương pháp.
+520d18e2-550d-44dc-bd93-10ea704f5291	REQ-2026-2019	4	Rủi ro	Điểm rủi ro tài sản 27/100 (trung binh) · LTV đề xuất 65%.
+0124b034-df59-4ad1-8d7c-713872cbf0be	REQ-2026-2022	1	Nhập thông tin	108 Phạm Ngọc D, An Nghiệp, Ninh Kiều, Cần Thơ · 173.6 m² · Giấy chứng nhận QSDĐ & tài sản gắn liền với đất.
+b0bfdbec-3c7c-4df2-96c4-7d75e854ee56	REQ-2026-2022	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+2efbd7a7-d65e-4df5-8d1a-2fa0f9230892	REQ-2026-2022	3	Định giá	17.04 tỷ (16.14–17.95 tỷ) · độ tin cậy 69%, kết hợp 3 phương pháp.
+edde3c5c-6217-4abd-80fd-59a8cbd08278	REQ-2026-2022	4	Rủi ro	Điểm rủi ro tài sản 25/100 (trung binh) · LTV đề xuất 65%.
+79d1bf9a-44f8-48ab-82b1-f084ce5d1c6c	REQ-2026-2023	1	Nhập thông tin	218 Đỗ Trọng K, Ô Chợ Dừa, Đống Đa, Hà Nội · 52.6 m² · Sổ hồng chung cư.
+31a93da2-c4ba-45ce-929c-684376a0275c	REQ-2026-2023	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+6fa06509-cd83-4f48-8986-b01595f8a644	REQ-2026-2023	3	Định giá	7.12 tỷ (6.73–7.65 tỷ) · độ tin cậy 72%, kết hợp 3 phương pháp.
+3fbda3cc-d46e-44bd-adc6-d2367cc5795d	REQ-2026-2023	4	Rủi ro	Điểm rủi ro tài sản 33/100 (trung binh) · LTV đề xuất 65%.
+e79aabed-a4ac-402e-b964-8600f6a03124	REQ-2026-2027	1	Nhập thông tin	249 Lý Tự L, Yên Nghĩa, Hà Đông, Hà Nội · 67.0 m² · Sổ đỏ (QSDĐ).
+b6d252f7-a239-485b-9c56-d91cacd8176b	REQ-2026-2027	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+13dc473b-cb8b-40dc-ae8a-69e44034c616	REQ-2026-2027	3	Định giá	4.64 tỷ (4.39–5.01 tỷ) · độ tin cậy 80%, kết hợp 3 phương pháp.
+2db15fd6-b119-4b77-95e2-5dae988df456	REQ-2026-2027	4	Rủi ro	Điểm rủi ro tài sản 39/100 (trung binh) · LTV đề xuất 65%.
+37a6d428-1bcd-4cf8-b361-b0684858d257	REQ-2026-2028	1	Nhập thông tin	233 Cách Mạng Tháng 8, Kim Liên, Đống Đa, Hà Nội · 146.4 m² · Sổ đỏ (QSDĐ).
+7b714a9e-2771-4adc-ab5e-918db26cffc5	REQ-2026-2028	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+f8678f3c-9bf0-41d4-b7c3-c3d59a29ee13	REQ-2026-2028	3	Định giá	25.92 tỷ (24.50–27.31 tỷ) · độ tin cậy 63%, kết hợp 3 phương pháp.
+d0463b74-27e2-4044-bad1-687f3feef6d5	REQ-2026-2028	4	Rủi ro	Điểm rủi ro tài sản 32/100 (trung binh) · LTV đề xuất 65%.
+56bdda17-4d67-47d6-bd52-bc4509fcba44	REQ-2026-2030	1	Nhập thông tin	106 Nguyễn Thị F, Bến Thành, Quận 1, TP.HCM · 84.5 m² · Sổ đỏ (QSDĐ).
+07a25732-7963-4e63-bb57-72361a645abd	REQ-2026-2030	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+ecd974ea-f146-4895-b355-7f68042bbc0e	REQ-2026-2030	3	Định giá	34.31 tỷ (32.58–36.49 tỷ) · độ tin cậy 74%, kết hợp 3 phương pháp.
+eb8c160b-ed58-4b7d-9ec3-12dffe687882	REQ-2026-2030	4	Rủi ro	Điểm rủi ro tài sản 38/100 (trung binh) · LTV đề xuất 65%.
+79efded8-f2b1-40b6-b58c-f06868c5e8c1	REQ-2026-2036	1	Nhập thông tin	178 Đỗ Trọng K, Phường 2, Tân Bình, TP.HCM · 215.3 m² · Sổ hồng (QSDĐ & QSH nhà ở).
+1e76c7a7-5f76-4003-b87d-ccb578f9f2d6	REQ-2026-2036	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+70f18878-ee6b-4f83-adf2-b2870cdc2052	REQ-2026-2036	3	Định giá	20.86 tỷ (19.34–22.31 tỷ) · độ tin cậy 70%, kết hợp 3 phương pháp.
+2ae6c0b1-7cce-430b-80f1-e78ab54c96a9	REQ-2026-2036	4	Rủi ro	Điểm rủi ro tài sản 30/100 (trung binh) · LTV đề xuất 65%.
+5cbc63a6-b0c7-4a3f-879c-b21852bc991a	REQ-2026-2039	1	Nhập thông tin	177 Trần Văn B, Bến Thành, Quận 1, TP.HCM · 36.9 m² · Sổ hồng chung cư.
+e75a4404-1df0-4a39-ace4-6f9fb00920e0	REQ-2026-2039	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+b1cd7a0e-9e9a-4611-bbe7-ed237a0a43a8	REQ-2026-2039	3	Định giá	11.26 tỷ (10.78–12.03 tỷ) · độ tin cậy 66%, kết hợp 3 phương pháp.
+0e3e5e35-9942-4bae-9646-21562078f7b7	REQ-2026-2039	4	Rủi ro	Điểm rủi ro tài sản 39/100 (trung binh) · LTV đề xuất 65%.
+7b2eb12c-282d-4fe6-99f8-9281f89266c8	REQ-2026-2040	1	Nhập thông tin	Hẻm 27 Đặng Văn G, Bồ Đề, Long Biên, Hà Nội · 101.8 m² · Sổ đỏ (QSDĐ).
+25ac14bd-4237-4210-b227-b01a0a72b0ae	REQ-2026-2040	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+cf41a77b-25eb-488f-bd51-111ac0672d9c	REQ-2026-2040	3	Định giá	8.39 tỷ (7.80–8.91 tỷ) · độ tin cậy 57%, kết hợp 3 phương pháp.
+7e25256d-c848-43c0-99d5-40e77526f76e	REQ-2026-2040	4	Rủi ro	Điểm rủi ro tài sản 47/100 (cao) · LTV đề xuất 55%.
+a93c6432-92c1-476c-bdcb-ce26c6719862	REQ-2026-2044	1	Nhập thông tin	95 Trần Văn B, Bình Hiên, Hải Châu, Đà Nẵng · 135.7 m² · Sổ đỏ (QSDĐ).
+7df27ebb-177d-405e-b033-eec4dbff7090	REQ-2026-2044	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+71ecc369-a668-471c-8a35-5f9adbbe9251	REQ-2026-2044	3	Định giá	27.58 tỷ (26.22–29.99 tỷ) · độ tin cậy 73%, kết hợp 3 phương pháp.
+8aa2088e-5df3-422b-99c9-04691cbe6c3f	REQ-2026-2044	4	Rủi ro	Điểm rủi ro tài sản 48/100 (cao) · LTV đề xuất 55%.
+dff30ca6-31b2-4569-9628-f37a39a524ca	REQ-2026-2045	1	Nhập thông tin	Hẻm 58 Nguyễn Trãi, Tân Phong, Quận 7, TP.HCM · 167.8 m² · Sổ hồng (QSDĐ & QSH nhà ở).
+17acf2b9-61ee-462f-983e-80cc9cced9bf	REQ-2026-2045	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+91a6725b-5151-451b-9a0e-47764a747765	REQ-2026-2045	3	Định giá	16.10 tỷ (14.95–16.90 tỷ) · độ tin cậy 71%, kết hợp 3 phương pháp.
+09e2bab0-7f48-4ef0-b1fe-3af0fee9adb1	REQ-2026-2045	4	Rủi ro	Điểm rủi ro tài sản 35/100 (trung binh) · LTV đề xuất 65%.
+54cf862b-41db-4c66-bfb0-08d28cbec81a	REQ-2026-2048	1	Nhập thông tin	Hẻm 54 Điện Biên Phủ, Bến Thành, Quận 1, TP.HCM · 121.8 m² · Sổ đỏ (QSDĐ).
+ae89006c-b80d-4cdf-bd5c-acb4d2d610aa	REQ-2026-2048	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+68a5e8d3-58cf-436d-8ba5-e7aa388a14d1	REQ-2026-2048	3	Định giá	49.74 tỷ (46.55–53.82 tỷ) · độ tin cậy 81%, kết hợp 3 phương pháp.
+5041b8d6-9856-49b3-9db9-ccedc928ed14	REQ-2026-2048	4	Rủi ro	Điểm rủi ro tài sản 36/100 (trung binh) · LTV đề xuất 65%.
+9f6494b6-f48b-4b12-9ab8-8422ea034f1b	REQ-2026-2049	1	Nhập thông tin	Hẻm 55 Điện Biên Phủ, Hiệp Bình Chánh, Thủ Đức, TP.HCM · 186.0 m² · Sổ hồng chung cư.
+502160a7-631f-4421-95e3-c829733294cd	REQ-2026-2049	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+e12f1c93-f837-44fd-a877-b0357755786e	REQ-2026-2049	3	Định giá	9.03 tỷ (8.48–9.78 tỷ) · độ tin cậy 55%, kết hợp 3 phương pháp.
+4be03e0b-1d52-45a5-9f62-62fa6d5a45a8	REQ-2026-2049	4	Rủi ro	Điểm rủi ro tài sản 30/100 (trung binh) · LTV đề xuất 65%.
+4512ccff-c420-469d-8eca-788aad489111	REQ-2026-2050	1	Nhập thông tin	Hẻm 9 Bùi Quang H, Phường 13, Bình Thạnh, TP.HCM · 117.7 m² · Sổ hồng (QSDĐ & QSH nhà ở).
+33a0c18f-c7ce-4c60-b76b-e58def71e215	REQ-2026-2050	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+0474eb04-d491-4fc5-a98c-e945b18baf11	REQ-2026-2050	3	Định giá	11.84 tỷ (11.10–12.85 tỷ) · độ tin cậy 65%, kết hợp 3 phương pháp.
+6119c6dc-d41b-41fb-9a69-059b3d0d37cb	REQ-2026-2050	4	Rủi ro	Điểm rủi ro tài sản 30/100 (trung binh) · LTV đề xuất 65%.
+c7804388-a8eb-4ef9-9749-a2e6f4c56c89	REQ-2026-2051	1	Nhập thông tin	221 Đặng Văn G, Đa Kao, Quận 1, TP.HCM · 152.8 m² · Sổ đỏ (QSDĐ).
+a9042d96-056e-4483-b3ac-2eeb76da2f58	REQ-2026-2051	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+d962d856-151a-4fea-ab84-7ef745c8de3e	REQ-2026-2051	3	Định giá	41.08 tỷ (39.23–43.96 tỷ) · độ tin cậy 80%, kết hợp 3 phương pháp.
+6aafb777-f20f-4336-a8e4-04513481f7d2	REQ-2026-2051	4	Rủi ro	Điểm rủi ro tài sản 41/100 (cao) · LTV đề xuất 55%.
+35755c7a-a598-4922-9fdf-0dd964a466e7	REQ-2026-2052	1	Nhập thông tin	199 Hoàng Minh E, Bến Thành, Quận 1, TP.HCM · 105.1 m² · Giấy chứng nhận QSDĐ & tài sản gắn liền với đất.
+94971c3b-db5a-4f7a-b2ed-8fa429644552	REQ-2026-2052	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+40903cc3-bb16-4773-a3f9-95736ecf9ce4	REQ-2026-2052	3	Định giá	24.84 tỷ (23.30–26.29 tỷ) · độ tin cậy 78%, kết hợp 3 phương pháp.
+ad1677af-1087-485e-a84d-ad776bc40e3a	REQ-2026-2052	4	Rủi ro	Điểm rủi ro tài sản 26/100 (trung binh) · LTV đề xuất 65%.
+57969577-0c5d-4546-8fa0-3d79e30689c1	REQ-2026-2053	1	Nhập thông tin	Hẻm 22 Trường Sa, Yên Nghĩa, Hà Đông, Hà Nội · 56.6 m² · Giấy chứng nhận QSDĐ & tài sản gắn liền với đất.
+f1df5f1c-31bc-4877-bc56-dffd79f5582d	REQ-2026-2053	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+9eb49525-eece-4ae6-958b-57e7ea300e68	REQ-2026-2053	3	Định giá	2.67 tỷ (2.54–2.82 tỷ) · độ tin cậy 71%, kết hợp 3 phương pháp.
+334fec8c-e4bc-4d59-8688-5f95f75ceb33	REQ-2026-2053	4	Rủi ro	Điểm rủi ro tài sản 28/100 (trung binh) · LTV đề xuất 65%.
+2f35e7cc-6fcb-4172-9a4e-4c4a7687448e	REQ-2026-2057	1	Nhập thông tin	Hẻm 32 Lê Văn C, Cửa Nam, Hoàn Kiếm, Hà Nội · 134.1 m² · Sổ hồng chung cư.
+f5cb0b15-6f5d-43a4-9667-2e75015211eb	REQ-2026-2057	2	Kết quả tra cứu	7 nguồn tra cứu hoàn tất · 6 nhóm dữ liệu đã thu thập.
+c994e7b7-6585-4912-a281-0fc0ba0946c7	REQ-2026-2057	3	Định giá	40.43 tỷ (37.35–42.70 tỷ) · độ tin cậy 84%, kết hợp 3 phương pháp.
+0124610f-0211-436b-8b6a-1017fa168a14	REQ-2026-2057	4	Rủi ro	Điểm rủi ro tài sản 44/100 (cao) · LTV đề xuất 55%.
+\.
+
+
+--
+-- Data for Name: exported_report; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.exported_report (id, case_id, file_name, format, generated_by, generated_at) FROM stdin;
+44c6d5f6-cef6-45db-982d-990fd01b1d63	REQ-2026-2002	BienBan_ThamDinh_REQ-2026-2002.html	html	pham.appraiser05	2026-06-12 21:00:00+00
+df0c7a98-40e6-4251-b5d0-edecaf38d755	REQ-2026-2006	BienBan_ThamDinh_REQ-2026-2006.html	html	ntv.appraiser02	2026-07-01 15:00:00+00
+391ced0f-9d41-4566-8223-457175d21c78	REQ-2026-2008	BienBan_ThamDinh_REQ-2026-2008.html	html	le.appraiser04	2026-05-10 05:00:00+00
+56123178-2982-47e8-b1f9-376c20ebfb35	REQ-2026-2016	BienBan_ThamDinh_REQ-2026-2016.html	html	ntv.appraiser01	2026-07-18 04:00:00+00
+e98a040d-fcb3-4267-a1d8-b1d7bafd44d8	REQ-2026-2018	BienBan_ThamDinh_REQ-2026-2018.html	html	ntv.appraiser01	2026-03-21 18:00:00+00
+86862310-405e-4f24-830c-967d995162a3	REQ-2026-2023	BienBan_ThamDinh_REQ-2026-2023.html	html	ntv.appraiser02	2026-05-08 14:00:00+00
+21fd1739-abae-440f-a3c9-9b336048875c	REQ-2026-2027	BienBan_ThamDinh_REQ-2026-2027.html	html	pham.appraiser05	2026-04-04 20:00:00+00
+5c5b3382-74b2-48d3-8da1-e042d325829f	REQ-2026-2030	BienBan_ThamDinh_REQ-2026-2030.html	html	le.appraiser04	2026-05-15 04:00:00+00
+6bb19e95-850e-4c42-824b-5d2d237b9060	REQ-2026-2036	BienBan_ThamDinh_REQ-2026-2036.html	html	pham.appraiser05	2026-06-29 15:00:00+00
+aae586bf-1d39-433d-ba5a-5cc75b076e2a	REQ-2026-2040	BienBan_ThamDinh_REQ-2026-2040.html	html	ntv.appraiser01	2026-05-27 16:00:00+00
+6ae1c8d3-a877-4ac7-b46f-8d0c5761f145	REQ-2026-2044	BienBan_ThamDinh_REQ-2026-2044.html	html	pham.appraiser05	2026-06-06 23:00:00+00
+548622eb-0c24-4aa7-a813-97cd4c0d6183	REQ-2026-2045	BienBan_ThamDinh_REQ-2026-2045.html	html	ntv.appraiser02	2026-03-27 11:00:00+00
+aeb24fa8-bfd4-4985-b7b9-1bfeb9a5fc99	REQ-2026-2050	BienBan_ThamDinh_REQ-2026-2050.html	html	le.appraiser04	2026-07-14 11:00:00+00
+b46e86ff-594d-4dff-8622-314ae9f513fa	REQ-2026-2052	BienBan_ThamDinh_REQ-2026-2052.html	html	pham.appraiser05	2026-07-11 18:00:00+00
+62cdfdae-78b1-402b-8db0-744e589c53c0	REQ-2026-2053	BienBan_ThamDinh_REQ-2026-2053.html	html	le.appraiser04	2026-04-17 18:00:00+00
+bad1a3df-ca76-43d5-b1be-6ec2427453de	REQ-2026-2057	BienBan_ThamDinh_REQ-2026-2057.html	html	le.appraiser04	2026-06-01 12:00:00+00
+\.
+
+
+--
+-- Data for Name: field_provenance; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.field_provenance (id, case_id, source_document_id, target_table, target_field, target_record_id, extracted_value, source_snippet, source_page, bbox_x, bbox_y, bbox_width, bbox_height, confidence_pct, status, is_selected, created_at) FROM stdin;
+3ba5ad30-faed-4185-95bc-178f0b346c58	REQ-E2E-0001	adoc-0-REQ-E2E-0001	case_borrower	full_name	\N	Nguyen Van A	Nguoi su dung dat: Nguyen Van A	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945176+00
+31efac09-b935-40ce-8dc4-d06f2eb7fa0f	REQ-E2E-0001	adoc-0-REQ-E2E-0001	case_borrower	national_id	\N	079088001234	So CMND/CCCD: 079088001234	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945176+00
+d135b7be-c6b1-403a-8d71-8381abdd29ce	REQ-E2E-0001	adoc-0-REQ-E2E-0001	case_borrower	relationship_to_asset	\N	Chủ sở hữu đứng tên trên GCN	Nguoi su dung dat: Nguyen Van A	1	\N	\N	\N	\N	75	suy_luan	t	2026-07-18 14:13:25.945176+00
+9a92333d-3ef2-44db-99d5-37daa84fed2b	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_legal_info	certificate_type	\N	GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O	GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945176+00
+2a5b41b3-3277-4157-99e7-97d4c5dc7b8b	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_legal_info	certificate_number	\N	CS 01234567	So phat hanh: CS 01234567	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945176+00
+c23513ef-8468-4aa1-bfb7-df2281e8e999	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_legal_info	issue_date	\N	15/03/2020	Ngay cap: 15/03/2020   Co quan cap: So TN&MT TP HCM	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945176+00
+cd09413f-419d-49de-a7db-bfa09a79ccab	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_legal_info	issuing_authority	\N	So TN&MT TP HCM	Ngay cap: 15/03/2020   Co quan cap: So TN&MT TP HCM	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945176+00
+11a11439-0378-4511-b081-333a1767e226	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_legal_info	land_plot_number	\N	45	Thua dat so: 45   To ban do so: 12	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+cd07de09-a6e4-4f68-a9c9-3b33f9431ca4	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_legal_info	map_sheet_number	\N	12	Thua dat so: 45   To ban do so: 12	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+d1bce91c-0602-4d9b-9a6a-f0a005b1e8a8	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_legal_info	land_use_purpose	\N	Dat o tai do thi (ODT)	Muc dich su dung: Dat o tai do thi (ODT)	1	\N	\N	\N	\N	99	mau_thuan	t	2026-07-18 14:13:25.945692+00
+8373faba-2585-4baa-bd6b-817a137174db	REQ-E2E-0001	adoc-3-REQ-E2E-0001	property_legal_info	land_use_purpose	\N	Dat o tai do thi	Muc dich su dung: Dat o tai do thi	1	\N	\N	\N	\N	100	mau_thuan	f	2026-07-18 14:13:25.945692+00
+6d182303-5547-4aaa-8713-50a134b498e8	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_legal_info	use_term	\N	Lau dai	Thoi han su dung: Lau dai	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+44eefec3-b809-47d0-88e7-b83086fdbb07	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_physical_info	address	\N	123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM	Dia chi: 123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+8226cf72-cbda-4286-9eff-8caa5e1ccb8f	REQ-E2E-0001	adoc-1-REQ-E2E-0001	property_physical_info	property_type	\N	Nha pho	Loai tai san: Nha pho	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+80da4c37-17f9-4839-b798-4e70fc704ced	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_physical_info	land_area_sqm	\N	62 m2	Dien tich: 62 m2	1	\N	\N	\N	\N	99	mau_thuan	t	2026-07-18 14:13:25.945692+00
+26b1a7a3-2e4d-4134-988c-2bf8644d6ade	REQ-E2E-0001	adoc-3-REQ-E2E-0001	property_physical_info	land_area_sqm	\N	80 m2	Dien tich dat: 80 m2	1	\N	\N	\N	\N	100	mau_thuan	f	2026-07-18 14:13:25.945692+00
+6d6cee60-08b0-4ac0-960f-3249fb469cbd	REQ-E2E-0001	adoc-1-REQ-E2E-0001	property_physical_info	floor_area_sqm	\N	110 m2	Dien tich dat: 62 m2   Dien tich san: 110 m2	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+1445fb7c-8185-4423-8aef-6ba34d7a1e6a	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_physical_info	num_floors_desc	\N	2 tang	Nam xay dung: 2015   So tang: 2 tang	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+581d6c16-2fbc-4761-8d63-44bfa126d5a2	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_physical_info	frontage_m	\N	4 m	Mat tien: 4 m   Chieu sau: 15 m	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+e68f0f73-e593-4730-8fd7-9e50e18fcac6	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_physical_info	depth_m	\N	15 m	Mat tien: 4 m   Chieu sau: 15 m	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+4b3da57e-12ef-46a3-a05e-40b14dc976c0	REQ-E2E-0001	adoc-0-REQ-E2E-0001	property_physical_info	construction_year	\N	2015	Nam xay dung: 2015   So tang: 2 tang	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+71610227-dbe9-4043-b4a9-f287aeff7a4a	REQ-E2E-0001	adoc-2-REQ-E2E-0001	property_physical_info	current_usage_status	\N	Da hoan thien, dang o	Hien trang ban giao: Da hoan thien, dang o	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 14:13:25.945692+00
+c0956bb8-fa58-4628-bbd6-3d91cafda5e8	REQ-E2E-0002	adoc-0-REQ-E2E-0002	case_borrower	full_name	\N	Nguyen Van A	Nguoi su dung dat: Nguyen Van A	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+ba6b8c20-56aa-459a-adb3-e60bcaf15bbb	REQ-E2E-0002	adoc-0-REQ-E2E-0002	case_borrower	national_id	\N	079088001234	So CMND/CCCD: 079088001234	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+68b1da1c-3477-4913-935f-9ede1aaf2366	REQ-E2E-0002	adoc-0-REQ-E2E-0002	case_borrower	relationship_to_asset	\N	Chủ sở hữu đứng tên trên GCN	Nguoi su dung dat: Nguyen Van A	1	\N	\N	\N	\N	75	suy_luan	t	2026-07-18 16:02:59.513077+00
+82f7dc29-bcb9-4d11-86db-72c040868ab6	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_legal_info	certificate_type	\N	GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O	GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+4c9791a0-8261-49ef-81e3-d664e08840d6	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_legal_info	certificate_number	\N	CS 01234567	So phat hanh: CS 01234567	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+c9fa433a-5992-4dde-ab61-6395377ccfc4	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_legal_info	issue_date	\N	15/03/2020	Ngay cap: 15/03/2020   Co quan cap: So TN&MT TP HCM	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+a0d47d21-e075-4a29-8bf7-e893f79e08c1	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_legal_info	issuing_authority	\N	So TN&MT TP HCM	Ngay cap: 15/03/2020   Co quan cap: So TN&MT TP HCM	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+55442c25-922e-4c16-8c3e-27439e7e2f6d	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_legal_info	land_plot_number	\N	45	Thua dat so: 45   To ban do so: 12	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+d21693a8-1461-4a46-919e-0fc7a79f1f35	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_legal_info	map_sheet_number	\N	12	Thua dat so: 45   To ban do so: 12	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+b140098d-ef23-4fd9-8f0e-10c5b03f0021	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_legal_info	land_use_purpose	\N	Dat o tai do thi (ODT)	Muc dich su dung: Dat o tai do thi (ODT)	1	\N	\N	\N	\N	99	mau_thuan	t	2026-07-18 16:02:59.513077+00
+c8cbc1b1-78fd-41a3-9f16-8094bb676353	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_legal_info	use_term	\N	Lau dai	Thoi han su dung: Lau dai	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+793c8327-e728-4b2e-bf19-600054de6b63	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_physical_info	address	\N	123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM	Dia chi: 123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+48453010-b9fd-4a45-8b03-bdef9e42ed36	REQ-E2E-0002	adoc-1-REQ-E2E-0002	property_physical_info	property_type	\N	Nha pho	Loai tai san: Nha pho	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+ba6322d3-6eee-49e1-9b82-6f925689823d	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_physical_info	land_area_sqm	\N	62 m2	Dien tich: 62 m2	1	\N	\N	\N	\N	99	mau_thuan	t	2026-07-18 16:02:59.513077+00
+8227dc2f-ede5-49d1-8d5f-00727e533f2c	REQ-E2E-0002	adoc-1-REQ-E2E-0002	property_physical_info	floor_area_sqm	\N	110 m2	Dien tich dat: 62 m2   Dien tich san: 110 m2	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+99723bca-8027-43f0-88c6-7b21739a4bbf	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_physical_info	num_floors_desc	\N	2 tang	Nam xay dung: 2015   So tang: 2 tang	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+c50740be-b3a2-480d-a1fe-ec847ba3f5f3	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_physical_info	frontage_m	\N	4 m	Mat tien: 4 m   Chieu sau: 15 m	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+c32d1075-f667-4fbc-a03a-f2685a699740	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_physical_info	depth_m	\N	15 m	Mat tien: 4 m   Chieu sau: 15 m	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+0e9cc7cf-8d72-4640-8e2e-1121d7927b45	REQ-E2E-0002	adoc-0-REQ-E2E-0002	property_physical_info	construction_year	\N	2015	Nam xay dung: 2015   So tang: 2 tang	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+cd3c0bc3-7318-482d-acd9-8291231ffec6	REQ-E2E-0002	adoc-2-REQ-E2E-0002	property_physical_info	current_usage_status	\N	Da hoan thien, dang o	Hien trang ban giao: Da hoan thien, dang o	1	\N	\N	\N	\N	99	da_xac_thuc	t	2026-07-18 16:02:59.513077+00
+\.
+
+
+--
+-- Data for Name: files; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.files (id, user_id, original_name, stored_path, content_type, size_bytes, created_at) FROM stdin;
+ec0b3370-0c10-46fd-ab88-fd4eeaf5106c	c9fe61b1-97ac-419e-a2a0-0fce98f30083	01_so_hong.pdf	storage/c9fe61b1-97ac-419e-a2a0-0fce98f30083/36c099a1-d8a8-4d3d-bf66-55c468e63366	application/pdf	3040	2026-07-18 12:42:51.459512+00
+e5d59602-89cb-41ea-bff0-481a7da59b23	c9fe61b1-97ac-419e-a2a0-0fce98f30083	02_to_khai_lptb.pdf	storage/c9fe61b1-97ac-419e-a2a0-0fce98f30083/a3ee2bed-c551-46c8-be69-8f2c545d5e85	application/pdf	2218	2026-07-18 12:42:51.638523+00
+576154bb-9838-49fa-aab1-1287c2faa3fb	c9fe61b1-97ac-419e-a2a0-0fce98f30083	03_bien_ban_ban_giao.pdf	storage/c9fe61b1-97ac-419e-a2a0-0fce98f30083/9f78868f-d722-4206-bbb4-e0e6027b0a4d	application/pdf	1822	2026-07-18 12:42:51.816887+00
+c3235af6-feb7-4402-91c5-c0a1e449cb7d	c9fe61b1-97ac-419e-a2a0-0fce98f30083	04_thong_bao_thue_dat.pdf	storage/c9fe61b1-97ac-419e-a2a0-0fce98f30083/e200f079-a608-4dcc-8545-2611cf07c02c	application/pdf	1851	2026-07-18 12:42:51.99819+00
+c9f2d77b-ffbb-4144-922d-86fa1b555466	19aaa767-99bd-4880-9a63-dbd97472e6b3	01_so_hong.pdf	storage/19aaa767-99bd-4880-9a63-dbd97472e6b3/16682c52-8508-4bc4-b69b-fafe3a0af9cd	application/pdf	3040	2026-07-18 12:47:54.903875+00
+0cc01dbf-aaa4-492f-8df7-bf2f7404f657	19aaa767-99bd-4880-9a63-dbd97472e6b3	02_to_khai_lptb.pdf	storage/19aaa767-99bd-4880-9a63-dbd97472e6b3/5eec7a6a-ed69-4e71-91f2-eda88b0e3739	application/pdf	2218	2026-07-18 12:47:55.054593+00
+5ae1c034-8a28-4610-8dcb-bd0f61d8f378	19aaa767-99bd-4880-9a63-dbd97472e6b3	03_bien_ban_ban_giao.pdf	storage/19aaa767-99bd-4880-9a63-dbd97472e6b3/57f74c32-16b8-4017-a7bf-bac697194aa4	application/pdf	1822	2026-07-18 12:47:55.178279+00
+7b52ae5f-57ee-46ea-9cb4-e0d540a2ae79	19aaa767-99bd-4880-9a63-dbd97472e6b3	04_thong_bao_thue_dat.pdf	storage/19aaa767-99bd-4880-9a63-dbd97472e6b3/2d94a049-60af-4982-94ab-a0278458362d	application/pdf	1851	2026-07-18 12:47:55.337379+00
+31772097-4cfd-4311-bacd-742ca0fd4733	74e6708b-735a-4528-8b6b-eeca8cfbb582	01_so_hong.pdf	storage/74e6708b-735a-4528-8b6b-eeca8cfbb582/51490493-fef7-4634-b588-1dc4291b6e57	application/pdf	3040	2026-07-18 12:54:30.466119+00
+334a9377-1d3f-4e61-bffe-60e5135e4844	74e6708b-735a-4528-8b6b-eeca8cfbb582	02_to_khai_lptb.pdf	storage/74e6708b-735a-4528-8b6b-eeca8cfbb582/0fc097bc-3ae1-4a2b-9ac9-2501261290e4	application/pdf	2218	2026-07-18 12:56:51.926528+00
+5297809f-026a-48e3-a056-59f7265c0efc	74e6708b-735a-4528-8b6b-eeca8cfbb582	01_so_hong.pdf	storage/74e6708b-735a-4528-8b6b-eeca8cfbb582/3055bcfa-7fbc-4d6a-93e5-d4c867373381	application/pdf	3040	2026-07-18 12:58:03.863171+00
+10e2edd3-3060-48eb-bd18-1f47bfeaca3f	74e6708b-735a-4528-8b6b-eeca8cfbb582	02_to_khai_lptb.pdf	storage/74e6708b-735a-4528-8b6b-eeca8cfbb582/8452986d-31c6-49d4-b958-e7f0502fcb7c	application/pdf	2218	2026-07-18 14:10:59.291185+00
+a124ec98-fe07-460c-bc5e-9ca6adf369fc	74e6708b-735a-4528-8b6b-eeca8cfbb582	03_bien_ban_ban_giao.pdf	storage/74e6708b-735a-4528-8b6b-eeca8cfbb582/59804706-71ff-4c73-8372-ea11a72fc85d	application/pdf	1822	2026-07-18 14:11:15.424834+00
+7d6e7577-e78c-4a7d-90fa-af5b4e242540	d9b148fa-7b62-4ee8-93c2-e8341909b763	01_so_hong.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\c2d44478-6333-4030-a14e-2b11580e2ab3	application/pdf	3040	2026-07-18 14:12:41.78464+00
+c9f9a532-d50c-4cea-bf8d-1f8605be7cd9	d9b148fa-7b62-4ee8-93c2-e8341909b763	02_to_khai_lptb.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\8c3357bd-5435-4cc6-9d84-8d63b5cda09f	application/pdf	2218	2026-07-18 14:12:41.787839+00
+5262f005-b58e-4312-8e23-5c8c9419e099	d9b148fa-7b62-4ee8-93c2-e8341909b763	03_bien_ban_ban_giao.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\1af9442c-88c7-4fa4-8984-e956b5c7ce91	application/pdf	1822	2026-07-18 14:12:41.788838+00
+99c0e383-b561-45fd-8647-2de9df3d2893	d9b148fa-7b62-4ee8-93c2-e8341909b763	04_thong_bao_thue_dat.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\5b1c22d7-b059-4910-baf8-7a1e5594db57	application/pdf	1851	2026-07-18 14:12:41.790837+00
+2c74dfad-d42b-42f1-a45a-5ba373704947	d9b148fa-7b62-4ee8-93c2-e8341909b763	01_so_hong.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\6e5d1702-4845-4eed-8481-33930fefed01	application/pdf	3040	2026-07-18 14:13:24.462827+00
+d5117ffb-68cc-41ee-9681-4976db55c31e	d9b148fa-7b62-4ee8-93c2-e8341909b763	02_to_khai_lptb.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\818da393-e503-4b1b-86c3-6795a8d9a328	application/pdf	2218	2026-07-18 14:13:24.465899+00
+8fc21e86-e4d7-4cbd-bc04-f2028033c01e	d9b148fa-7b62-4ee8-93c2-e8341909b763	03_bien_ban_ban_giao.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\90c3fe0c-bef2-405a-942f-94efdc79ab34	application/pdf	1822	2026-07-18 14:13:24.466904+00
+171e6ffe-5ae6-465e-a28e-67af0dcf0de7	d9b148fa-7b62-4ee8-93c2-e8341909b763	04_thong_bao_thue_dat.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\0336a85f-6074-4e3f-a9be-98fb6c6bd465	application/pdf	1851	2026-07-18 14:13:24.468903+00
+d6cd82ad-c738-481f-a311-9dd984c07450	74e6708b-735a-4528-8b6b-eeca8cfbb582	02_to_khai_lptb.pdf	storage/74e6708b-735a-4528-8b6b-eeca8cfbb582/ab698182-6cb5-4130-9dbf-242cdfe4e2b7	application/pdf	2218	2026-07-18 14:16:01.643437+00
+7549dde6-6c74-4707-b4e3-eed3c648da6e	74e6708b-735a-4528-8b6b-eeca8cfbb582	03_bien_ban_ban_giao.pdf	storage/74e6708b-735a-4528-8b6b-eeca8cfbb582/1c892f71-c59e-46ad-949f-6ec6c461683e	application/pdf	1822	2026-07-18 14:16:04.606492+00
+4971beef-80ae-469f-91fe-91df37d7034d	74e6708b-735a-4528-8b6b-eeca8cfbb582	04_Thong_bao_thue_dat (1).pdf	storage/74e6708b-735a-4528-8b6b-eeca8cfbb582/045cfb09-cd74-4850-ac8c-b424037ac21d	application/pdf	318194	2026-07-18 14:16:14.752714+00
+615d90ad-37d8-45f2-9375-14e92fa80f63	183ae2bb-345b-417e-bd08-aceebac356c7	01_so_hong.pdf	storage/183ae2bb-345b-417e-bd08-aceebac356c7/c1623705-b5b2-434a-b68b-11bfc606e8eb	application/pdf	3040	2026-07-18 14:17:26.881501+00
+6c646f0f-d05f-4272-8cb6-2763576baee3	74e6708b-735a-4528-8b6b-eeca8cfbb582	01_So_hong_GCN_QSDD.pdf	storage/74e6708b-735a-4528-8b6b-eeca8cfbb582/b7ad4108-8e19-4561-9c56-e7e4f30bb5e7	application/pdf	368532	2026-07-18 14:20:05.223676+00
+acfb3cb2-ae73-4de3-bd7c-6564d440b249	2a8da0a4-0d61-4565-8d42-a896e7a800af	01_so_hong.pdf	storage/2a8da0a4-0d61-4565-8d42-a896e7a800af/2040e9c6-d508-4904-9c39-47d519c3c455	application/pdf	3040	2026-07-18 14:42:50.5618+00
+f209128b-a10a-4f41-9bc6-f71380e520cf	2a8da0a4-0d61-4565-8d42-a896e7a800af	02_to_khai_lptb.pdf	storage/2a8da0a4-0d61-4565-8d42-a896e7a800af/57482958-b4bf-47a4-a53c-2f36a19089ff	application/pdf	2218	2026-07-18 14:42:50.642128+00
+79ecce3e-7e06-40cc-953f-5dcb3ffe40c6	2a8da0a4-0d61-4565-8d42-a896e7a800af	03_bien_ban_ban_giao.pdf	storage/2a8da0a4-0d61-4565-8d42-a896e7a800af/896ef445-7318-4f4c-ace2-62643c157d60	application/pdf	1822	2026-07-18 14:42:50.775543+00
+f2bf125e-84df-4cd0-a12c-6d06604aa3c9	2a8da0a4-0d61-4565-8d42-a896e7a800af	04_thong_bao_thue_dat.pdf	storage/2a8da0a4-0d61-4565-8d42-a896e7a800af/94bb59ae-00c0-4844-b252-527db448e612	application/pdf	1851	2026-07-18 14:42:50.903266+00
+6eb52c60-c63e-49eb-80a7-60b571a0acfb	d9b148fa-7b62-4ee8-93c2-e8341909b763	01_so_hong.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\a6d105f8-5079-4afc-a00a-5ec66565e789	application/pdf	3040	2026-07-18 16:02:57.998493+00
+f714db7c-1373-4df0-a61c-1cc2c9cd8a6b	d9b148fa-7b62-4ee8-93c2-e8341909b763	02_to_khai_lptb.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\f0a2b212-07f2-446e-b591-1c5e85d6ff26	application/pdf	2218	2026-07-18 16:02:58.00268+00
+1fcef2f8-8a55-4b93-ab3b-52a5bf5e265e	d9b148fa-7b62-4ee8-93c2-e8341909b763	03_bien_ban_ban_giao.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\072d18ec-91e4-4bf2-b8b7-a2896b653d59	application/pdf	1822	2026-07-18 16:02:58.004681+00
+ee310ccf-5296-4eff-9dd8-dd5291489d69	d9b148fa-7b62-4ee8-93c2-e8341909b763	04_thong_bao_thue_dat.pdf	storage\\d9b148fa-7b62-4ee8-93c2-e8341909b763\\1fddc414-c222-4f69-b9a9-7070d662e9b5	application/pdf	1851	2026-07-18 16:02:58.007682+00
+e914c077-567f-4c6b-bb20-1010804199e2	91d4963d-455f-4c4c-a65b-7b8676b5697f	01_So_hong_GCN_QSDD.pdf	storage/91d4963d-455f-4c4c-a65b-7b8676b5697f/8f9dd5f8-4ee8-49a0-bb19-2b7dd7e5af91	application/pdf	368532	2026-07-18 19:50:21.776607+00
+\.
+
+
+--
+-- Data for Name: jobs; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.jobs (id, user_id, plugin_id, status, input, input_file_path, result, error, progress, created_at, started_at, finished_at, celery_task_id, celery_retries) FROM stdin;
+2e5d1bd1-8dde-42e9-85b9-00889b9b1f98	5de42882-ff94-4283-99da-7ee3ab63cd08	property_valuation	completed	{"case_id": "REQ-2026-2000"}	\N	{"case_id": "REQ-2026-2000", "valuation": {"proposed_value_vnd": 30491201342, "value_range_low_vnd": 28514552444, "value_range_high_vnd": 32467850240, "price_per_sqm_vnd": 152991477, "confidence_pct": 78, "comparable_count": 7, "price_index_period": "2026-Q2", "price_index_value": 124.2, "price_index_base": 100.0, "confidence_inference_text": "\\u0110\\u1ed9 tin c\\u1eady t\\u1ed5ng 78% l\\u00e0 trung b\\u00ecnh c\\u00f3 tr\\u1ecdng s\\u1ed1 c\\u1ee7a 5 y\\u1ebfu t\\u1ed1; \\u0111\\u1ed9 h\\u1ed9i t\\u1ee5 gi\\u1eefa 3 ph\\u01b0\\u01a1ng ph\\u00e1p \\u1edf m\\u1ee9c 97%."}, "methods": [{"method_key": "sales_comparison", "estimated_value_vnd": 29986950214, "weight_pct": 70, "contribution_value_vnd": 20990865149, "method_confidence_pct": null, "inputs": ["Gi\\u00e1/m\\u00b2 tham chi\\u1ebfu 151,217,453 t\\u1eeb 7 giao d\\u1ecbch (q\\u0304=0.26)", "\\u0110i\\u1ec1u ch\\u1ec9nh \\u0111\\u1eb7c \\u0111i\\u1ec3m (x\\u00e1c \\u0111\\u1ecbnh): -1.0%", "\\u0110i\\u1ec1u ch\\u1ec9nh c\\u1ea3m t\\u00ednh (LLM, \\u00b15%): +0.5%"], "inference_text": null, "source_label": "So s\\u00e1nh tr\\u1ef1c ti\\u1ebfp"}, {"method_key": "hedonic_ml", "estimated_value_vnd": 31831373684, "weight_pct": 17, "contribution_value_vnd": 5252176658, "method_confidence_pct": null, "inputs": ["M\\u00f4 h\\u00ecnh hedonic tuy\\u1ebfn t\\u00ednh tr\\u00ean \\u0111\\u1eb7c \\u0111i\\u1ec3m \\u0111\\u1ecbnh l\\u01b0\\u1ee3ng (kh\\u00f4ng c\\u1ea3m t\\u00ednh)"], "inference_text": null, "source_label": "Hedonic (ML)"}, {"method_key": "cost_approach", "estimated_value_vnd": 31467848406, "weight_pct": 13, "contribution_value_vnd": 4248159535, "method_confidence_pct": null, "inputs": ["Gi\\u00e1 tr\\u1ecb \\u0111\\u1ea5t + chi ph\\u00ed x\\u00e2y d\\u1ef1ng \\u0111\\u00e3 kh\\u1ea5u hao theo tu\\u1ed5i c\\u00f4ng tr\\u00ecnh"], "inference_text": null, "source_label": "Chi ph\\u00ed x\\u00e2y d\\u1ef1ng"}], "confidence_factors": [{"factor_key": "comp_quantity_quality", "label": "Giao d\\u1ecbch so s\\u00e1nh (SL & ch\\u1ea5t l\\u01b0\\u1ee3ng)", "weight_pct": 28, "score": 71}, {"factor_key": "method_consensus", "label": "\\u0110\\u1ed3ng thu\\u1eadn gi\\u1eefa 3 ph\\u01b0\\u01a1ng ph\\u00e1p", "weight_pct": 26, "score": 97}, {"factor_key": "legal_planning_completeness", "label": "Ph\\u00e1p l\\u00fd & quy ho\\u1ea1ch \\u0111\\u1ea7y \\u0111\\u1ee7", "weight_pct": 18, "score": 75}, {"factor_key": "market_volatility", "label": "Bi\\u1ebfn \\u0111\\u1ed9ng th\\u1ecb tr\\u01b0\\u1eddng g\\u1ea7n \\u0111\\u00e2y", "weight_pct": 17, "score": 95}, {"factor_key": "comp_similarity", "label": "T\\u01b0\\u01a1ng \\u0111\\u1ed3ng giao d\\u1ecbch so s\\u00e1nh", "weight_pct": 11, "score": 26}], "price_index_series": [{"period_label": "2024-Q1", "index_value": 100.0, "display_order": 0}, {"period_label": "2024-Q3", "index_value": 105.1, "display_order": 1}, {"period_label": "2025-Q1", "index_value": 110.6, "display_order": 2}, {"period_label": "2025-Q3", "index_value": 115.2, "display_order": 3}, {"period_label": "2026-Q1", "index_value": 118.1, "display_order": 4}, {"period_label": "2026-Q2", "index_value": 124.2, "display_order": 5}], "subjective_adjustment": {"value_pct": 0.5, "reason": "H\\u01b0\\u1edbng \\u0110\\u00f4ng B\\u1eafc nh\\u00ecn chung \\u0111\\u01b0\\u1ee3c m\\u1ed9t b\\u1ed9 ph\\u1eadn ng\\u01b0\\u1eddi mua \\u01b0a chu\\u1ed9ng, t\\u1ea1o l\\u1ee3i th\\u1ebf c\\u1ea3m t\\u00ednh nh\\u1eb9. Kh\\u00f4ng ghi nh\\u1eadn \\u0111\\u1eb7c \\u0111i\\u1ec3m g\\u00f3c, t\\u00f3p h\\u1eadu hay y\\u1ebfu t\\u1ed1 b\\u1ea5t l\\u1ee3i n\\u1ed5i b\\u1eadt \\u0111\\u1ec3 \\u0111i\\u1ec1u ch\\u1ec9nh th\\u00eam.", "source": "llm_inference", "bound_pct": 5.0}, "warnings": []}	Service property_valuation not found	40	2026-07-18 15:58:21.899979+00	2026-07-18 15:58:24.845477+00	2026-07-18 15:58:27.660255+00	8214ac17-be75-42d4-b309-d652c00aeea9	0
+24195971-cd9b-4164-ba89-ca51cbc79a94	19aaa767-99bd-4880-9a63-dbd97472e6b3	property_intake	completed	{"file_ids": ["c9f2d77b-ffbb-4144-922d-86fa1b555466", "0cc01dbf-aaa4-492f-8df7-bf2f7404f657", "5ae1c034-8a28-4610-8dcb-bd0f61d8f378", "7b52ae5f-57ee-46ea-9cb4-e0d540a2ae79"], "case_id": "REQ-2026-0001"}	\N	{"case_id": "REQ-2026-0001", "documents": [{"file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "file_name": "01_so_hong.pdf", "detected_doc_type": "so_do_so_hong", "is_scan": false, "page_count": 1}, {"file_id": "0cc01dbf-aaa4-492f-8df7-bf2f7404f657", "file_name": "02_to_khai_lptb.pdf", "detected_doc_type": "to_khai_lptb", "is_scan": false, "page_count": 1}, {"file_id": "5ae1c034-8a28-4610-8dcb-bd0f61d8f378", "file_name": "03_bien_ban_ban_giao.pdf", "detected_doc_type": "bien_ban_ban_giao", "is_scan": false, "page_count": 1}, {"file_id": "7b52ae5f-57ee-46ea-9cb4-e0d540a2ae79", "file_name": "04_thong_bao_thue_dat.pdf", "detected_doc_type": "thong_bao_thue_dat", "is_scan": false, "page_count": 1}], "fields": [{"key": "owner_full_name", "section": "A", "label": "H\\u1ecd v\\u00e0 t\\u00ean", "target_table": "case_borrower", "target_field": "full_name", "value": "Nguyen Van A", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Nguoi su dung dat: Nguyen Van A", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "owner_national_id", "section": "A", "label": "S\\u1ed1 CMND/CCCD", "target_table": "case_borrower", "target_field": "national_id", "value": "079088001234", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "So CMND/CCCD: 079088001234", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "owner_phone", "section": "A", "label": "S\\u1ed1 \\u0111i\\u1ec7n tho\\u1ea1i", "target_table": "case_borrower", "target_field": "phone_number", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "relationship_to_asset", "section": "A", "label": "M\\u1ed1i quan h\\u1ec7 v\\u1edbi t\\u00e0i s\\u1ea3n", "target_table": "case_borrower", "target_field": "relationship_to_asset", "value": "Ch\\u1ee7 s\\u1edf h\\u1eefu \\u0111\\u1ee9ng t\\u00ean tr\\u00ean GCN", "normalized": null, "status": "suy_luan", "confidence_pct": 75, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Nguoi su dung dat: Nguyen Van A", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "certificate_type", "section": "B", "label": "Lo\\u1ea1i gi\\u1ea5y ch\\u1ee9ng nh\\u1eadn", "target_table": "property_legal_info", "target_field": "certificate_type", "value": "GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "certificate_number", "section": "B", "label": "S\\u1ed1 gi\\u1ea5y ch\\u1ee9ng nh\\u1eadn", "target_table": "property_legal_info", "target_field": "certificate_number", "value": "CS 01234567", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "So phat hanh: CS 01234567", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "issue_date", "section": "B", "label": "Ng\\u00e0y c\\u1ea5p", "target_table": "property_legal_info", "target_field": "issue_date", "value": "15/03/2020", "normalized": "2020-03-15", "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Ngay cap: 15/03/2020   Co quan cap: So TN&MT TP HCM", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "issuing_authority", "section": "B", "label": "C\\u01a1 quan c\\u1ea5p", "target_table": "property_legal_info", "target_field": "issuing_authority", "value": "So TN&MT TP HCM", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Ngay cap: 15/03/2020   Co quan cap: So TN&MT TP HCM", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_plot_number", "section": "B", "label": "S\\u1ed1 th\\u1eeda", "target_table": "property_legal_info", "target_field": "land_plot_number", "value": "45", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Thua dat so: 45   To ban do so: 12", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "map_sheet_number", "section": "B", "label": "S\\u1ed1 t\\u1edd b\\u1ea3n \\u0111\\u1ed3", "target_table": "property_legal_info", "target_field": "map_sheet_number", "value": "12", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Thua dat so: 45   To ban do so: 12", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_use_purpose", "section": "B", "label": "M\\u1ee5c \\u0111\\u00edch s\\u1eed d\\u1ee5ng \\u0111\\u1ea5t", "target_table": "property_legal_info", "target_field": "land_use_purpose", "value": "Dat o tai do thi (ODT)", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Muc dich su dung: Dat o tai do thi (ODT)", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": [{"value": "Dat o tai do thi", "normalized": null, "status": "mau_thuan", "confidence_pct": 100, "source_file_id": "7b52ae5f-57ee-46ea-9cb4-e0d540a2ae79", "source_doc_type": "thong_bao_thue_dat", "source_page": 1, "source_snippet": "Muc dich su dung: Dat o tai do thi", "bbox": null}]}, {"key": "use_term", "section": "B", "label": "Th\\u1eddi h\\u1ea1n s\\u1eed d\\u1ee5ng", "target_table": "property_legal_info", "target_field": "use_term", "value": "Lau dai", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Thoi han su dung: Lau dai", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "ownership_form", "section": "B", "label": "H\\u00ecnh th\\u1ee9c s\\u1edf h\\u1eefu", "target_table": "property_legal_info", "target_field": "ownership_form", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "current_mortgage_status", "section": "B", "label": "T\\u00ecnh tr\\u1ea1ng th\\u1ebf ch\\u1ea5p hi\\u1ec7n t\\u1ea1i", "target_table": "property_legal_info", "target_field": "current_mortgage_status", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "address", "section": "C", "label": "\\u0110\\u1ecba ch\\u1ec9", "target_table": "property_physical_info", "target_field": "address", "value": "123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Dia chi: 123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "property_type", "section": "C", "label": "Lo\\u1ea1i B\\u0110S", "target_table": "property_physical_info", "target_field": "property_type", "value": "Nha pho", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "0cc01dbf-aaa4-492f-8df7-bf2f7404f657", "source_page": 1, "source_snippet": "Loai tai san: Nha pho", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_area_sqm", "section": "C", "label": "Di\\u1ec7n t\\u00edch \\u0111\\u1ea5t", "target_table": "property_physical_info", "target_field": "land_area_sqm", "value": "62 m2", "normalized": 62.0, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Dien tich: 62 m2", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": [{"value": "80 m2", "normalized": 80.0, "status": "mau_thuan", "confidence_pct": 100, "source_file_id": "7b52ae5f-57ee-46ea-9cb4-e0d540a2ae79", "source_doc_type": "thong_bao_thue_dat", "source_page": 1, "source_snippet": "Dien tich dat: 80 m2", "bbox": null}]}, {"key": "floor_area_sqm", "section": "C", "label": "Di\\u1ec7n t\\u00edch s\\u00e0n x\\u00e2y d\\u1ef1ng", "target_table": "property_physical_info", "target_field": "floor_area_sqm", "value": "110 m2", "normalized": 110.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "0cc01dbf-aaa4-492f-8df7-bf2f7404f657", "source_page": 1, "source_snippet": "Dien tich dat: 62 m2   Dien tich san: 110 m2", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "num_floors_desc", "section": "C", "label": "S\\u1ed1 t\\u1ea7ng", "target_table": "property_physical_info", "target_field": "num_floors_desc", "value": "2 tang", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Nam xay dung: 2015   So tang: 2 tang", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "frontage_m", "section": "C", "label": "M\\u1eb7t ti\\u1ec1n (m)", "target_table": "property_physical_info", "target_field": "frontage_m", "value": "4 m", "normalized": 4.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Mat tien: 4 m   Chieu sau: 15 m", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "depth_m", "section": "C", "label": "Chi\\u1ec1u s\\u00e2u (m)", "target_table": "property_physical_info", "target_field": "depth_m", "value": "15 m", "normalized": 15.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Mat tien: 4 m   Chieu sau: 15 m", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "construction_year", "section": "C", "label": "N\\u0103m x\\u00e2y d\\u1ef1ng", "target_table": "property_physical_info", "target_field": "construction_year", "value": "2015", "normalized": 2015, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "c9f2d77b-ffbb-4144-922d-86fa1b555466", "source_page": 1, "source_snippet": "Nam xay dung: 2015   So tang: 2 tang", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "structure_material", "section": "C", "label": "K\\u1ebft c\\u1ea5u / v\\u1eadt li\\u1ec7u", "target_table": "property_physical_info", "target_field": "structure_material", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "house_direction", "section": "C", "label": "H\\u01b0\\u1edbng nh\\u00e0", "target_table": "property_physical_info", "target_field": "house_direction", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "road_type_desc", "section": "C", "label": "Lo\\u1ea1i \\u0111\\u01b0\\u1eddng / \\u0111\\u1ed9 r\\u1ed9ng h\\u1ebbm", "target_table": "property_physical_info", "target_field": "road_type_desc", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "alley_width_m", "section": "C", "label": "\\u0110\\u1ed9 r\\u1ed9ng h\\u1ebbm (m)", "target_table": "property_physical_info", "target_field": "alley_width_m", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "current_usage_status", "section": "C", "label": "T\\u00ecnh tr\\u1ea1ng s\\u1eed d\\u1ee5ng hi\\u1ec7n t\\u1ea1i", "target_table": "property_physical_info", "target_field": "current_usage_status", "value": "Da hoan thien, dang o", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5ae1c034-8a28-4610-8dcb-bd0f61d8f378", "source_page": 1, "source_snippet": "Hien trang ban giao: Da hoan thien, dang o", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "loan_amount_vnd", "section": "D", "label": "S\\u1ed1 ti\\u1ec1n vay", "target_table": "loan_info", "target_field": "loan_amount_vnd", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_purpose", "section": "D", "label": "M\\u1ee5c \\u0111\\u00edch vay", "target_table": "loan_info", "target_field": "loan_purpose", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_term_years", "section": "D", "label": "Th\\u1eddi h\\u1ea1n vay", "target_table": "loan_info", "target_field": "loan_term_years", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}], "warnings": ["Tr\\u01b0\\u1eddng 'M\\u1ee5c \\u0111\\u00edch s\\u1eed d\\u1ee5ng \\u0111\\u1ea5t' m\\u00e2u thu\\u1eabn gi\\u1eefa c\\u00e1c t\\u00e0i li\\u1ec7u: \\u01b0u ti\\u00ean 'Dat o tai do thi (ODT)' (t\\u1eeb 01_so_hong.pdf); gi\\u00e1 tr\\u1ecb kh\\u00e1c: Dat o tai do thi.", "Tr\\u01b0\\u1eddng 'Di\\u1ec7n t\\u00edch \\u0111\\u1ea5t' m\\u00e2u thu\\u1eabn gi\\u1eefa c\\u00e1c t\\u00e0i li\\u1ec7u: \\u01b0u ti\\u00ean '62 m2' (t\\u1eeb 01_so_hong.pdf); gi\\u00e1 tr\\u1ecb kh\\u00e1c: 80 m2."]}	\N	82	2026-07-18 12:47:55.58292+00	2026-07-18 12:47:55.841061+00	2026-07-18 12:49:14.827057+00	ec9d76f0-df22-4fb6-90df-609a10185ee6	0
+131e7563-4513-41df-b3ba-67071858ce2e	2a8da0a4-0d61-4565-8d42-a896e7a800af	property_intake	completed	{"file_ids": ["acfb3cb2-ae73-4de3-bd7c-6564d440b249", "f209128b-a10a-4f41-9bc6-f71380e520cf", "79ecce3e-7e06-40cc-953f-5dcb3ffe40c6", "f2bf125e-84df-4cd0-a12c-6d06604aa3c9"], "case_id": "REQ-SSE-F1"}	\N	{"case_id": "REQ-SSE-F1", "documents": [{"file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "file_name": "01_so_hong.pdf", "detected_doc_type": "so_do_so_hong", "is_scan": false, "page_count": 1}, {"file_id": "f209128b-a10a-4f41-9bc6-f71380e520cf", "file_name": "02_to_khai_lptb.pdf", "detected_doc_type": "to_khai_lptb", "is_scan": false, "page_count": 1}, {"file_id": "79ecce3e-7e06-40cc-953f-5dcb3ffe40c6", "file_name": "03_bien_ban_ban_giao.pdf", "detected_doc_type": "bien_ban_ban_giao", "is_scan": false, "page_count": 1}, {"file_id": "f2bf125e-84df-4cd0-a12c-6d06604aa3c9", "file_name": "04_thong_bao_thue_dat.pdf", "detected_doc_type": "thong_bao_thue_dat", "is_scan": false, "page_count": 1}], "fields": [{"key": "owner_full_name", "section": "A", "label": "H\\u1ecd v\\u00e0 t\\u00ean", "target_table": "case_borrower", "target_field": "full_name", "value": "Nguyen Van A", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Nguoi su dung dat: Nguyen Van A", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "owner_national_id", "section": "A", "label": "S\\u1ed1 CMND/CCCD", "target_table": "case_borrower", "target_field": "national_id", "value": "079088001234", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "So CMND/CCCD: 079088001234", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "owner_phone", "section": "A", "label": "S\\u1ed1 \\u0111i\\u1ec7n tho\\u1ea1i", "target_table": "case_borrower", "target_field": "phone_number", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "relationship_to_asset", "section": "A", "label": "M\\u1ed1i quan h\\u1ec7 v\\u1edbi t\\u00e0i s\\u1ea3n", "target_table": "case_borrower", "target_field": "relationship_to_asset", "value": "Ch\\u1ee7 s\\u1edf h\\u1eefu \\u0111\\u1ee9ng t\\u00ean tr\\u00ean GCN", "normalized": null, "status": "suy_luan", "confidence_pct": 75, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Nguoi su dung dat: Nguyen Van A", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "certificate_type", "section": "B", "label": "Lo\\u1ea1i gi\\u1ea5y ch\\u1ee9ng nh\\u1eadn", "target_table": "property_legal_info", "target_field": "certificate_type", "value": "GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "certificate_number", "section": "B", "label": "S\\u1ed1 gi\\u1ea5y ch\\u1ee9ng nh\\u1eadn", "target_table": "property_legal_info", "target_field": "certificate_number", "value": "CS 01234567", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "So phat hanh: CS 01234567", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "issue_date", "section": "B", "label": "Ng\\u00e0y c\\u1ea5p", "target_table": "property_legal_info", "target_field": "issue_date", "value": "15/03/2020", "normalized": "2020-03-15", "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Ngay cap: 15/03/2020   Co quan cap: So TN&MT TP HCM", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "issuing_authority", "section": "B", "label": "C\\u01a1 quan c\\u1ea5p", "target_table": "property_legal_info", "target_field": "issuing_authority", "value": "So TN&MT TP HCM", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Ngay cap: 15/03/2020   Co quan cap: So TN&MT TP HCM", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_plot_number", "section": "B", "label": "S\\u1ed1 th\\u1eeda", "target_table": "property_legal_info", "target_field": "land_plot_number", "value": "45", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Thua dat so: 45   To ban do so: 12", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "map_sheet_number", "section": "B", "label": "S\\u1ed1 t\\u1edd b\\u1ea3n \\u0111\\u1ed3", "target_table": "property_legal_info", "target_field": "map_sheet_number", "value": "12", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Thua dat so: 45   To ban do so: 12", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_use_purpose", "section": "B", "label": "M\\u1ee5c \\u0111\\u00edch s\\u1eed d\\u1ee5ng \\u0111\\u1ea5t", "target_table": "property_legal_info", "target_field": "land_use_purpose", "value": "Dat o tai do thi (ODT)", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Muc dich su dung: Dat o tai do thi (ODT)", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": [{"value": "Dat o tai do thi", "normalized": null, "status": "mau_thuan", "confidence_pct": 100, "source_file_id": "f2bf125e-84df-4cd0-a12c-6d06604aa3c9", "source_doc_type": "thong_bao_thue_dat", "source_page": 1, "source_snippet": "Muc dich su dung: Dat o tai do thi", "bbox": null}]}, {"key": "use_term", "section": "B", "label": "Th\\u1eddi h\\u1ea1n s\\u1eed d\\u1ee5ng", "target_table": "property_legal_info", "target_field": "use_term", "value": "Lau dai", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Thoi han su dung: Lau dai", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "ownership_form", "section": "B", "label": "H\\u00ecnh th\\u1ee9c s\\u1edf h\\u1eefu", "target_table": "property_legal_info", "target_field": "ownership_form", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "current_mortgage_status", "section": "B", "label": "T\\u00ecnh tr\\u1ea1ng th\\u1ebf ch\\u1ea5p hi\\u1ec7n t\\u1ea1i", "target_table": "property_legal_info", "target_field": "current_mortgage_status", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "address", "section": "C", "label": "\\u0110\\u1ecba ch\\u1ec9", "target_table": "property_physical_info", "target_field": "address", "value": "123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Dia chi: 123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "property_type", "section": "C", "label": "Lo\\u1ea1i B\\u0110S", "target_table": "property_physical_info", "target_field": "property_type", "value": "Nha pho", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "f209128b-a10a-4f41-9bc6-f71380e520cf", "source_page": 1, "source_snippet": "Loai tai san: Nha pho", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_area_sqm", "section": "C", "label": "Di\\u1ec7n t\\u00edch \\u0111\\u1ea5t", "target_table": "property_physical_info", "target_field": "land_area_sqm", "value": "62 m2", "normalized": 62.0, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Dien tich: 62 m2", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": [{"value": "80 m2", "normalized": 80.0, "status": "mau_thuan", "confidence_pct": 100, "source_file_id": "f2bf125e-84df-4cd0-a12c-6d06604aa3c9", "source_doc_type": "thong_bao_thue_dat", "source_page": 1, "source_snippet": "Dien tich dat: 80 m2", "bbox": null}]}, {"key": "floor_area_sqm", "section": "C", "label": "Di\\u1ec7n t\\u00edch s\\u00e0n x\\u00e2y d\\u1ef1ng", "target_table": "property_physical_info", "target_field": "floor_area_sqm", "value": "110 m2", "normalized": 110.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "f209128b-a10a-4f41-9bc6-f71380e520cf", "source_page": 1, "source_snippet": "Dien tich dat: 62 m2   Dien tich san: 110 m2", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "num_floors_desc", "section": "C", "label": "S\\u1ed1 t\\u1ea7ng", "target_table": "property_physical_info", "target_field": "num_floors_desc", "value": "2 tang", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Nam xay dung: 2015   So tang: 2 tang", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "frontage_m", "section": "C", "label": "M\\u1eb7t ti\\u1ec1n (m)", "target_table": "property_physical_info", "target_field": "frontage_m", "value": "4 m", "normalized": 4.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Mat tien: 4 m   Chieu sau: 15 m", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "depth_m", "section": "C", "label": "Chi\\u1ec1u s\\u00e2u (m)", "target_table": "property_physical_info", "target_field": "depth_m", "value": "15 m", "normalized": 15.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Mat tien: 4 m   Chieu sau: 15 m", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "construction_year", "section": "C", "label": "N\\u0103m x\\u00e2y d\\u1ef1ng", "target_table": "property_physical_info", "target_field": "construction_year", "value": "2015", "normalized": 2015, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "acfb3cb2-ae73-4de3-bd7c-6564d440b249", "source_page": 1, "source_snippet": "Nam xay dung: 2015   So tang: 2 tang", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "structure_material", "section": "C", "label": "K\\u1ebft c\\u1ea5u / v\\u1eadt li\\u1ec7u", "target_table": "property_physical_info", "target_field": "structure_material", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "house_direction", "section": "C", "label": "H\\u01b0\\u1edbng nh\\u00e0", "target_table": "property_physical_info", "target_field": "house_direction", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "road_type_desc", "section": "C", "label": "Lo\\u1ea1i \\u0111\\u01b0\\u1eddng / \\u0111\\u1ed9 r\\u1ed9ng h\\u1ebbm", "target_table": "property_physical_info", "target_field": "road_type_desc", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "alley_width_m", "section": "C", "label": "\\u0110\\u1ed9 r\\u1ed9ng h\\u1ebbm (m)", "target_table": "property_physical_info", "target_field": "alley_width_m", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "current_usage_status", "section": "C", "label": "T\\u00ecnh tr\\u1ea1ng s\\u1eed d\\u1ee5ng hi\\u1ec7n t\\u1ea1i", "target_table": "property_physical_info", "target_field": "current_usage_status", "value": "Da hoan thien, dang o", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "79ecce3e-7e06-40cc-953f-5dcb3ffe40c6", "source_page": 1, "source_snippet": "Hien trang ban giao: Da hoan thien, dang o", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "loan_amount_vnd", "section": "D", "label": "S\\u1ed1 ti\\u1ec1n vay", "target_table": "loan_info", "target_field": "loan_amount_vnd", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_purpose", "section": "D", "label": "M\\u1ee5c \\u0111\\u00edch vay", "target_table": "loan_info", "target_field": "loan_purpose", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_term_years", "section": "D", "label": "Th\\u1eddi h\\u1ea1n vay", "target_table": "loan_info", "target_field": "loan_term_years", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}], "warnings": ["Tr\\u01b0\\u1eddng 'M\\u1ee5c \\u0111\\u00edch s\\u1eed d\\u1ee5ng \\u0111\\u1ea5t' m\\u00e2u thu\\u1eabn gi\\u1eefa c\\u00e1c t\\u00e0i li\\u1ec7u: \\u01b0u ti\\u00ean 'Dat o tai do thi (ODT)' (t\\u1eeb 01_so_hong.pdf); gi\\u00e1 tr\\u1ecb kh\\u00e1c: Dat o tai do thi.", "Tr\\u01b0\\u1eddng 'Di\\u1ec7n t\\u00edch \\u0111\\u1ea5t' m\\u00e2u thu\\u1eabn gi\\u1eefa c\\u00e1c t\\u00e0i li\\u1ec7u: \\u01b0u ti\\u00ean '62 m2' (t\\u1eeb 01_so_hong.pdf); gi\\u00e1 tr\\u1ecb kh\\u00e1c: 80 m2."]}	\N	92	2026-07-18 14:42:51.11191+00	2026-07-18 14:42:51.170451+00	2026-07-18 14:42:52.577541+00	34d435bd-d301-47b9-bf6f-5e82776a8b73	0
+3aaa85e8-1b6a-4dc8-aa29-b8482743ccf4	74e6708b-735a-4528-8b6b-eeca8cfbb582	property_intake	completed	{"file_ids": ["null", "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "a124ec98-fe07-460c-bc5e-9ca6adf369fc", ""], "case_id": "REQ-2026-0001"}	\N	{"case_id": "REQ-2026-0001", "documents": [{"file_id": "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "file_name": "02_to_khai_lptb.pdf", "detected_doc_type": "to_khai_lptb", "is_scan": false, "page_count": 1}, {"file_id": "a124ec98-fe07-460c-bc5e-9ca6adf369fc", "file_name": "03_bien_ban_ban_giao.pdf", "detected_doc_type": "bien_ban_ban_giao", "is_scan": false, "page_count": 1}], "fields": [{"key": "owner_full_name", "section": "A", "label": "H\\u1ecd v\\u00e0 t\\u00ean", "target_table": "case_borrower", "target_field": "full_name", "value": "Nguyen Van A", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "source_page": 1, "source_snippet": "Nguoi nop le phi: Nguyen Van A", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "owner_national_id", "section": "A", "label": "S\\u1ed1 CMND/CCCD", "target_table": "case_borrower", "target_field": "national_id", "value": "079088001234", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "source_page": 1, "source_snippet": "So CMND/CCCD: 079088001234", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "owner_phone", "section": "A", "label": "S\\u1ed1 \\u0111i\\u1ec7n tho\\u1ea1i", "target_table": "case_borrower", "target_field": "phone_number", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "relationship_to_asset", "section": "A", "label": "M\\u1ed1i quan h\\u1ec7 v\\u1edbi t\\u00e0i s\\u1ea3n", "target_table": "case_borrower", "target_field": "relationship_to_asset", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "certificate_type", "section": "B", "label": "Lo\\u1ea1i gi\\u1ea5y ch\\u1ee9ng nh\\u1eadn", "target_table": "property_legal_info", "target_field": "certificate_type", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "certificate_number", "section": "B", "label": "S\\u1ed1 gi\\u1ea5y ch\\u1ee9ng nh\\u1eadn", "target_table": "property_legal_info", "target_field": "certificate_number", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "issue_date", "section": "B", "label": "Ng\\u00e0y c\\u1ea5p", "target_table": "property_legal_info", "target_field": "issue_date", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "issuing_authority", "section": "B", "label": "C\\u01a1 quan c\\u1ea5p", "target_table": "property_legal_info", "target_field": "issuing_authority", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "land_plot_number", "section": "B", "label": "S\\u1ed1 th\\u1eeda", "target_table": "property_legal_info", "target_field": "land_plot_number", "value": "45", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "source_page": 1, "source_snippet": "Thua dat so: 45   To ban do: 12", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "map_sheet_number", "section": "B", "label": "S\\u1ed1 t\\u1edd b\\u1ea3n \\u0111\\u1ed3", "target_table": "property_legal_info", "target_field": "map_sheet_number", "value": "12", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "source_page": 1, "source_snippet": "Thua dat so: 45   To ban do: 12", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_use_purpose", "section": "B", "label": "M\\u1ee5c \\u0111\\u00edch s\\u1eed d\\u1ee5ng \\u0111\\u1ea5t", "target_table": "property_legal_info", "target_field": "land_use_purpose", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "use_term", "section": "B", "label": "Th\\u1eddi h\\u1ea1n s\\u1eed d\\u1ee5ng", "target_table": "property_legal_info", "target_field": "use_term", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "ownership_form", "section": "B", "label": "H\\u00ecnh th\\u1ee9c s\\u1edf h\\u1eefu", "target_table": "property_legal_info", "target_field": "ownership_form", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "current_mortgage_status", "section": "B", "label": "T\\u00ecnh tr\\u1ea1ng th\\u1ebf ch\\u1ea5p hi\\u1ec7n t\\u1ea1i", "target_table": "property_legal_info", "target_field": "current_mortgage_status", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "address", "section": "C", "label": "\\u0110\\u1ecba ch\\u1ec9", "target_table": "property_physical_info", "target_field": "address", "value": "123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "source_page": 1, "source_snippet": "Dia chi tai san: 123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "property_type", "section": "C", "label": "Lo\\u1ea1i B\\u0110S", "target_table": "property_physical_info", "target_field": "property_type", "value": "Nha pho", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "source_page": 1, "source_snippet": "Loai tai san: Nha pho", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_area_sqm", "section": "C", "label": "Di\\u1ec7n t\\u00edch \\u0111\\u1ea5t", "target_table": "property_physical_info", "target_field": "land_area_sqm", "value": "62 m2", "normalized": 62.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "source_page": 1, "source_snippet": "Dien tich dat: 62 m2   Dien tich san: 110 m2", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "floor_area_sqm", "section": "C", "label": "Di\\u1ec7n t\\u00edch s\\u00e0n x\\u00e2y d\\u1ef1ng", "target_table": "property_physical_info", "target_field": "floor_area_sqm", "value": "110 m2", "normalized": 110.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "source_page": 1, "source_snippet": "Dien tich dat: 62 m2   Dien tich san: 110 m2", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "num_floors_desc", "section": "C", "label": "S\\u1ed1 t\\u1ea7ng", "target_table": "property_physical_info", "target_field": "num_floors_desc", "value": "2 tang", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "a124ec98-fe07-460c-bc5e-9ca6adf369fc", "source_page": 1, "source_snippet": "Loai tai san: Nha pho   So tang: 2 tang", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "frontage_m", "section": "C", "label": "M\\u1eb7t ti\\u1ec1n (m)", "target_table": "property_physical_info", "target_field": "frontage_m", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "depth_m", "section": "C", "label": "Chi\\u1ec1u s\\u00e2u (m)", "target_table": "property_physical_info", "target_field": "depth_m", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "construction_year", "section": "C", "label": "N\\u0103m x\\u00e2y d\\u1ef1ng", "target_table": "property_physical_info", "target_field": "construction_year", "value": "2015", "normalized": 2015, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "10e2edd3-3060-48eb-bd18-1f47bfeaca3f", "source_page": 1, "source_snippet": "Nam xay dung: 2015", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "structure_material", "section": "C", "label": "K\\u1ebft c\\u1ea5u / v\\u1eadt li\\u1ec7u", "target_table": "property_physical_info", "target_field": "structure_material", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "house_direction", "section": "C", "label": "H\\u01b0\\u1edbng nh\\u00e0", "target_table": "property_physical_info", "target_field": "house_direction", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "road_type_desc", "section": "C", "label": "Lo\\u1ea1i \\u0111\\u01b0\\u1eddng / \\u0111\\u1ed9 r\\u1ed9ng h\\u1ebbm", "target_table": "property_physical_info", "target_field": "road_type_desc", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "alley_width_m", "section": "C", "label": "\\u0110\\u1ed9 r\\u1ed9ng h\\u1ebbm (m)", "target_table": "property_physical_info", "target_field": "alley_width_m", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "current_usage_status", "section": "C", "label": "T\\u00ecnh tr\\u1ea1ng s\\u1eed d\\u1ee5ng hi\\u1ec7n t\\u1ea1i", "target_table": "property_physical_info", "target_field": "current_usage_status", "value": "Da hoan thien, dang o", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "a124ec98-fe07-460c-bc5e-9ca6adf369fc", "source_page": 1, "source_snippet": "Hien trang ban giao: Da hoan thien, dang o", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "loan_amount_vnd", "section": "D", "label": "S\\u1ed1 ti\\u1ec1n vay", "target_table": "loan_info", "target_field": "loan_amount_vnd", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_purpose", "section": "D", "label": "M\\u1ee5c \\u0111\\u00edch vay", "target_table": "loan_info", "target_field": "loan_purpose", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_term_years", "section": "D", "label": "Th\\u1eddi h\\u1ea1n vay", "target_table": "loan_info", "target_field": "loan_term_years", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}], "warnings": ["Kh\\u00f4ng t\\u00ecm th\\u1ea5y t\\u1ec7p 'null'.", "Kh\\u00f4ng t\\u00ecm th\\u1ea5y t\\u1ec7p ''."]}	\N	100	2026-07-18 14:11:21.118054+00	2026-07-18 14:11:21.531517+00	2026-07-18 14:11:35.241803+00	ca5cfa91-3f63-4ef3-beb2-c1db301f567e	0
+2136ceff-960e-40ba-8e46-c7301d264c74	74e6708b-735a-4528-8b6b-eeca8cfbb582	property_intake	completed	{"file_ids": ["5297809f-026a-48e3-a056-59f7265c0efc", "334a9377-1d3f-4e61-bffe-60e5135e4844", "", ""], "case_id": "REQ-2026-0001"}	\N	{"case_id": "REQ-2026-0001", "documents": [{"file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "file_name": "01_so_hong.pdf", "detected_doc_type": "so_do_so_hong", "is_scan": false, "page_count": 1}, {"file_id": "334a9377-1d3f-4e61-bffe-60e5135e4844", "file_name": "02_to_khai_lptb.pdf", "detected_doc_type": "to_khai_lptb", "is_scan": false, "page_count": 1}], "fields": [{"key": "owner_full_name", "section": "A", "label": "H\\u1ecd v\\u00e0 t\\u00ean", "target_table": "case_borrower", "target_field": "full_name", "value": "Nguyen Van A", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Nguoi su dung dat: Nguyen Van A", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "owner_national_id", "section": "A", "label": "S\\u1ed1 CMND/CCCD", "target_table": "case_borrower", "target_field": "national_id", "value": "079088001234", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "So CMND/CCCD: 079088001234", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "owner_phone", "section": "A", "label": "S\\u1ed1 \\u0111i\\u1ec7n tho\\u1ea1i", "target_table": "case_borrower", "target_field": "phone_number", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "relationship_to_asset", "section": "A", "label": "M\\u1ed1i quan h\\u1ec7 v\\u1edbi t\\u00e0i s\\u1ea3n", "target_table": "case_borrower", "target_field": "relationship_to_asset", "value": "Ch\\u1ee7 s\\u1edf h\\u1eefu \\u0111\\u1ee9ng t\\u00ean tr\\u00ean GCN", "normalized": null, "status": "suy_luan", "confidence_pct": 75, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Nguoi su dung dat: Nguyen Van A", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "certificate_type", "section": "B", "label": "Lo\\u1ea1i gi\\u1ea5y ch\\u1ee9ng nh\\u1eadn", "target_table": "property_legal_info", "target_field": "certificate_type", "value": "GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "certificate_number", "section": "B", "label": "S\\u1ed1 gi\\u1ea5y ch\\u1ee9ng nh\\u1eadn", "target_table": "property_legal_info", "target_field": "certificate_number", "value": "CS 01234567", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "So phat hanh: CS 01234567", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "issue_date", "section": "B", "label": "Ng\\u00e0y c\\u1ea5p", "target_table": "property_legal_info", "target_field": "issue_date", "value": "15/03/2020", "normalized": "2020-03-15", "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Ngay cap: 15/03/2020   Co quan cap: So TN&MT TP HCM", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "issuing_authority", "section": "B", "label": "C\\u01a1 quan c\\u1ea5p", "target_table": "property_legal_info", "target_field": "issuing_authority", "value": "So TN&MT TP HCM", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Ngay cap: 15/03/2020   Co quan cap: So TN&MT TP HCM", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_plot_number", "section": "B", "label": "S\\u1ed1 th\\u1eeda", "target_table": "property_legal_info", "target_field": "land_plot_number", "value": "45", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Thua dat so: 45   To ban do so: 12", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "map_sheet_number", "section": "B", "label": "S\\u1ed1 t\\u1edd b\\u1ea3n \\u0111\\u1ed3", "target_table": "property_legal_info", "target_field": "map_sheet_number", "value": "12", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Thua dat so: 45   To ban do so: 12", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_use_purpose", "section": "B", "label": "M\\u1ee5c \\u0111\\u00edch s\\u1eed d\\u1ee5ng \\u0111\\u1ea5t", "target_table": "property_legal_info", "target_field": "land_use_purpose", "value": "Dat o tai do thi (ODT)", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Muc dich su dung: Dat o tai do thi (ODT)", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "use_term", "section": "B", "label": "Th\\u1eddi h\\u1ea1n s\\u1eed d\\u1ee5ng", "target_table": "property_legal_info", "target_field": "use_term", "value": "Lau dai", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Thoi han su dung: Lau dai", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "ownership_form", "section": "B", "label": "H\\u00ecnh th\\u1ee9c s\\u1edf h\\u1eefu", "target_table": "property_legal_info", "target_field": "ownership_form", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "current_mortgage_status", "section": "B", "label": "T\\u00ecnh tr\\u1ea1ng th\\u1ebf ch\\u1ea5p hi\\u1ec7n t\\u1ea1i", "target_table": "property_legal_info", "target_field": "current_mortgage_status", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "address", "section": "C", "label": "\\u0110\\u1ecba ch\\u1ec9", "target_table": "property_physical_info", "target_field": "address", "value": "123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Dia chi: 123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "property_type", "section": "C", "label": "Lo\\u1ea1i B\\u0110S", "target_table": "property_physical_info", "target_field": "property_type", "value": "Nha pho", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "334a9377-1d3f-4e61-bffe-60e5135e4844", "source_page": 1, "source_snippet": "Loai tai san: Nha pho", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_area_sqm", "section": "C", "label": "Di\\u1ec7n t\\u00edch \\u0111\\u1ea5t", "target_table": "property_physical_info", "target_field": "land_area_sqm", "value": "62 m2", "normalized": 62.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Dien tich: 62 m2", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "floor_area_sqm", "section": "C", "label": "Di\\u1ec7n t\\u00edch s\\u00e0n x\\u00e2y d\\u1ef1ng", "target_table": "property_physical_info", "target_field": "floor_area_sqm", "value": "110 m2", "normalized": 110.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "334a9377-1d3f-4e61-bffe-60e5135e4844", "source_page": 1, "source_snippet": "Dien tich dat: 62 m2   Dien tich san: 110 m2", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "num_floors_desc", "section": "C", "label": "S\\u1ed1 t\\u1ea7ng", "target_table": "property_physical_info", "target_field": "num_floors_desc", "value": "2 tang", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Nam xay dung: 2015   So tang: 2 tang", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "frontage_m", "section": "C", "label": "M\\u1eb7t ti\\u1ec1n (m)", "target_table": "property_physical_info", "target_field": "frontage_m", "value": "4 m", "normalized": 4.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Mat tien: 4 m   Chieu sau: 15 m", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "depth_m", "section": "C", "label": "Chi\\u1ec1u s\\u00e2u (m)", "target_table": "property_physical_info", "target_field": "depth_m", "value": "15 m", "normalized": 15.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Mat tien: 4 m   Chieu sau: 15 m", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "construction_year", "section": "C", "label": "N\\u0103m x\\u00e2y d\\u1ef1ng", "target_table": "property_physical_info", "target_field": "construction_year", "value": "2015", "normalized": 2015, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "5297809f-026a-48e3-a056-59f7265c0efc", "source_page": 1, "source_snippet": "Nam xay dung: 2015   So tang: 2 tang", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "structure_material", "section": "C", "label": "K\\u1ebft c\\u1ea5u / v\\u1eadt li\\u1ec7u", "target_table": "property_physical_info", "target_field": "structure_material", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "house_direction", "section": "C", "label": "H\\u01b0\\u1edbng nh\\u00e0", "target_table": "property_physical_info", "target_field": "house_direction", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "road_type_desc", "section": "C", "label": "Lo\\u1ea1i \\u0111\\u01b0\\u1eddng / \\u0111\\u1ed9 r\\u1ed9ng h\\u1ebbm", "target_table": "property_physical_info", "target_field": "road_type_desc", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "alley_width_m", "section": "C", "label": "\\u0110\\u1ed9 r\\u1ed9ng h\\u1ebbm (m)", "target_table": "property_physical_info", "target_field": "alley_width_m", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "current_usage_status", "section": "C", "label": "T\\u00ecnh tr\\u1ea1ng s\\u1eed d\\u1ee5ng hi\\u1ec7n t\\u1ea1i", "target_table": "property_physical_info", "target_field": "current_usage_status", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_amount_vnd", "section": "D", "label": "S\\u1ed1 ti\\u1ec1n vay", "target_table": "loan_info", "target_field": "loan_amount_vnd", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_purpose", "section": "D", "label": "M\\u1ee5c \\u0111\\u00edch vay", "target_table": "loan_info", "target_field": "loan_purpose", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_term_years", "section": "D", "label": "Th\\u1eddi h\\u1ea1n vay", "target_table": "loan_info", "target_field": "loan_term_years", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}], "warnings": ["Kh\\u00f4ng t\\u00ecm th\\u1ea5y t\\u1ec7p ''.", "Kh\\u00f4ng t\\u00ecm th\\u1ea5y t\\u1ec7p ''."]}	\N	92	2026-07-18 12:58:38.876982+00	2026-07-18 12:58:38.990973+00	2026-07-18 12:58:59.263575+00	a7b51fb1-da81-459c-a49b-26d2cbb028da	0
+b3258c4c-0477-4931-b857-f342948ef210	544274e7-9f8b-4d9a-881a-fc6576dc1d74	property_lookup	completed	{"case_id": "REQ-2026-2000"}	\N	{"case_id": "REQ-2026-2000", "findings": [{"category": "market_price", "tool_name": "market_price_lookup", "title": "Gi\\u00e1 th\\u1ecb tr\\u01b0\\u1eddng", "status_badge": "da_xac_thuc", "raw_findings": ["7 giao d\\u1ecbch so s\\u00e1nh trong b\\u00e1n k\\u00ednh 1.1km."], "inference_text": "Gi\\u00e1 giao d\\u1ecbch so s\\u00e1nh dao \\u0111\\u1ed9ng 122.7\\u2013162.1 tri\\u1ec7u/m\\u00b2, trung v\\u1ecb kho\\u1ea3ng 152.0 tri\\u1ec7u/m\\u00b2. Gi\\u00e1 t\\u01b0\\u01a1ng \\u0111\\u1ed1i \\u1ed5n \\u0111\\u1ecbnh qua c\\u00e1c giao d\\u1ecbch g\\u1ea7n \\u0111\\u00e2y, ch\\u01b0a th\\u1ea5y bi\\u1ebfn \\u0111\\u1ed9ng b\\u1ea5t th\\u01b0\\u1eddng. N\\u00ean \\u01b0u ti\\u00ean tr\\u1ecdng s\\u1ed1 cao h\\u01a1n cho c\\u00e1c giao d\\u1ecbch g\\u1ea7n \\u0111\\u00e2y khi \\u0111\\u01b0a v\\u00e0o b\\u01b0\\u1edbc \\u0111\\u1ecbnh gi\\u00e1.", "source_label": "market_price_lookup", "confidence_pct": 78}, {"category": "planning_zoning", "tool_name": "planning_zoning_lookup", "title": "Quy ho\\u1ea1ch", "status_badge": "da_xac_thuc", "raw_findings": ["Kh\\u00f4ng n\\u1eb1m trong khu v\\u1ef1c quy ho\\u1ea1ch treo.", "L\\u1ed9 gi\\u1edbi h\\u1ebbm/\\u0111\\u01b0\\u1eddng d\\u1ef1 ki\\u1ebfn m\\u1edf r\\u1ed9ng l\\u00ean 8m theo \\u0111\\u1ed3 \\u00e1n quy ho\\u1ea1ch 1/2000 ph\\u00ea duy\\u1ec7t 2021.", "Kh\\u00f4ng thu\\u1ed9c di\\u1ec7n gi\\u1ea3i to\\u1ea3, thu h\\u1ed3i \\u0111\\u1ea5t."], "inference_text": "Kh\\u00f4ng c\\u00f3 y\\u1ebfu t\\u1ed1 quy ho\\u1ea1ch b\\u1ea5t l\\u1ee3i, c\\u00f3 th\\u1ec3 t\\u0103ng nh\\u1eb9 gi\\u00e1 tr\\u1ecb n\\u1ebfu l\\u1ed9 gi\\u1edbi \\u0111\\u01b0\\u1ee3c m\\u1edf r\\u1ed9ng trong 2\\u20133 n\\u0103m t\\u1edbi nh\\u1edd c\\u1ea3i thi\\u1ec7n kh\\u1ea3 n\\u0103ng ti\\u1ebfp c\\u1eadn.", "source_label": "planning_zoning_lookup", "confidence_pct": 93}, {"category": "legal_status", "tool_name": "legal_status_lookup", "title": "Ph\\u00e1p l\\u00fd", "status_badge": "luu_y", "raw_findings": ["S\\u1ed5 h\\u1ed3ng \\u0111\\u1ee9ng t\\u00ean ch\\u00ednh ch\\u1ee7 nh\\u01b0ng c\\u00f3 ghi ch\\u00fa th\\u1ebf ch\\u1ea5p \\u0111\\u00e3 t\\u1ea5t to\\u00e1n, ch\\u01b0a xo\\u00e1 \\u0111\\u0103ng k\\u00fd.", "Kh\\u00f4ng ghi nh\\u1eadn tranh ch\\u1ea5p t\\u1ea1i th\\u1eddi \\u0111i\\u1ec3m tra c\\u1ee9u."], "inference_text": "C\\u1ea7n y\\u00eau c\\u1ea7u kh\\u00e1ch h\\u00e0ng b\\u1ed5 sung v\\u0103n b\\u1ea3n xo\\u00e1 \\u0111\\u0103ng k\\u00fd th\\u1ebf ch\\u1ea5p c\\u0169 tr\\u01b0\\u1edbc khi ho\\u00e0n t\\u1ea5t h\\u1ed3 s\\u01a1.", "source_label": "legal_status_lookup", "confidence_pct": 55}, {"category": "neighborhood_amenity", "tool_name": "neighborhood_amenity_lookup", "title": "Ti\\u1ec7n \\u00edch xung quanh", "status_badge": "da_xac_thuc", "raw_findings": ["Tr\\u01b0\\u1eddng ti\\u1ec3u h\\u1ecdc: 220m \\u00b7 Ch\\u1ee3 d\\u00e2n sinh: 460m", "Tr\\u1ea1m xe bus: 352m \\u00b7 B\\u1ec7nh vi\\u1ec7n qu\\u1eadn: 0.8km"], "inference_text": "M\\u1eadt \\u0111\\u1ed9 ti\\u1ec7n \\u00edch cao h\\u01a1n trung b\\u00ecnh khu v\\u1ef1c \\u2014 y\\u1ebfu t\\u1ed1 h\\u1ed7 tr\\u1ee3 t\\u00edch c\\u1ef1c cho nhu c\\u1ea7u \\u1edf th\\u1ef1c v\\u00e0 thanh kho\\u1ea3n khi c\\u1ea7n b\\u00e1n l\\u1ea1i.", "source_label": "neighborhood_amenity_lookup", "confidence_pct": 81}, {"category": "environmental_risk", "tool_name": "environmental_risk_lookup", "title": "M\\u00f4i tr\\u01b0\\u1eddng", "status_badge": "luu_y", "raw_findings": ["Ghi nh\\u1eadn ng\\u1eadp nh\\u1eb9 c\\u1ee5c b\\u1ed9 m\\u00f9a m\\u01b0a 2022\\u20132023 (m\\u1ee9c n\\u01b0\\u1edbc <20cm, r\\u00fat trong ng\\u00e0y).", "Kh\\u00f4ng n\\u1eb1m trong v\\u00f9ng c\\u1ea3nh b\\u00e1o s\\u1ea1t l\\u1edf, \\u00f4 nhi\\u1ec5m c\\u00f4ng nghi\\u1ec7p."], "inference_text": "R\\u1ee7i ro ng\\u1eadp \\u1edf m\\u1ee9c th\\u1ea5p, kh\\u00f4ng \\u1ea3nh h\\u01b0\\u1edfng \\u0111\\u00e1ng k\\u1ec3 \\u0111\\u1ebfn gi\\u00e1 tr\\u1ecb \\u0111\\u1ecbnh gi\\u00e1, nh\\u01b0ng n\\u00ean khuy\\u1ebfn ngh\\u1ecb kh\\u00e1ch h\\u00e0ng mua b\\u1ea3o hi\\u1ec3m t\\u00e0i s\\u1ea3n.", "source_label": "environmental_risk_lookup", "confidence_pct": 57}, {"category": "liquidity_stat", "tool_name": "liquidity_stat_lookup", "title": "Thanh kho\\u1ea3n khu v\\u1ef1c", "status_badge": "da_xac_thuc", "raw_findings": ["Th\\u1eddi gian b\\u00e1n trung b\\u00ecnh: 37 ng\\u00e0y \\u00b7 T\\u1ef7 l\\u1ec7 giao d\\u1ecbch th\\u00e0nh c\\u00f4ng: 87%", "S\\u1ed1 tin rao b\\u00e1n c\\u00f9ng ph\\u00e2n kh\\u00fac trong b\\u00e1n k\\u00ednh 1km: 17 tin"], "inference_text": "Thanh kho\\u1ea3n kh\\u00e1 t\\u1ed1t so v\\u1edbi m\\u1eb7t b\\u1eb1ng chung ph\\u00e2n kh\\u00fac \\u2014 h\\u1ed7 tr\\u1ee3 t\\u00edch c\\u1ef1c cho kh\\u1ea3 n\\u0103ng x\\u1eed l\\u00fd t\\u00e0i s\\u1ea3n b\\u1ea3o \\u0111\\u1ea3m khi c\\u1ea7n thi\\u1ebft.", "source_label": "liquidity_stat_lookup", "confidence_pct": 94}, {"category": "stigma_reputation", "tool_name": "stigma_reputation_lookup", "title": "D\\u01b0 lu\\u1eadn / t\\u00e2m linh", "status_badge": "da_xac_thuc", "raw_findings": ["Kh\\u00f4ng ghi nh\\u1eadn tin \\u0111\\u1ed3n hay s\\u1ef1 vi\\u1ec7c b\\u1ea5t th\\u01b0\\u1eddng li\\u00ean quan t\\u00e0i s\\u1ea3n/khu v\\u1ef1c.", "Kh\\u00f4ng c\\u00f3 b\\u00e0i b\\u00e1o, h\\u1ed3 s\\u01a1 c\\u00f4ng an ho\\u1eb7c d\\u1eef li\\u1ec7u ti\\u00eau c\\u1ef1c li\\u00ean quan."], "inference_text": "Kh\\u00f4ng ph\\u00e1t hi\\u1ec7n y\\u1ebfu t\\u1ed1 b\\u1ea5t l\\u1ee3i v\\u1ec1 d\\u01b0 lu\\u1eadn/t\\u00e2m linh \\u2014 kh\\u00f4ng \\u1ea3nh h\\u01b0\\u1edfng \\u0111\\u1ebfn gi\\u00e1 tr\\u1ecb hay thanh kho\\u1ea3n.", "source_label": "stigma_reputation_lookup", "confidence_pct": 97}], "market_comparables": [{"address": "H\\u1ebbm 39 Tr\\u01b0\\u1eddng Sa", "distance_km": 1.61, "area_sqm": 194.6, "transaction_date": "2025-12-23", "price_per_sqm_vnd": 141500000}, {"address": "H\\u1ebbm 31 \\u0110\\u1ed7 Tr\\u1ecdng K", "distance_km": 1.77, "area_sqm": 229.1, "transaction_date": "2026-05-30", "price_per_sqm_vnd": 122700000}, {"address": "H\\u1ebbm 83 Ng\\u00f4 Quy\\u1ec1n", "distance_km": 0.38, "area_sqm": 194.2, "transaction_date": "2025-12-22", "price_per_sqm_vnd": 159600000}, {"address": "84 L\\u00ea V\\u0103n C", "distance_km": 1.14, "area_sqm": 181.3, "transaction_date": "2025-07-10", "price_per_sqm_vnd": 148800000}, {"address": "H\\u1ebbm 36 Phan \\u0110\\u00ecnh Ph\\u00f9ng", "distance_km": 0.47, "area_sqm": 192.0, "transaction_date": "2026-04-12", "price_per_sqm_vnd": 152000000}, {"address": "H\\u1ebbm 6 L\\u00fd T\\u1ef1 L", "distance_km": 0.78, "area_sqm": 174.0, "transaction_date": "2026-06-06", "price_per_sqm_vnd": 154200000}, {"address": "42 \\u0110\\u1eb7ng V\\u0103n G", "distance_km": 1.21, "area_sqm": 197.0, "transaction_date": "2025-09-17", "price_per_sqm_vnd": 162100000}], "warnings": []}	\N	0	2026-07-18 14:42:26.046531+00	2026-07-18 14:42:26.218094+00	2026-07-18 14:42:28.481279+00	6681c77b-2b84-4314-a1cb-27489676ec17	0
+e244df6e-f8a1-4bff-b070-3a83b130955c	c965221f-e881-4a5f-9eb5-ef37034f0fd9	property_valuation	completed	{"case_id": "REQ-2026-2000"}	\N	{"case_id": "REQ-2026-2000", "valuation": {"proposed_value_vnd": 30491201342, "value_range_low_vnd": 28514552444, "value_range_high_vnd": 32467850240, "price_per_sqm_vnd": 152991477, "confidence_pct": 78, "comparable_count": 7, "price_index_period": "2026-Q2", "price_index_value": 124.2, "price_index_base": 100.0, "confidence_inference_text": "\\u0110\\u1ed9 tin c\\u1eady t\\u1ed5ng 78% l\\u00e0 trung b\\u00ecnh c\\u00f3 tr\\u1ecdng s\\u1ed1 c\\u1ee7a 5 y\\u1ebfu t\\u1ed1; \\u0111\\u1ed9 h\\u1ed9i t\\u1ee5 gi\\u1eefa 3 ph\\u01b0\\u01a1ng ph\\u00e1p \\u1edf m\\u1ee9c 97%."}, "methods": [{"method_key": "sales_comparison", "estimated_value_vnd": 29986950214, "weight_pct": 70, "contribution_value_vnd": 20990865149, "method_confidence_pct": null, "inputs": ["Gi\\u00e1/m\\u00b2 tham chi\\u1ebfu 151,217,453 t\\u1eeb 7 giao d\\u1ecbch (q\\u0304=0.26)", "\\u0110i\\u1ec1u ch\\u1ec9nh \\u0111\\u1eb7c \\u0111i\\u1ec3m (x\\u00e1c \\u0111\\u1ecbnh): -1.0%", "\\u0110i\\u1ec1u ch\\u1ec9nh c\\u1ea3m t\\u00ednh (LLM, \\u00b15%): +0.5%"], "inference_text": null, "source_label": "So s\\u00e1nh tr\\u1ef1c ti\\u1ebfp"}, {"method_key": "hedonic_ml", "estimated_value_vnd": 31831373684, "weight_pct": 17, "contribution_value_vnd": 5252176658, "method_confidence_pct": null, "inputs": ["M\\u00f4 h\\u00ecnh hedonic tuy\\u1ebfn t\\u00ednh tr\\u00ean \\u0111\\u1eb7c \\u0111i\\u1ec3m \\u0111\\u1ecbnh l\\u01b0\\u1ee3ng (kh\\u00f4ng c\\u1ea3m t\\u00ednh)"], "inference_text": null, "source_label": "Hedonic (ML)"}, {"method_key": "cost_approach", "estimated_value_vnd": 31467848406, "weight_pct": 13, "contribution_value_vnd": 4248159535, "method_confidence_pct": null, "inputs": ["Gi\\u00e1 tr\\u1ecb \\u0111\\u1ea5t + chi ph\\u00ed x\\u00e2y d\\u1ef1ng \\u0111\\u00e3 kh\\u1ea5u hao theo tu\\u1ed5i c\\u00f4ng tr\\u00ecnh"], "inference_text": null, "source_label": "Chi ph\\u00ed x\\u00e2y d\\u1ef1ng"}], "confidence_factors": [{"factor_key": "comp_quantity_quality", "label": "Giao d\\u1ecbch so s\\u00e1nh (SL & ch\\u1ea5t l\\u01b0\\u1ee3ng)", "weight_pct": 28, "score": 71}, {"factor_key": "method_consensus", "label": "\\u0110\\u1ed3ng thu\\u1eadn gi\\u1eefa 3 ph\\u01b0\\u01a1ng ph\\u00e1p", "weight_pct": 26, "score": 97}, {"factor_key": "legal_planning_completeness", "label": "Ph\\u00e1p l\\u00fd & quy ho\\u1ea1ch \\u0111\\u1ea7y \\u0111\\u1ee7", "weight_pct": 18, "score": 75}, {"factor_key": "market_volatility", "label": "Bi\\u1ebfn \\u0111\\u1ed9ng th\\u1ecb tr\\u01b0\\u1eddng g\\u1ea7n \\u0111\\u00e2y", "weight_pct": 17, "score": 95}, {"factor_key": "comp_similarity", "label": "T\\u01b0\\u01a1ng \\u0111\\u1ed3ng giao d\\u1ecbch so s\\u00e1nh", "weight_pct": 11, "score": 26}], "price_index_series": [{"period_label": "2024-Q1", "index_value": 100.0, "display_order": 0}, {"period_label": "2024-Q3", "index_value": 105.1, "display_order": 1}, {"period_label": "2025-Q1", "index_value": 110.6, "display_order": 2}, {"period_label": "2025-Q3", "index_value": 115.2, "display_order": 3}, {"period_label": "2026-Q1", "index_value": 118.1, "display_order": 4}, {"period_label": "2026-Q2", "index_value": 124.2, "display_order": 5}], "subjective_adjustment": {"value_pct": 0.5, "reason": "H\\u01b0\\u1edbng \\u0110\\u00f4ng B\\u1eafc nh\\u00ecn chung \\u0111\\u01b0\\u1ee3c m\\u1ed9t b\\u1ed9 ph\\u1eadn ng\\u01b0\\u1eddi mua \\u01b0a chu\\u1ed9ng, t\\u1ea1o l\\u1ee3i th\\u1ebf c\\u1ea3m t\\u00ednh nh\\u1eb9. Kh\\u00f4ng ghi nh\\u1eadn \\u0111\\u1eb7c \\u0111i\\u1ec3m g\\u00f3c, t\\u00f3p h\\u1eadu hay y\\u1ebfu t\\u1ed1 b\\u1ea5t l\\u1ee3i n\\u1ed5i b\\u1eadt \\u0111\\u1ec3 \\u0111i\\u1ec1u ch\\u1ec9nh th\\u00eam.", "source": "llm_inference", "bound_pct": 5.0}, "warnings": []}	\N	40	2026-07-18 15:58:56.746387+00	2026-07-18 15:58:56.933139+00	2026-07-18 15:58:59.647264+00	d363bd65-2177-49e1-88ab-2339b4c2a47b	0
+2c448d39-986f-4e5a-a12e-b5dca25a5791	ded4ba7d-7121-40b5-8e51-2a7741c9fc7e	property_valuation	completed	{"case_id": "REQ-2026-2000"}	\N	{"case_id": "REQ-2026-2000", "valuation": {"proposed_value_vnd": 30491201342, "value_range_low_vnd": 28514552444, "value_range_high_vnd": 32467850240, "price_per_sqm_vnd": 152991477, "confidence_pct": 78, "comparable_count": 7, "price_index_period": "2026-Q2", "price_index_value": 124.2, "price_index_base": 100.0, "confidence_inference_text": "\\u0110\\u1ed9 tin c\\u1eady t\\u1ed5ng 78% l\\u00e0 trung b\\u00ecnh c\\u00f3 tr\\u1ecdng s\\u1ed1 c\\u1ee7a 5 y\\u1ebfu t\\u1ed1; \\u0111\\u1ed9 h\\u1ed9i t\\u1ee5 gi\\u1eefa 3 ph\\u01b0\\u01a1ng ph\\u00e1p \\u1edf m\\u1ee9c 97%."}, "methods": [{"method_key": "sales_comparison", "estimated_value_vnd": 29986950214, "weight_pct": 70, "contribution_value_vnd": 20990865149, "method_confidence_pct": null, "inputs": ["Gi\\u00e1/m\\u00b2 tham chi\\u1ebfu 151,217,453 t\\u1eeb 7 giao d\\u1ecbch (q\\u0304=0.26)", "\\u0110i\\u1ec1u ch\\u1ec9nh \\u0111\\u1eb7c \\u0111i\\u1ec3m (x\\u00e1c \\u0111\\u1ecbnh): -1.0%", "\\u0110i\\u1ec1u ch\\u1ec9nh c\\u1ea3m t\\u00ednh (LLM, \\u00b15%): +0.5%"], "inference_text": null, "source_label": "So s\\u00e1nh tr\\u1ef1c ti\\u1ebfp"}, {"method_key": "hedonic_ml", "estimated_value_vnd": 31831373684, "weight_pct": 17, "contribution_value_vnd": 5252176658, "method_confidence_pct": null, "inputs": ["M\\u00f4 h\\u00ecnh hedonic tuy\\u1ebfn t\\u00ednh tr\\u00ean \\u0111\\u1eb7c \\u0111i\\u1ec3m \\u0111\\u1ecbnh l\\u01b0\\u1ee3ng (kh\\u00f4ng c\\u1ea3m t\\u00ednh)"], "inference_text": null, "source_label": "Hedonic (ML)"}, {"method_key": "cost_approach", "estimated_value_vnd": 31467848406, "weight_pct": 13, "contribution_value_vnd": 4248159535, "method_confidence_pct": null, "inputs": ["Gi\\u00e1 tr\\u1ecb \\u0111\\u1ea5t + chi ph\\u00ed x\\u00e2y d\\u1ef1ng \\u0111\\u00e3 kh\\u1ea5u hao theo tu\\u1ed5i c\\u00f4ng tr\\u00ecnh"], "inference_text": null, "source_label": "Chi ph\\u00ed x\\u00e2y d\\u1ef1ng"}], "confidence_factors": [{"factor_key": "comp_quantity_quality", "label": "Giao d\\u1ecbch so s\\u00e1nh (SL & ch\\u1ea5t l\\u01b0\\u1ee3ng)", "weight_pct": 28, "score": 71}, {"factor_key": "method_consensus", "label": "\\u0110\\u1ed3ng thu\\u1eadn gi\\u1eefa 3 ph\\u01b0\\u01a1ng ph\\u00e1p", "weight_pct": 26, "score": 97}, {"factor_key": "legal_planning_completeness", "label": "Ph\\u00e1p l\\u00fd & quy ho\\u1ea1ch \\u0111\\u1ea7y \\u0111\\u1ee7", "weight_pct": 18, "score": 75}, {"factor_key": "market_volatility", "label": "Bi\\u1ebfn \\u0111\\u1ed9ng th\\u1ecb tr\\u01b0\\u1eddng g\\u1ea7n \\u0111\\u00e2y", "weight_pct": 17, "score": 95}, {"factor_key": "comp_similarity", "label": "T\\u01b0\\u01a1ng \\u0111\\u1ed3ng giao d\\u1ecbch so s\\u00e1nh", "weight_pct": 11, "score": 26}], "price_index_series": [{"period_label": "2024-Q1", "index_value": 100.0, "display_order": 0}, {"period_label": "2024-Q3", "index_value": 105.1, "display_order": 1}, {"period_label": "2025-Q1", "index_value": 110.6, "display_order": 2}, {"period_label": "2025-Q3", "index_value": 115.2, "display_order": 3}, {"period_label": "2026-Q1", "index_value": 118.1, "display_order": 4}, {"period_label": "2026-Q2", "index_value": 124.2, "display_order": 5}], "subjective_adjustment": {"value_pct": 0.5, "reason": "H\\u01b0\\u1edbng \\u0110\\u00f4ng B\\u1eafc nh\\u00ecn chung \\u0111\\u01b0\\u1ee3c m\\u1ed9t b\\u1ed9 ph\\u1eadn ng\\u01b0\\u1eddi mua \\u01b0a chu\\u1ed9ng, t\\u1ea1o l\\u1ee3i th\\u1ebf c\\u1ea3m t\\u00ednh nh\\u1eb9. Kh\\u00f4ng ghi nh\\u1eadn \\u0111\\u1eb7c \\u0111i\\u1ec3m g\\u00f3c, t\\u00f3p h\\u1eadu hay y\\u1ebfu t\\u1ed1 b\\u1ea5t l\\u1ee3i n\\u1ed5i b\\u1eadt \\u0111\\u1ec3 \\u0111i\\u1ec1u ch\\u1ec9nh th\\u00eam.", "source": "llm_inference", "bound_pct": 5.0}, "warnings": []}	\N	40	2026-07-18 16:06:18.112944+00	2026-07-18 16:06:18.195537+00	2026-07-18 16:06:18.822503+00	84766d3e-7431-40df-bf36-dff7c264c9d1	0
+41d7300d-e736-4c55-8b81-8010b36d853b	91d4963d-455f-4c4c-a65b-7b8676b5697f	property_risk	completed	{"case_id": "REQ-2026-2000"}	\N	{"case_id": "REQ-2026-2000", "assessment": {"risk_score": 37, "risk_label": "trung_binh", "ltv_proposed_pct": 65, "risk_inference_text": "\\u0110i\\u1ec3m r\\u1ee7i ro t\\u00e0i s\\u1ea3n 37/100 (trung_binh). LTV \\u0111\\u1ec1 xu\\u1ea5t t\\u1ed1i \\u0111a 65%. Nh\\u00f3m r\\u1ee7i ro cao nh\\u1ea5t: Ph\\u00e1p l\\u00fd (60)."}, "groups": [{"group_key": "legal", "label": "Ph\\u00e1p l\\u00fd", "weight_pct": 30, "score": 60, "signals": ["N\\u1ec1n theo t\\u00ecnh tr\\u1ea1ng ph\\u00e1p l\\u00fd (M\\u00e0n 2): 60"], "source_confidence": 55, "verified": false}, {"group_key": "liquidity", "label": "Thanh kho\\u1ea3n", "weight_pct": 25, "score": 20, "signals": ["N\\u1ec1n theo thanh kho\\u1ea3n (M\\u00e0n 2)"], "source_confidence": 94, "verified": true}, {"group_key": "price_volatility", "label": "Bi\\u1ebfn \\u0111\\u1ed9ng gi\\u00e1", "weight_pct": 20, "score": 15, "signals": ["\\u0110\\u1ed9 bi\\u1ebfn \\u0111\\u1ed9ng chu\\u1ed7i ch\\u1ec9 s\\u1ed1 gi\\u00e1 (M\\u00e0n 3)"], "source_confidence": null, "verified": true}, {"group_key": "physical_environment", "label": "V\\u1eadt l\\u00fd / m\\u00f4i tr\\u01b0\\u1eddng", "weight_pct": 15, "score": 60, "signals": ["N\\u1ec1n theo m\\u00f4i tr\\u01b0\\u1eddng (M\\u00e0n 2): 60"], "source_confidence": 57, "verified": false}, {"group_key": "reputation", "label": "Danh ti\\u1ebfng / t\\u00e2m linh", "weight_pct": 10, "score": 20, "signals": ["N\\u1ec1n theo d\\u01b0 lu\\u1eadn/t\\u00e2m linh (M\\u00e0n 2)"], "source_confidence": 97, "verified": true}], "flags": [{"severity": "cao", "title": "Ph\\u00e1p l\\u00fd", "description": "R\\u1ee7i ro ph\\u00e1p l\\u00fd \\u2014 ki\\u1ec3m tra t\\u00ecnh tr\\u1ea1ng th\\u1ebf ch\\u1ea5p/tranh ch\\u1ea5p tr\\u01b0\\u1edbc khi ho\\u00e0n t\\u1ea5t.", "confidence_pct": 55, "verified": false}, {"severity": "cao", "title": "V\\u1eadt l\\u00fd / m\\u00f4i tr\\u01b0\\u1eddng", "description": "R\\u1ee7i ro v\\u1eadt l\\u00fd/m\\u00f4i tr\\u01b0\\u1eddng (ng\\u1eadp, tu\\u1ed5i c\\u00f4ng tr\\u00ecnh).", "confidence_pct": 57, "verified": false}], "ltv_policy_bands": [{"min_score": 0, "max_score": 20, "max_ltv_pct": 75, "label": "0\\u201320 \\u0111i\\u1ec3m \\u2192 t\\u1ed1i \\u0111a 75%"}, {"min_score": 21, "max_score": 40, "max_ltv_pct": 65, "label": "21\\u201340 \\u0111i\\u1ec3m \\u2192 t\\u1ed1i \\u0111a 65%"}, {"min_score": 41, "max_score": 60, "max_ltv_pct": 55, "label": "41\\u201360 \\u0111i\\u1ec3m \\u2192 t\\u1ed1i \\u0111a 55%"}, {"min_score": 61, "max_score": null, "max_ltv_pct": 45, "label": ">60 \\u0111i\\u1ec3m \\u2192 t\\u1ed1i \\u0111a 45% ho\\u1eb7c c\\u1ea7n th\\u1ea9m \\u0111\\u1ecbnh l\\u1ea1i"}], "warnings": []}	\N	0	2026-07-18 19:56:29.222736+00	2026-07-18 19:56:29.405051+00	2026-07-18 19:56:31.815532+00	01bb9c6a-eaa1-4529-8825-f112c819821d	0
+7c77f1b2-0500-4f73-8439-9887f4288cf5	91d4963d-455f-4c4c-a65b-7b8676b5697f	property_lookup	completed	{"case_id": "REQ-2026-2000"}	\N	{"case_id": "REQ-2026-2000", "findings": [{"category": "market_price", "tool_name": "market_price_lookup", "title": "Gi\\u00e1 th\\u1ecb tr\\u01b0\\u1eddng", "status_badge": "da_xac_thuc", "raw_findings": ["7 giao d\\u1ecbch so s\\u00e1nh trong b\\u00e1n k\\u00ednh 1.1km."], "inference_text": "Gi\\u00e1 giao d\\u1ecbch so s\\u00e1nh dao \\u0111\\u1ed9ng 122.7\\u2013162.1 tri\\u1ec7u/m\\u00b2, trung v\\u1ecb kho\\u1ea3ng 152.0 tri\\u1ec7u/m\\u00b2. Gi\\u00e1 t\\u01b0\\u01a1ng \\u0111\\u1ed1i \\u1ed5n \\u0111\\u1ecbnh qua c\\u00e1c giao d\\u1ecbch g\\u1ea7n \\u0111\\u00e2y, ch\\u01b0a th\\u1ea5y bi\\u1ebfn \\u0111\\u1ed9ng b\\u1ea5t th\\u01b0\\u1eddng. N\\u00ean \\u01b0u ti\\u00ean tr\\u1ecdng s\\u1ed1 cao h\\u01a1n cho c\\u00e1c giao d\\u1ecbch g\\u1ea7n \\u0111\\u00e2y khi \\u0111\\u01b0a v\\u00e0o b\\u01b0\\u1edbc \\u0111\\u1ecbnh gi\\u00e1.", "source_label": "market_price_lookup", "confidence_pct": 78}, {"category": "planning_zoning", "tool_name": "planning_zoning_lookup", "title": "Quy ho\\u1ea1ch", "status_badge": "da_xac_thuc", "raw_findings": ["Kh\\u00f4ng n\\u1eb1m trong khu v\\u1ef1c quy ho\\u1ea1ch treo.", "L\\u1ed9 gi\\u1edbi h\\u1ebbm/\\u0111\\u01b0\\u1eddng d\\u1ef1 ki\\u1ebfn m\\u1edf r\\u1ed9ng l\\u00ean 8m theo \\u0111\\u1ed3 \\u00e1n quy ho\\u1ea1ch 1/2000 ph\\u00ea duy\\u1ec7t 2021.", "Kh\\u00f4ng thu\\u1ed9c di\\u1ec7n gi\\u1ea3i to\\u1ea3, thu h\\u1ed3i \\u0111\\u1ea5t."], "inference_text": "Kh\\u00f4ng c\\u00f3 y\\u1ebfu t\\u1ed1 quy ho\\u1ea1ch b\\u1ea5t l\\u1ee3i, c\\u00f3 th\\u1ec3 t\\u0103ng nh\\u1eb9 gi\\u00e1 tr\\u1ecb n\\u1ebfu l\\u1ed9 gi\\u1edbi \\u0111\\u01b0\\u1ee3c m\\u1edf r\\u1ed9ng trong 2\\u20133 n\\u0103m t\\u1edbi nh\\u1edd c\\u1ea3i thi\\u1ec7n kh\\u1ea3 n\\u0103ng ti\\u1ebfp c\\u1eadn.", "source_label": "planning_zoning_lookup", "confidence_pct": 93}, {"category": "legal_status", "tool_name": "legal_status_lookup", "title": "Ph\\u00e1p l\\u00fd", "status_badge": "luu_y", "raw_findings": ["S\\u1ed5 h\\u1ed3ng \\u0111\\u1ee9ng t\\u00ean ch\\u00ednh ch\\u1ee7 nh\\u01b0ng c\\u00f3 ghi ch\\u00fa th\\u1ebf ch\\u1ea5p \\u0111\\u00e3 t\\u1ea5t to\\u00e1n, ch\\u01b0a xo\\u00e1 \\u0111\\u0103ng k\\u00fd.", "Kh\\u00f4ng ghi nh\\u1eadn tranh ch\\u1ea5p t\\u1ea1i th\\u1eddi \\u0111i\\u1ec3m tra c\\u1ee9u."], "inference_text": "C\\u1ea7n y\\u00eau c\\u1ea7u kh\\u00e1ch h\\u00e0ng b\\u1ed5 sung v\\u0103n b\\u1ea3n xo\\u00e1 \\u0111\\u0103ng k\\u00fd th\\u1ebf ch\\u1ea5p c\\u0169 tr\\u01b0\\u1edbc khi ho\\u00e0n t\\u1ea5t h\\u1ed3 s\\u01a1.", "source_label": "legal_status_lookup", "confidence_pct": 55}, {"category": "neighborhood_amenity", "tool_name": "neighborhood_amenity_lookup", "title": "Ti\\u1ec7n \\u00edch xung quanh", "status_badge": "da_xac_thuc", "raw_findings": ["Tr\\u01b0\\u1eddng ti\\u1ec3u h\\u1ecdc: 220m \\u00b7 Ch\\u1ee3 d\\u00e2n sinh: 460m", "Tr\\u1ea1m xe bus: 352m \\u00b7 B\\u1ec7nh vi\\u1ec7n qu\\u1eadn: 0.8km"], "inference_text": "M\\u1eadt \\u0111\\u1ed9 ti\\u1ec7n \\u00edch cao h\\u01a1n trung b\\u00ecnh khu v\\u1ef1c \\u2014 y\\u1ebfu t\\u1ed1 h\\u1ed7 tr\\u1ee3 t\\u00edch c\\u1ef1c cho nhu c\\u1ea7u \\u1edf th\\u1ef1c v\\u00e0 thanh kho\\u1ea3n khi c\\u1ea7n b\\u00e1n l\\u1ea1i.", "source_label": "neighborhood_amenity_lookup", "confidence_pct": 81}, {"category": "environmental_risk", "tool_name": "environmental_risk_lookup", "title": "M\\u00f4i tr\\u01b0\\u1eddng", "status_badge": "luu_y", "raw_findings": ["Ghi nh\\u1eadn ng\\u1eadp nh\\u1eb9 c\\u1ee5c b\\u1ed9 m\\u00f9a m\\u01b0a 2022\\u20132023 (m\\u1ee9c n\\u01b0\\u1edbc <20cm, r\\u00fat trong ng\\u00e0y).", "Kh\\u00f4ng n\\u1eb1m trong v\\u00f9ng c\\u1ea3nh b\\u00e1o s\\u1ea1t l\\u1edf, \\u00f4 nhi\\u1ec5m c\\u00f4ng nghi\\u1ec7p."], "inference_text": "R\\u1ee7i ro ng\\u1eadp \\u1edf m\\u1ee9c th\\u1ea5p, kh\\u00f4ng \\u1ea3nh h\\u01b0\\u1edfng \\u0111\\u00e1ng k\\u1ec3 \\u0111\\u1ebfn gi\\u00e1 tr\\u1ecb \\u0111\\u1ecbnh gi\\u00e1, nh\\u01b0ng n\\u00ean khuy\\u1ebfn ngh\\u1ecb kh\\u00e1ch h\\u00e0ng mua b\\u1ea3o hi\\u1ec3m t\\u00e0i s\\u1ea3n.", "source_label": "environmental_risk_lookup", "confidence_pct": 57}, {"category": "liquidity_stat", "tool_name": "liquidity_stat_lookup", "title": "Thanh kho\\u1ea3n khu v\\u1ef1c", "status_badge": "da_xac_thuc", "raw_findings": ["Th\\u1eddi gian b\\u00e1n trung b\\u00ecnh: 37 ng\\u00e0y \\u00b7 T\\u1ef7 l\\u1ec7 giao d\\u1ecbch th\\u00e0nh c\\u00f4ng: 87%", "S\\u1ed1 tin rao b\\u00e1n c\\u00f9ng ph\\u00e2n kh\\u00fac trong b\\u00e1n k\\u00ednh 1km: 17 tin"], "inference_text": "Thanh kho\\u1ea3n kh\\u00e1 t\\u1ed1t so v\\u1edbi m\\u1eb7t b\\u1eb1ng chung ph\\u00e2n kh\\u00fac \\u2014 h\\u1ed7 tr\\u1ee3 t\\u00edch c\\u1ef1c cho kh\\u1ea3 n\\u0103ng x\\u1eed l\\u00fd t\\u00e0i s\\u1ea3n b\\u1ea3o \\u0111\\u1ea3m khi c\\u1ea7n thi\\u1ebft.", "source_label": "liquidity_stat_lookup", "confidence_pct": 94}, {"category": "stigma_reputation", "tool_name": "stigma_reputation_lookup", "title": "D\\u01b0 lu\\u1eadn / t\\u00e2m linh", "status_badge": "da_xac_thuc", "raw_findings": ["Kh\\u00f4ng ghi nh\\u1eadn tin \\u0111\\u1ed3n hay s\\u1ef1 vi\\u1ec7c b\\u1ea5t th\\u01b0\\u1eddng li\\u00ean quan t\\u00e0i s\\u1ea3n/khu v\\u1ef1c.", "Kh\\u00f4ng c\\u00f3 b\\u00e0i b\\u00e1o, h\\u1ed3 s\\u01a1 c\\u00f4ng an ho\\u1eb7c d\\u1eef li\\u1ec7u ti\\u00eau c\\u1ef1c li\\u00ean quan."], "inference_text": "Kh\\u00f4ng ph\\u00e1t hi\\u1ec7n y\\u1ebfu t\\u1ed1 b\\u1ea5t l\\u1ee3i v\\u1ec1 d\\u01b0 lu\\u1eadn/t\\u00e2m linh \\u2014 kh\\u00f4ng \\u1ea3nh h\\u01b0\\u1edfng \\u0111\\u1ebfn gi\\u00e1 tr\\u1ecb hay thanh kho\\u1ea3n.", "source_label": "stigma_reputation_lookup", "confidence_pct": 97}], "market_comparables": [{"address": "H\\u1ebbm 39 Tr\\u01b0\\u1eddng Sa", "distance_km": 1.61, "area_sqm": 194.6, "transaction_date": "2025-12-23", "price_per_sqm_vnd": 141500000}, {"address": "H\\u1ebbm 31 \\u0110\\u1ed7 Tr\\u1ecdng K", "distance_km": 1.77, "area_sqm": 229.1, "transaction_date": "2026-05-30", "price_per_sqm_vnd": 122700000}, {"address": "H\\u1ebbm 83 Ng\\u00f4 Quy\\u1ec1n", "distance_km": 0.38, "area_sqm": 194.2, "transaction_date": "2025-12-22", "price_per_sqm_vnd": 159600000}, {"address": "84 L\\u00ea V\\u0103n C", "distance_km": 1.14, "area_sqm": 181.3, "transaction_date": "2025-07-10", "price_per_sqm_vnd": 148800000}, {"address": "H\\u1ebbm 36 Phan \\u0110\\u00ecnh Ph\\u00f9ng", "distance_km": 0.47, "area_sqm": 192.0, "transaction_date": "2026-04-12", "price_per_sqm_vnd": 152000000}, {"address": "H\\u1ebbm 6 L\\u00fd T\\u1ef1 L", "distance_km": 0.78, "area_sqm": 174.0, "transaction_date": "2026-06-06", "price_per_sqm_vnd": 154200000}, {"address": "42 \\u0110\\u1eb7ng V\\u0103n G", "distance_km": 1.21, "area_sqm": 197.0, "transaction_date": "2025-09-17", "price_per_sqm_vnd": 162100000}], "warnings": []}	\N	0	2026-07-18 19:59:05.796773+00	2026-07-18 19:59:05.898568+00	2026-07-18 19:59:05.925666+00	26c92ec1-1aad-4d76-8697-4b83c1eabff5	0
+020f412a-98b3-4d19-be87-e7c6c574ca66	91d4963d-455f-4c4c-a65b-7b8676b5697f	property_intake	completed	{"file_ids": ["e914c077-567f-4c6b-bb20-1010804199e2", "d6cd82ad-c738-481f-a311-9dd984c07450", "7549dde6-6c74-4707-b4e3-eed3c648da6e", "4971beef-80ae-469f-91fe-91df37d7034d"], "case_id": "REQ-2026-0001"}	\N	{"case_id": "REQ-2026-0001", "documents": [{"file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "file_name": "01_So_hong_GCN_QSDD.pdf", "detected_doc_type": "so_do_so_hong", "is_scan": false, "page_count": 2}, {"file_id": "d6cd82ad-c738-481f-a311-9dd984c07450", "file_name": "02_to_khai_lptb.pdf", "detected_doc_type": "to_khai_lptb", "is_scan": false, "page_count": 1}, {"file_id": "7549dde6-6c74-4707-b4e3-eed3c648da6e", "file_name": "03_bien_ban_ban_giao.pdf", "detected_doc_type": "bien_ban_ban_giao", "is_scan": false, "page_count": 1}, {"file_id": "4971beef-80ae-469f-91fe-91df37d7034d", "file_name": "04_Thong_bao_thue_dat (1).pdf", "detected_doc_type": "thong_bao_thue_dat", "is_scan": false, "page_count": 1}], "fields": [{"key": "owner_full_name", "section": "A", "label": "H\\u1ecd v\\u00e0 t\\u00ean", "target_table": "case_borrower", "target_field": "full_name", "value": "Nguy\\u1ec5n V\\u0103n A", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "\\u00d4ng (B\\u00e0)\\nNguy\\u1ec5n V\\u0103n A\\nS\\u1ed1 CCCD", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": [{"value": "Nguyen Van A", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "d6cd82ad-c738-481f-a311-9dd984c07450", "source_doc_type": "to_khai_lptb", "source_page": 1, "source_snippet": "Nguoi nop le phi: Nguyen Van A", "bbox": null}]}, {"key": "owner_national_id", "section": "A", "label": "S\\u1ed1 CMND/CCCD", "target_table": "case_borrower", "target_field": "national_id", "value": "079089012345", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "S\\u1ed1 CCCD\\n079089012345\\nNg\\u00e0y sinh", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": [{"value": "079088001234", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "d6cd82ad-c738-481f-a311-9dd984c07450", "source_doc_type": "to_khai_lptb", "source_page": 1, "source_snippet": "So CMND/CCCD: 079088001234", "bbox": null}]}, {"key": "owner_phone", "section": "A", "label": "S\\u1ed1 \\u0111i\\u1ec7n tho\\u1ea1i", "target_table": "case_borrower", "target_field": "phone_number", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "relationship_to_asset", "section": "A", "label": "M\\u1ed1i quan h\\u1ec7 v\\u1edbi t\\u00e0i s\\u1ea3n", "target_table": "case_borrower", "target_field": "relationship_to_asset", "value": "Ch\\u1ee7 s\\u1edf h\\u1eefu \\u0111\\u1ee9ng t\\u00ean tr\\u00ean GCN", "normalized": null, "status": "suy_luan", "confidence_pct": 75, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "\\u00d4ng (B\\u00e0)\\nNguy\\u1ec5n V\\u0103n A\\nS\\u1ed1 CCCD", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "certificate_type", "section": "B", "label": "Lo\\u1ea1i gi\\u1ea5y ch\\u1ee9ng nh\\u1eadn", "target_table": "property_legal_info", "target_field": "certificate_type", "value": "GI\\u1ea4Y CH\\u1ee8NG NH\\u1eacN\\nQUY\\u1ec0N S\\u1eec D\\u1ee4NG \\u0110\\u1ea4T, QUY\\u1ec0N S\\u1ede H\\u1eeeU NH\\u00c0 \\u1ede\\nV\\u00c0 T\\u00c0I S\\u1ea2N KH\\u00c1C G\\u1eaeN LI\\u1ec0N V\\u1edaI \\u0110\\u1ea4T", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "GI\\u1ea4Y CH\\u1ee8NG NH\\u1eacN\\nQUY\\u1ec0N S\\u1eec D\\u1ee4NG \\u0110\\u1ea4T, QUY\\u1ec0N S\\u1ede H\\u1eeeU NH\\u00c0 \\u1ede\\nV\\u00c0 T\\u00c0I S\\u1ea2N KH\\u00c1C G\\u1eaeN LI\\u1ec0N V\\u1edaI \\u0110\\u1ea4T\\nS\\u1ed1 ph\\u00e1t h\\u00e0nh GCN: CH 234567", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "certificate_number", "section": "B", "label": "S\\u1ed1 gi\\u1ea5y ch\\u1ee9ng nh\\u1eadn", "target_table": "property_legal_info", "target_field": "certificate_number", "value": "CH 234567", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "S\\u1ed1 ph\\u00e1t h\\u00e0nh GCN: CH 234567     |     S\\u1ed1 v\\u00e0o s\\u1ed5 c\\u1ea5p GCN: CS 00458/2019", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "issue_date", "section": "B", "label": "Ng\\u00e0y c\\u1ea5p", "target_table": "property_legal_info", "target_field": "issue_date", "value": "ng\\u00e0y 14 th\\u00e1ng 03 n\\u0103m 2019", "normalized": "2019-03-14", "status": "da_xac_thuc", "confidence_pct": 90, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 2, "source_snippet": "Th\\u00e0nh ph\\u1ed1 H, ng\\u00e0y 14 th\\u00e1ng 03 n\\u0103m 2019\\nS\\u1edf T\\u00e0i nguy\\u00ean v\\u00e0 M\\u00f4i tr\\u01b0\\u1eddng Th\\u00e0nh ph\\u1ed1 H", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "issuing_authority", "section": "B", "label": "C\\u01a1 quan c\\u1ea5p", "target_table": "property_legal_info", "target_field": "issuing_authority", "value": "S\\u1edf T\\u00e0i nguy\\u00ean v\\u00e0 M\\u00f4i tr\\u01b0\\u1eddng Th\\u00e0nh ph\\u1ed1 H", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 2, "source_snippet": "Th\\u00e0nh ph\\u1ed1 H, ng\\u00e0y 14 th\\u00e1ng 03 n\\u0103m 2019\\nS\\u1edf T\\u00e0i nguy\\u00ean v\\u00e0 M\\u00f4i tr\\u01b0\\u1eddng Th\\u00e0nh ph\\u1ed1 H\\n(K\\u00fd, ghi r\\u00f5 h\\u1ecd t\\u00ean)", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_plot_number", "section": "B", "label": "S\\u1ed1 th\\u1eeda", "target_table": "property_legal_info", "target_field": "land_plot_number", "value": "45", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "Th\\u1eeda \\u0111\\u1ea5t s\\u1ed1\\n45\\nT\\u1edd b\\u1ea3n \\u0111\\u1ed3 s\\u1ed1", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "map_sheet_number", "section": "B", "label": "S\\u1ed1 t\\u1edd b\\u1ea3n \\u0111\\u1ed3", "target_table": "property_legal_info", "target_field": "map_sheet_number", "value": "12", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "T\\u1edd b\\u1ea3n \\u0111\\u1ed3 s\\u1ed1\\n12\\n\\u0110\\u1ecba ch\\u1ec9 th\\u1eeda \\u0111\\u1ea5t", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "land_use_purpose", "section": "B", "label": "M\\u1ee5c \\u0111\\u00edch s\\u1eed d\\u1ee5ng \\u0111\\u1ea5t", "target_table": "property_legal_info", "target_field": "land_use_purpose", "value": "\\u0110\\u1ea5t \\u1edf t\\u1ea1i \\u0111\\u00f4 th\\u1ecb (ODT)", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "M\\u1ee5c \\u0111\\u00edch s\\u1eed d\\u1ee5ng\\n\\u0110\\u1ea5t \\u1edf t\\u1ea1i \\u0111\\u00f4 th\\u1ecb (ODT)\\nTh\\u1eddi h\\u1ea1n s\\u1eed d\\u1ee5ng", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": [{"value": "\\u0111\\u1ea5t phi n\\u00f4ng nghi\\u1ec7p", "normalized": null, "status": "mau_thuan", "confidence_pct": 95, "source_file_id": "4971beef-80ae-469f-91fe-91df37d7034d", "source_doc_type": "thong_bao_thue_dat", "source_page": 1, "source_snippet": "TH\\u00d4NG B\\u00c1O\\nV\\u1ec1 vi\\u1ec7c n\\u1ed9p thu\\u1ebf s\\u1eed d\\u1ee5ng \\u0111\\u1ea5t phi n\\u00f4ng nghi\\u1ec7p", "bbox": null}]}, {"key": "use_term", "section": "B", "label": "Th\\u1eddi h\\u1ea1n s\\u1eed d\\u1ee5ng", "target_table": "property_legal_info", "target_field": "use_term", "value": "L\\u00e2u d\\u00e0i", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "Th\\u1eddi h\\u1ea1n s\\u1eed d\\u1ee5ng\\nL\\u00e2u d\\u00e0i\\nNgu\\u1ed3n g\\u1ed1c s\\u1eed d\\u1ee5ng", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "ownership_form", "section": "B", "label": "H\\u00ecnh th\\u1ee9c s\\u1edf h\\u1eefu", "target_table": "property_legal_info", "target_field": "ownership_form", "value": "S\\u1edf h\\u1eefu ri\\u00eang", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "H\\u00ecnh th\\u1ee9c s\\u1edf h\\u1eefu\\nS\\u1edf h\\u1eefu ri\\u00eang\\n\\nII. TH\\u1eecA \\u0110\\u1ea4T, NH\\u00c0 \\u1ede V\\u00c0 T\\u00c0I S\\u1ea2N KH\\u00c1C G\\u1eaeN LI\\u1ec0N", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": []}, {"key": "current_mortgage_status", "section": "B", "label": "T\\u00ecnh tr\\u1ea1ng th\\u1ebf ch\\u1ea5p hi\\u1ec7n t\\u1ea1i", "target_table": "property_legal_info", "target_field": "current_mortgage_status", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "address", "section": "C", "label": "\\u0110\\u1ecba ch\\u1ec9", "target_table": "property_physical_info", "target_field": "address", "value": "H\\u1ebbm 45 Nguy\\u1ec5n V\\u0103n A, Ph\\u01b0\\u1eddng B, Qu\\u1eadn C, Th\\u00e0nh ph\\u1ed1 H", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "\\u0110\\u1ecba ch\\u1ec9 th\\u1eeda \\u0111\\u1ea5t\\nH\\u1ebbm 45 Nguy\\u1ec5n V\\u0103n A, Ph\\u01b0\\u1eddng B, Qu\\u1eadn C, Th\\u00e0nh ph\\u1ed1 H\\nDi\\u1ec7n t\\u00edch", "bbox": null, "verifier_passed": true, "validation_flags": [], "alternatives": [{"value": "123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "d6cd82ad-c738-481f-a311-9dd984c07450", "source_doc_type": "to_khai_lptb", "source_page": 1, "source_snippet": "Dia chi tai san: 123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM", "bbox": null}]}, {"key": "property_type", "section": "C", "label": "Lo\\u1ea1i B\\u0110S", "target_table": "property_physical_info", "target_field": "property_type", "value": "Nha pho", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "d6cd82ad-c738-481f-a311-9dd984c07450", "source_page": 1, "source_snippet": "Loai tai san: Nha pho", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "land_area_sqm", "section": "C", "label": "Di\\u1ec7n t\\u00edch \\u0111\\u1ea5t", "target_table": "property_physical_info", "target_field": "land_area_sqm", "value": "62 m\\u00b2", "normalized": 62.0, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "Di\\u1ec7n t\\u00edch\\n62 m\\u00b2 (B\\u1eb1ng ch\\u1eef: S\\u00e1u m\\u01b0\\u01a1i hai m\\u00e9t vu\\u00f4ng)\\nM\\u1ee5c \\u0111\\u00edch s\\u1eed d\\u1ee5ng", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "floor_area_sqm", "section": "C", "label": "Di\\u1ec7n t\\u00edch s\\u00e0n x\\u00e2y d\\u1ef1ng", "target_table": "property_physical_info", "target_field": "floor_area_sqm", "value": "98 m\\u00b2", "normalized": 98.0, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "Di\\u1ec7n t\\u00edch s\\u00e0n\\n98 m\\u00b2\\nS\\u1ed1 t\\u1ea7ng", "bbox": null, "verifier_passed": null, "validation_flags": ["Di\\u1ec7n t\\u00edch s\\u00e0n 98 m\\u00b2 l\\u1ec7ch nhi\\u1ec1u so v\\u1edbi \\u0111\\u1ea5t 62 m\\u00b2 \\u00d7 2 t\\u1ea7ng (\\u2248124 m\\u00b2)."], "alternatives": [{"value": "110 m2", "normalized": 110.0, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "d6cd82ad-c738-481f-a311-9dd984c07450", "source_doc_type": "to_khai_lptb", "source_page": 1, "source_snippet": "Dien tich dat: 62 m2   Dien tich san: 110 m2", "bbox": null}]}, {"key": "num_floors_desc", "section": "C", "label": "S\\u1ed1 t\\u1ea7ng", "target_table": "property_physical_info", "target_field": "num_floors_desc", "value": "2 t\\u1ea7ng + s\\u00e2n th\\u01b0\\u1ee3ng", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "S\\u1ed1 t\\u1ea7ng\\n2 t\\u1ea7ng + s\\u00e2n th\\u01b0\\u1ee3ng\\nK\\u1ebft c\\u1ea5u", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": [{"value": "2 tang", "normalized": null, "status": "mau_thuan", "confidence_pct": 99, "source_file_id": "7549dde6-6c74-4707-b4e3-eed3c648da6e", "source_doc_type": "bien_ban_ban_giao", "source_page": 1, "source_snippet": "Loai tai san: Nha pho   So tang: 2 tang", "bbox": null}]}, {"key": "frontage_m", "section": "C", "label": "M\\u1eb7t ti\\u1ec1n (m)", "target_table": "property_physical_info", "target_field": "frontage_m", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "depth_m", "section": "C", "label": "Chi\\u1ec1u s\\u00e2u (m)", "target_table": "property_physical_info", "target_field": "depth_m", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "construction_year", "section": "C", "label": "N\\u0103m x\\u00e2y d\\u1ef1ng", "target_table": "property_physical_info", "target_field": "construction_year", "value": "2016", "normalized": 2016, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "N\\u0103m ho\\u00e0n th\\u00e0nh x\\u00e2y d\\u1ef1ng\\n2016\\nH\\u01b0\\u1edbng nh\\u00e0", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "structure_material", "section": "C", "label": "K\\u1ebft c\\u1ea5u / v\\u1eadt li\\u1ec7u", "target_table": "property_physical_info", "target_field": "structure_material", "value": "B\\u00ea t\\u00f4ng c\\u1ed1t th\\u00e9p, t\\u01b0\\u1eddng g\\u1ea1ch", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "K\\u1ebft c\\u1ea5u\\nB\\u00ea t\\u00f4ng c\\u1ed1t th\\u00e9p, t\\u01b0\\u1eddng g\\u1ea1ch\\nN\\u0103m ho\\u00e0n th\\u00e0nh x\\u00e2y d\\u1ef1ng", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "house_direction", "section": "C", "label": "H\\u01b0\\u1edbng nh\\u00e0", "target_table": "property_physical_info", "target_field": "house_direction", "value": "\\u0110\\u00f4ng Nam", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "e914c077-567f-4c6b-bb20-1010804199e2", "source_page": 1, "source_snippet": "H\\u01b0\\u1edbng nh\\u00e0\\n\\u0110\\u00f4ng Nam\\nH\\u00ecnh th\\u1ee9c s\\u1edf h\\u1eefu nh\\u00e0 \\u1edf", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "road_type_desc", "section": "C", "label": "Lo\\u1ea1i \\u0111\\u01b0\\u1eddng / \\u0111\\u1ed9 r\\u1ed9ng h\\u1ebbm", "target_table": "property_physical_info", "target_field": "road_type_desc", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "alley_width_m", "section": "C", "label": "\\u0110\\u1ed9 r\\u1ed9ng h\\u1ebbm (m)", "target_table": "property_physical_info", "target_field": "alley_width_m", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "current_usage_status", "section": "C", "label": "T\\u00ecnh tr\\u1ea1ng s\\u1eed d\\u1ee5ng hi\\u1ec7n t\\u1ea1i", "target_table": "property_physical_info", "target_field": "current_usage_status", "value": "Da hoan thien, dang o", "normalized": null, "status": "da_xac_thuc", "confidence_pct": 99, "source_file_id": "7549dde6-6c74-4707-b4e3-eed3c648da6e", "source_page": 1, "source_snippet": "Hien trang ban giao: Da hoan thien, dang o", "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_amount_vnd", "section": "D", "label": "S\\u1ed1 ti\\u1ec1n vay", "target_table": "loan_info", "target_field": "loan_amount_vnd", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_purpose", "section": "D", "label": "M\\u1ee5c \\u0111\\u00edch vay", "target_table": "loan_info", "target_field": "loan_purpose", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}, {"key": "loan_term_years", "section": "D", "label": "Th\\u1eddi h\\u1ea1n vay", "target_table": "loan_info", "target_field": "loan_term_years", "value": null, "normalized": null, "status": "nhap_tay", "confidence_pct": 0, "source_file_id": null, "source_page": null, "source_snippet": null, "bbox": null, "verifier_passed": null, "validation_flags": [], "alternatives": []}], "warnings": ["Tr\\u01b0\\u1eddng 'H\\u1ecd v\\u00e0 t\\u00ean' m\\u00e2u thu\\u1eabn gi\\u1eefa c\\u00e1c t\\u00e0i li\\u1ec7u: \\u01b0u ti\\u00ean 'Nguy\\u1ec5n V\\u0103n A' (t\\u1eeb 01_So_hong_GCN_QSDD.pdf); gi\\u00e1 tr\\u1ecb kh\\u00e1c: Nguyen Van A.", "Tr\\u01b0\\u1eddng 'S\\u1ed1 CMND/CCCD' m\\u00e2u thu\\u1eabn gi\\u1eefa c\\u00e1c t\\u00e0i li\\u1ec7u: \\u01b0u ti\\u00ean '079089012345' (t\\u1eeb 01_So_hong_GCN_QSDD.pdf); gi\\u00e1 tr\\u1ecb kh\\u00e1c: 079088001234.", "Tr\\u01b0\\u1eddng 'M\\u1ee5c \\u0111\\u00edch s\\u1eed d\\u1ee5ng \\u0111\\u1ea5t' m\\u00e2u thu\\u1eabn gi\\u1eefa c\\u00e1c t\\u00e0i li\\u1ec7u: \\u01b0u ti\\u00ean '\\u0110\\u1ea5t \\u1edf t\\u1ea1i \\u0111\\u00f4 th\\u1ecb (ODT)' (t\\u1eeb 01_So_hong_GCN_QSDD.pdf); gi\\u00e1 tr\\u1ecb kh\\u00e1c: \\u0111\\u1ea5t phi n\\u00f4ng nghi\\u1ec7p.", "Tr\\u01b0\\u1eddng '\\u0110\\u1ecba ch\\u1ec9' m\\u00e2u thu\\u1eabn gi\\u1eefa c\\u00e1c t\\u00e0i li\\u1ec7u: \\u01b0u ti\\u00ean 'H\\u1ebbm 45 Nguy\\u1ec5n V\\u0103n A, Ph\\u01b0\\u1eddng B, Qu\\u1eadn C, Th\\u00e0nh ph\\u1ed1 H' (t\\u1eeb 01_So_hong_GCN_QSDD.pdf); gi\\u00e1 tr\\u1ecb kh\\u00e1c: 123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM.", "Tr\\u01b0\\u1eddng 'Di\\u1ec7n t\\u00edch s\\u00e0n x\\u00e2y d\\u1ef1ng' m\\u00e2u thu\\u1eabn gi\\u1eefa c\\u00e1c t\\u00e0i li\\u1ec7u: \\u01b0u ti\\u00ean '98 m\\u00b2' (t\\u1eeb 01_So_hong_GCN_QSDD.pdf); gi\\u00e1 tr\\u1ecb kh\\u00e1c: 110 m2.", "Tr\\u01b0\\u1eddng 'S\\u1ed1 t\\u1ea7ng' m\\u00e2u thu\\u1eabn gi\\u1eefa c\\u00e1c t\\u00e0i li\\u1ec7u: \\u01b0u ti\\u00ean '2 t\\u1ea7ng + s\\u00e2n th\\u01b0\\u1ee3ng' (t\\u1eeb 01_So_hong_GCN_QSDD.pdf); gi\\u00e1 tr\\u1ecb kh\\u00e1c: 2 tang.", "Ki\\u1ec3m tra d\\u1eef li\\u1ec7u: Di\\u1ec7n t\\u00edch s\\u00e0n 98 m\\u00b2 l\\u1ec7ch nhi\\u1ec1u so v\\u1edbi \\u0111\\u1ea5t 62 m\\u00b2 \\u00d7 2 t\\u1ea7ng (\\u2248124 m\\u00b2)."]}	\N	100	2026-07-18 19:50:26.200949+00	2026-07-18 19:50:26.669184+00	2026-07-18 19:50:36.487765+00	db06b2a7-6e1f-48db-bee7-7d5bf8b89905	0
+8abc0b25-9a5b-4cb4-b35c-ac6102380554	91d4963d-455f-4c4c-a65b-7b8676b5697f	property_lookup	completed	{"case_id": "REQ-2026-2000"}	\N	{"case_id": "REQ-2026-2000", "findings": [{"category": "market_price", "tool_name": "market_price_lookup", "title": "Gi\\u00e1 th\\u1ecb tr\\u01b0\\u1eddng", "status_badge": "da_xac_thuc", "raw_findings": ["7 giao d\\u1ecbch so s\\u00e1nh trong b\\u00e1n k\\u00ednh 1.1km."], "inference_text": "Gi\\u00e1 giao d\\u1ecbch so s\\u00e1nh dao \\u0111\\u1ed9ng 122.7\\u2013162.1 tri\\u1ec7u/m\\u00b2, trung v\\u1ecb kho\\u1ea3ng 152.0 tri\\u1ec7u/m\\u00b2. Gi\\u00e1 t\\u01b0\\u01a1ng \\u0111\\u1ed1i \\u1ed5n \\u0111\\u1ecbnh qua c\\u00e1c giao d\\u1ecbch g\\u1ea7n \\u0111\\u00e2y, ch\\u01b0a th\\u1ea5y bi\\u1ebfn \\u0111\\u1ed9ng b\\u1ea5t th\\u01b0\\u1eddng. N\\u00ean \\u01b0u ti\\u00ean tr\\u1ecdng s\\u1ed1 cao h\\u01a1n cho c\\u00e1c giao d\\u1ecbch g\\u1ea7n \\u0111\\u00e2y khi \\u0111\\u01b0a v\\u00e0o b\\u01b0\\u1edbc \\u0111\\u1ecbnh gi\\u00e1.", "source_label": "market_price_lookup", "confidence_pct": 78}, {"category": "planning_zoning", "tool_name": "planning_zoning_lookup", "title": "Quy ho\\u1ea1ch", "status_badge": "da_xac_thuc", "raw_findings": ["Kh\\u00f4ng n\\u1eb1m trong khu v\\u1ef1c quy ho\\u1ea1ch treo.", "L\\u1ed9 gi\\u1edbi h\\u1ebbm/\\u0111\\u01b0\\u1eddng d\\u1ef1 ki\\u1ebfn m\\u1edf r\\u1ed9ng l\\u00ean 8m theo \\u0111\\u1ed3 \\u00e1n quy ho\\u1ea1ch 1/2000 ph\\u00ea duy\\u1ec7t 2021.", "Kh\\u00f4ng thu\\u1ed9c di\\u1ec7n gi\\u1ea3i to\\u1ea3, thu h\\u1ed3i \\u0111\\u1ea5t."], "inference_text": "Kh\\u00f4ng c\\u00f3 y\\u1ebfu t\\u1ed1 quy ho\\u1ea1ch b\\u1ea5t l\\u1ee3i, c\\u00f3 th\\u1ec3 t\\u0103ng nh\\u1eb9 gi\\u00e1 tr\\u1ecb n\\u1ebfu l\\u1ed9 gi\\u1edbi \\u0111\\u01b0\\u1ee3c m\\u1edf r\\u1ed9ng trong 2\\u20133 n\\u0103m t\\u1edbi nh\\u1edd c\\u1ea3i thi\\u1ec7n kh\\u1ea3 n\\u0103ng ti\\u1ebfp c\\u1eadn.", "source_label": "planning_zoning_lookup", "confidence_pct": 93}, {"category": "legal_status", "tool_name": "legal_status_lookup", "title": "Ph\\u00e1p l\\u00fd", "status_badge": "luu_y", "raw_findings": ["S\\u1ed5 h\\u1ed3ng \\u0111\\u1ee9ng t\\u00ean ch\\u00ednh ch\\u1ee7 nh\\u01b0ng c\\u00f3 ghi ch\\u00fa th\\u1ebf ch\\u1ea5p \\u0111\\u00e3 t\\u1ea5t to\\u00e1n, ch\\u01b0a xo\\u00e1 \\u0111\\u0103ng k\\u00fd.", "Kh\\u00f4ng ghi nh\\u1eadn tranh ch\\u1ea5p t\\u1ea1i th\\u1eddi \\u0111i\\u1ec3m tra c\\u1ee9u."], "inference_text": "C\\u1ea7n y\\u00eau c\\u1ea7u kh\\u00e1ch h\\u00e0ng b\\u1ed5 sung v\\u0103n b\\u1ea3n xo\\u00e1 \\u0111\\u0103ng k\\u00fd th\\u1ebf ch\\u1ea5p c\\u0169 tr\\u01b0\\u1edbc khi ho\\u00e0n t\\u1ea5t h\\u1ed3 s\\u01a1.", "source_label": "legal_status_lookup", "confidence_pct": 55}, {"category": "neighborhood_amenity", "tool_name": "neighborhood_amenity_lookup", "title": "Ti\\u1ec7n \\u00edch xung quanh", "status_badge": "da_xac_thuc", "raw_findings": ["Tr\\u01b0\\u1eddng ti\\u1ec3u h\\u1ecdc: 220m \\u00b7 Ch\\u1ee3 d\\u00e2n sinh: 460m", "Tr\\u1ea1m xe bus: 352m \\u00b7 B\\u1ec7nh vi\\u1ec7n qu\\u1eadn: 0.8km"], "inference_text": "M\\u1eadt \\u0111\\u1ed9 ti\\u1ec7n \\u00edch cao h\\u01a1n trung b\\u00ecnh khu v\\u1ef1c \\u2014 y\\u1ebfu t\\u1ed1 h\\u1ed7 tr\\u1ee3 t\\u00edch c\\u1ef1c cho nhu c\\u1ea7u \\u1edf th\\u1ef1c v\\u00e0 thanh kho\\u1ea3n khi c\\u1ea7n b\\u00e1n l\\u1ea1i.", "source_label": "neighborhood_amenity_lookup", "confidence_pct": 81}, {"category": "environmental_risk", "tool_name": "environmental_risk_lookup", "title": "M\\u00f4i tr\\u01b0\\u1eddng", "status_badge": "luu_y", "raw_findings": ["Ghi nh\\u1eadn ng\\u1eadp nh\\u1eb9 c\\u1ee5c b\\u1ed9 m\\u00f9a m\\u01b0a 2022\\u20132023 (m\\u1ee9c n\\u01b0\\u1edbc <20cm, r\\u00fat trong ng\\u00e0y).", "Kh\\u00f4ng n\\u1eb1m trong v\\u00f9ng c\\u1ea3nh b\\u00e1o s\\u1ea1t l\\u1edf, \\u00f4 nhi\\u1ec5m c\\u00f4ng nghi\\u1ec7p."], "inference_text": "R\\u1ee7i ro ng\\u1eadp \\u1edf m\\u1ee9c th\\u1ea5p, kh\\u00f4ng \\u1ea3nh h\\u01b0\\u1edfng \\u0111\\u00e1ng k\\u1ec3 \\u0111\\u1ebfn gi\\u00e1 tr\\u1ecb \\u0111\\u1ecbnh gi\\u00e1, nh\\u01b0ng n\\u00ean khuy\\u1ebfn ngh\\u1ecb kh\\u00e1ch h\\u00e0ng mua b\\u1ea3o hi\\u1ec3m t\\u00e0i s\\u1ea3n.", "source_label": "environmental_risk_lookup", "confidence_pct": 57}, {"category": "liquidity_stat", "tool_name": "liquidity_stat_lookup", "title": "Thanh kho\\u1ea3n khu v\\u1ef1c", "status_badge": "da_xac_thuc", "raw_findings": ["Th\\u1eddi gian b\\u00e1n trung b\\u00ecnh: 37 ng\\u00e0y \\u00b7 T\\u1ef7 l\\u1ec7 giao d\\u1ecbch th\\u00e0nh c\\u00f4ng: 87%", "S\\u1ed1 tin rao b\\u00e1n c\\u00f9ng ph\\u00e2n kh\\u00fac trong b\\u00e1n k\\u00ednh 1km: 17 tin"], "inference_text": "Thanh kho\\u1ea3n kh\\u00e1 t\\u1ed1t so v\\u1edbi m\\u1eb7t b\\u1eb1ng chung ph\\u00e2n kh\\u00fac \\u2014 h\\u1ed7 tr\\u1ee3 t\\u00edch c\\u1ef1c cho kh\\u1ea3 n\\u0103ng x\\u1eed l\\u00fd t\\u00e0i s\\u1ea3n b\\u1ea3o \\u0111\\u1ea3m khi c\\u1ea7n thi\\u1ebft.", "source_label": "liquidity_stat_lookup", "confidence_pct": 94}, {"category": "stigma_reputation", "tool_name": "stigma_reputation_lookup", "title": "D\\u01b0 lu\\u1eadn / t\\u00e2m linh", "status_badge": "da_xac_thuc", "raw_findings": ["Kh\\u00f4ng ghi nh\\u1eadn tin \\u0111\\u1ed3n hay s\\u1ef1 vi\\u1ec7c b\\u1ea5t th\\u01b0\\u1eddng li\\u00ean quan t\\u00e0i s\\u1ea3n/khu v\\u1ef1c.", "Kh\\u00f4ng c\\u00f3 b\\u00e0i b\\u00e1o, h\\u1ed3 s\\u01a1 c\\u00f4ng an ho\\u1eb7c d\\u1eef li\\u1ec7u ti\\u00eau c\\u1ef1c li\\u00ean quan."], "inference_text": "Kh\\u00f4ng ph\\u00e1t hi\\u1ec7n y\\u1ebfu t\\u1ed1 b\\u1ea5t l\\u1ee3i v\\u1ec1 d\\u01b0 lu\\u1eadn/t\\u00e2m linh \\u2014 kh\\u00f4ng \\u1ea3nh h\\u01b0\\u1edfng \\u0111\\u1ebfn gi\\u00e1 tr\\u1ecb hay thanh kho\\u1ea3n.", "source_label": "stigma_reputation_lookup", "confidence_pct": 97}], "market_comparables": [{"address": "H\\u1ebbm 39 Tr\\u01b0\\u1eddng Sa", "distance_km": 1.61, "area_sqm": 194.6, "transaction_date": "2025-12-23", "price_per_sqm_vnd": 141500000}, {"address": "H\\u1ebbm 31 \\u0110\\u1ed7 Tr\\u1ecdng K", "distance_km": 1.77, "area_sqm": 229.1, "transaction_date": "2026-05-30", "price_per_sqm_vnd": 122700000}, {"address": "H\\u1ebbm 83 Ng\\u00f4 Quy\\u1ec1n", "distance_km": 0.38, "area_sqm": 194.2, "transaction_date": "2025-12-22", "price_per_sqm_vnd": 159600000}, {"address": "84 L\\u00ea V\\u0103n C", "distance_km": 1.14, "area_sqm": 181.3, "transaction_date": "2025-07-10", "price_per_sqm_vnd": 148800000}, {"address": "H\\u1ebbm 36 Phan \\u0110\\u00ecnh Ph\\u00f9ng", "distance_km": 0.47, "area_sqm": 192.0, "transaction_date": "2026-04-12", "price_per_sqm_vnd": 152000000}, {"address": "H\\u1ebbm 6 L\\u00fd T\\u1ef1 L", "distance_km": 0.78, "area_sqm": 174.0, "transaction_date": "2026-06-06", "price_per_sqm_vnd": 154200000}, {"address": "42 \\u0110\\u1eb7ng V\\u0103n G", "distance_km": 1.21, "area_sqm": 197.0, "transaction_date": "2025-09-17", "price_per_sqm_vnd": 162100000}], "warnings": []}	\N	0	2026-07-18 19:55:50.449025+00	2026-07-18 19:55:50.58564+00	2026-07-18 19:55:50.635652+00	2611ca60-0665-4861-b254-c55da824d59f	0
+817cc3c6-09e9-4dbc-8c56-7bcca50e6fa3	91d4963d-455f-4c4c-a65b-7b8676b5697f	property_risk	completed	{"case_id": "REQ-2026-2000"}	\N	{"case_id": "REQ-2026-2000", "assessment": {"risk_score": 37, "risk_label": "trung_binh", "ltv_proposed_pct": 65, "risk_inference_text": "\\u0110i\\u1ec3m r\\u1ee7i ro t\\u00e0i s\\u1ea3n 37/100 (trung_binh). LTV \\u0111\\u1ec1 xu\\u1ea5t t\\u1ed1i \\u0111a 65%. Nh\\u00f3m r\\u1ee7i ro cao nh\\u1ea5t: Ph\\u00e1p l\\u00fd (60)."}, "groups": [{"group_key": "legal", "label": "Ph\\u00e1p l\\u00fd", "weight_pct": 30, "score": 60, "signals": ["N\\u1ec1n theo t\\u00ecnh tr\\u1ea1ng ph\\u00e1p l\\u00fd (M\\u00e0n 2): 60"], "source_confidence": 55, "verified": false}, {"group_key": "liquidity", "label": "Thanh kho\\u1ea3n", "weight_pct": 25, "score": 20, "signals": ["N\\u1ec1n theo thanh kho\\u1ea3n (M\\u00e0n 2)"], "source_confidence": 94, "verified": true}, {"group_key": "price_volatility", "label": "Bi\\u1ebfn \\u0111\\u1ed9ng gi\\u00e1", "weight_pct": 20, "score": 15, "signals": ["\\u0110\\u1ed9 bi\\u1ebfn \\u0111\\u1ed9ng chu\\u1ed7i ch\\u1ec9 s\\u1ed1 gi\\u00e1 (M\\u00e0n 3)"], "source_confidence": null, "verified": true}, {"group_key": "physical_environment", "label": "V\\u1eadt l\\u00fd / m\\u00f4i tr\\u01b0\\u1eddng", "weight_pct": 15, "score": 60, "signals": ["N\\u1ec1n theo m\\u00f4i tr\\u01b0\\u1eddng (M\\u00e0n 2): 60"], "source_confidence": 57, "verified": false}, {"group_key": "reputation", "label": "Danh ti\\u1ebfng / t\\u00e2m linh", "weight_pct": 10, "score": 20, "signals": ["N\\u1ec1n theo d\\u01b0 lu\\u1eadn/t\\u00e2m linh (M\\u00e0n 2)"], "source_confidence": 97, "verified": true}], "flags": [{"severity": "cao", "title": "Ph\\u00e1p l\\u00fd", "description": "R\\u1ee7i ro ph\\u00e1p l\\u00fd \\u2014 ki\\u1ec3m tra t\\u00ecnh tr\\u1ea1ng th\\u1ebf ch\\u1ea5p/tranh ch\\u1ea5p tr\\u01b0\\u1edbc khi ho\\u00e0n t\\u1ea5t.", "confidence_pct": 55, "verified": false}, {"severity": "cao", "title": "V\\u1eadt l\\u00fd / m\\u00f4i tr\\u01b0\\u1eddng", "description": "R\\u1ee7i ro v\\u1eadt l\\u00fd/m\\u00f4i tr\\u01b0\\u1eddng (ng\\u1eadp, tu\\u1ed5i c\\u00f4ng tr\\u00ecnh).", "confidence_pct": 57, "verified": false}], "ltv_policy_bands": [{"min_score": 0, "max_score": 20, "max_ltv_pct": 75, "label": "0\\u201320 \\u0111i\\u1ec3m \\u2192 t\\u1ed1i \\u0111a 75%"}, {"min_score": 21, "max_score": 40, "max_ltv_pct": 65, "label": "21\\u201340 \\u0111i\\u1ec3m \\u2192 t\\u1ed1i \\u0111a 65%"}, {"min_score": 41, "max_score": 60, "max_ltv_pct": 55, "label": "41\\u201360 \\u0111i\\u1ec3m \\u2192 t\\u1ed1i \\u0111a 55%"}, {"min_score": 61, "max_score": null, "max_ltv_pct": 45, "label": ">60 \\u0111i\\u1ec3m \\u2192 t\\u1ed1i \\u0111a 45% ho\\u1eb7c c\\u1ea7n th\\u1ea9m \\u0111\\u1ecbnh l\\u1ea1i"}], "warnings": []}	\N	0	2026-07-18 20:08:51.175832+00	2026-07-18 20:08:51.240479+00	2026-07-18 20:08:51.272601+00	46994fe4-7db4-4653-bdf5-d14bd8c5c388	0
+\.
+
+
+--
+-- Data for Name: loan_info; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.loan_info (case_id, loan_amount_vnd, loan_purpose, loan_term_years) FROM stdin;
+REQ-2026-2000	13050000000	Thế chấp vay vốn	25
+REQ-2026-2001	25750000000	Thế chấp vay vốn	20
+REQ-2026-2002	18750000000	Vay sản xuất kinh doanh	7
+REQ-2026-2003	2500000000	Vay sản xuất kinh doanh	20
+REQ-2026-2004	8300000000	Vay sản xuất kinh doanh	10
+REQ-2026-2005	6150000000	Vay tiêu dùng có tài sản bảo đảm	5
+REQ-2026-2006	2950000000	Vay sản xuất kinh doanh	25
+REQ-2026-2007	5100000000	Vay tiêu dùng có tài sản bảo đảm	25
+REQ-2026-2008	5000000000	Vay sản xuất kinh doanh	7
+REQ-2026-2009	2000000000	Vay tiêu dùng có tài sản bảo đảm	5
+REQ-2026-2010	2600000000	Thế chấp vay vốn	25
+REQ-2026-2011	3750000000	Thế chấp vay vốn	20
+REQ-2026-2012	41500000000	Vay tiêu dùng có tài sản bảo đảm	15
+REQ-2026-2013	25750000000	Vay tiêu dùng có tài sản bảo đảm	15
+REQ-2026-2014	17200000000	Thế chấp vay vốn	15
+REQ-2026-2015	37650000000	Vay mua bất động sản	15
+REQ-2026-2016	1800000000	Vay tiêu dùng có tài sản bảo đảm	7
+REQ-2026-2017	6300000000	Vay tiêu dùng có tài sản bảo đảm	20
+REQ-2026-2018	2800000000	Vay tiêu dùng có tài sản bảo đảm	5
+REQ-2026-2019	1600000000	Vay sản xuất kinh doanh	25
+REQ-2026-2020	6450000000	Thế chấp vay vốn	20
+REQ-2026-2021	7100000000	Vay bổ sung vốn lưu động	25
+REQ-2026-2022	7600000000	Vay tiêu dùng có tài sản bảo đảm	25
+REQ-2026-2023	4750000000	Vay sản xuất kinh doanh	15
+REQ-2026-2024	4200000000	Vay sản xuất kinh doanh	5
+REQ-2026-2025	4600000000	Vay bổ sung vốn lưu động	15
+REQ-2026-2026	23300000000	Thế chấp vay vốn	15
+REQ-2026-2027	1700000000	Vay sản xuất kinh doanh	20
+REQ-2026-2028	14450000000	Vay sản xuất kinh doanh	10
+REQ-2026-2029	12150000000	Vay tiêu dùng có tài sản bảo đảm	20
+REQ-2026-2030	13550000000	Vay sản xuất kinh doanh	5
+REQ-2026-2031	1750000000	Vay mua bất động sản	20
+REQ-2026-2032	5250000000	Vay tiêu dùng có tài sản bảo đảm	20
+REQ-2026-2033	21550000000	Vay mua bất động sản	25
+REQ-2026-2034	2350000000	Thế chấp vay vốn	25
+REQ-2026-2035	5450000000	Vay mua bất động sản	5
+REQ-2026-2036	11400000000	Vay bổ sung vốn lưu động	7
+REQ-2026-2037	3550000000	Vay bổ sung vốn lưu động	5
+REQ-2026-2038	21700000000	Vay bổ sung vốn lưu động	5
+REQ-2026-2039	5700000000	Vay sản xuất kinh doanh	20
+REQ-2026-2040	4750000000	Vay mua bất động sản	25
+REQ-2026-2041	4700000000	Vay tiêu dùng có tài sản bảo đảm	7
+REQ-2026-2042	13250000000	Vay sản xuất kinh doanh	20
+REQ-2026-2043	3400000000	Vay mua bất động sản	20
+REQ-2026-2044	10100000000	Vay tiêu dùng có tài sản bảo đảm	7
+REQ-2026-2045	7150000000	Thế chấp vay vốn	7
+REQ-2026-2046	2550000000	Vay sản xuất kinh doanh	25
+REQ-2026-2047	16150000000	Vay tiêu dùng có tài sản bảo đảm	5
+REQ-2026-2048	27800000000	Vay sản xuất kinh doanh	20
+REQ-2026-2049	3700000000	Vay mua bất động sản	25
+REQ-2026-2050	5550000000	Thế chấp vay vốn	15
+REQ-2026-2051	25950000000	Vay tiêu dùng có tài sản bảo đảm	25
+REQ-2026-2052	16250000000	Vay sản xuất kinh doanh	5
+REQ-2026-2053	1550000000	Thế chấp vay vốn	5
+REQ-2026-2054	3850000000	Vay sản xuất kinh doanh	20
+REQ-2026-2055	4300000000	Vay mua bất động sản	7
+REQ-2026-2056	1500000000	Vay bổ sung vốn lưu động	20
+REQ-2026-2057	24500000000	Thế chấp vay vốn	5
+REQ-2026-2058	1250000000	Vay mua bất động sản	15
+REQ-2026-2059	16050000000	Vay sản xuất kinh doanh	25
+\.
+
+
+--
+-- Data for Name: lookup_finding; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.lookup_finding (id, case_id, category, tool_name, status_badge, title, raw_findings, inference_text, source_label, confidence_pct) FROM stdin;
+765ddff4-5173-4433-9054-36e02792c2aa	REQ-2026-2000	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.1km."]	Giá giao dịch so sánh dao động 122.7–162.1 triệu/m², trung vị khoảng 152.0 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	78
+ce3ffb14-38cc-456f-a622-33bac686db74	REQ-2026-2000	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 8m theo đồ án quy hoạch 1/2000 phê duyệt 2021.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	93
+9b34b9e4-f6d3-4501-b43c-b2ff527f39ea	REQ-2026-2000	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	55
+6fd596ba-4009-4382-adde-b6e6b6935469	REQ-2026-2000	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 220m · Chợ dân sinh: 460m","Trạm xe bus: 352m · Bệnh viện quận: 0.8km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	81
+7740f519-604e-4dc4-a6c3-985c1f04dcd4	REQ-2026-2000	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2022–2023 (mức nước <20cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	57
+0a2dc231-e586-4097-8bc6-6cb47366e191	REQ-2026-2000	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 37 ngày · Tỷ lệ giao dịch thành công: 87%","Số tin rao bán cùng phân khúc trong bán kính 1km: 17 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	94
+7448e28a-8539-4d2c-a483-dd863abddfca	REQ-2026-2000	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	97
+46db6d73-ba02-497c-bf91-c305a4dda20b	REQ-2026-2001	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["5 giao dịch so sánh trong bán kính 1.3km."]	Giá giao dịch so sánh dao động 173.9–217.6 triệu/m², trung vị khoảng 188.4 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	87
+fccd9d20-eeef-40c6-8370-edf8b798c3a9	REQ-2026-2001	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (4m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	45
+31fcf2e4-859d-4ed2-90ea-b171e94e89c8	REQ-2026-2001	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 16/08/2011.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	92
+babaa79a-15d5-4a90-b9a0-2d6315774b83	REQ-2026-2001	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 1537m · Chợ dân sinh: 1388m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	30
+027a21a3-d47b-4bc5-a35f-024cf85d47ab	REQ-2026-2001	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2023–2025 (mức nước <15cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	57
+517e9beb-6a68-45c4-b67a-f368652c61f7	REQ-2026-2001	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 48 ngày · Tỷ lệ giao dịch thành công: 92%","Số tin rao bán cùng phân khúc trong bán kính 1km: 18 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	95
+66760efe-9195-4ccf-a7e8-1a3f3977e336	REQ-2026-2001	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	89
+cf6c279f-bfde-4969-af95-1f8463e8377a	REQ-2026-2002	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 1.6km."]	Giá giao dịch so sánh dao động 200.3–273.8 triệu/m², trung vị khoảng 256.4 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	85
+cb9a37ab-c6d1-44b6-a886-f070e04d0853	REQ-2026-2006	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	82
+ed526695-c63c-4d22-8fdd-4a15dbe42edc	REQ-2026-2002	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 6m theo đồ án quy hoạch 1/2000 phê duyệt 2021.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	89
+45f71fd5-bd44-4a96-ab3c-00c075cb65b7	REQ-2026-2002	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	44
+be43059b-bb5c-4c32-9b8f-8f2dfff33bc8	REQ-2026-2002	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 487m · Chợ dân sinh: 298m","Trạm xe bus: 304m · Bệnh viện quận: 1.2km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	82
+dadc768f-c7fd-47d1-94e6-b2e126f29afe	REQ-2026-2002	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2023–2024 (mức nước <20cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	62
+42a63ab7-31bf-49bf-be08-4b38260b7efe	REQ-2026-2002	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 51 ngày · Tỷ lệ giao dịch thành công: 92%","Số tin rao bán cùng phân khúc trong bán kính 1km: 13 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	80
+e5c36feb-711e-435b-a7be-e3f0bcc4f49b	REQ-2026-2002	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	88
+f7e77aa5-47c6-4173-aa43-7fa6365c4e8a	REQ-2026-2003	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.8km."]	Giá giao dịch so sánh dao động 115.6–160.9 triệu/m², trung vị khoảng 133.4 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	87
+15ef99fd-e0f1-49f7-a95e-c6a45921953b	REQ-2026-2003	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2023.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	80
+7681ca75-3f1a-4808-a1de-bbca48c304c9	REQ-2026-2003	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 14/03/2019.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	85
+ab880bac-eded-411d-9083-81357bbf31d6	REQ-2026-2003	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 344m · Chợ dân sinh: 367m","Trạm xe bus: 208m · Bệnh viện quận: 1.5km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	90
+4e661bf0-843c-4b12-8719-528f795003fe	REQ-2026-2003	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2024–2024 (mức nước <15cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	46
+4d2e80ef-c7f5-4f24-87db-50d9585d9ede	REQ-2026-2003	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 120 ngày · Tỷ lệ giao dịch thành công: 45%","Số tin rao bán cùng phân khúc trong bán kính 1km: 5 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	33
+de203ffd-fc8a-44d0-8e60-4d3f305650fd	REQ-2026-2003	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2020.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	44
+abe89b45-ff50-4b77-b8f4-94138eb36432	REQ-2026-2004	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 1.3km."]	Giá giao dịch so sánh dao động 160.2–204.9 triệu/m², trung vị khoảng 177.7 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	86
+91fa61ce-dddd-4b00-8947-19c5345bc25f	REQ-2026-2004	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 4m theo đồ án quy hoạch 1/2000 phê duyệt 2021.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	87
+0405c189-b23e-41bc-aebc-567a97a9541e	REQ-E2E-0002	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận	["D\\u1eef li\\u1ec7u m\\u00f4 ph\\u1ecfng cho D\\u01b0 lu\\u1eadn"]	Nhận định mô phỏng: Dư luận ổn.	stigma_reputation_lookup	95
+46f04e8c-4d24-4ad7-89c2-4a3c6f3fce92	REQ-2026-2004	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 10/01/2022.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	84
+ca6b3e87-58d9-471d-8085-b4f60e45e547	REQ-2026-2004	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 177m · Chợ dân sinh: 483m","Trạm xe bus: 249m · Bệnh viện quận: 1.9km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	84
+ad71dde9-4954-471c-a96d-f2d34221f2d5	REQ-2026-2004	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	95
+7379fe48-0884-40ab-bcca-012fa365347e	REQ-2026-2004	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 25 ngày · Tỷ lệ giao dịch thành công: 84%","Số tin rao bán cùng phân khúc trong bán kính 1km: 15 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	95
+c6445521-a014-4dcc-b9fb-5346f29326ec	REQ-2026-2004	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	85
+dfbed1c5-f61c-41ee-ba95-c07abff7edb5	REQ-2026-2005	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.1km."]	Giá giao dịch so sánh dao động 63.2–74.8 triệu/m², trung vị khoảng 72.1 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	92
+c9f1aeef-9a82-4cfe-933d-4226db45fcf0	REQ-2026-2005	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 6m theo đồ án quy hoạch 1/2000 phê duyệt 2022.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	95
+3d2b2201-7aae-4fa9-844a-1ad3dbd582be	REQ-2026-2005	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 18/03/2017.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	86
+bb56344a-c0a8-49c3-bbb7-7382d6497dc7	REQ-2026-2005	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 2240m · Chợ dân sinh: 1764m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	38
+09213595-4ef3-4cad-812c-02edf8e7c1b1	REQ-2026-2005	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2023–2025 (mức nước <15cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	62
+6da706cd-4623-4a96-a8bb-6f4874f85edc	REQ-2026-2005	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 25 ngày · Tỷ lệ giao dịch thành công: 84%","Số tin rao bán cùng phân khúc trong bán kính 1km: 19 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	89
+d9f70b31-433f-4e41-88c9-2b307f4b366c	REQ-2026-2005	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2022.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	39
+0dbb7b89-0b49-415a-890e-7545a19bde94	REQ-2026-2006	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.2km."]	Giá giao dịch so sánh dao động 106.8–130.0 triệu/m², trung vị khoảng 118.4 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	78
+a41ccc68-14e6-4780-ab25-f750c14b79f5	REQ-2026-2006	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (7m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	60
+c4577d30-5a86-4a23-bc7e-64b4b16cb42b	REQ-2026-2006	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	48
+519d05a3-41f3-436f-9235-75dbae28a4ab	REQ-2026-2006	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 1893m · Chợ dân sinh: 1823m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	37
+c00dcfbf-c612-414d-b3b0-c8e681869ad4	REQ-2026-2006	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 55 ngày · Tỷ lệ giao dịch thành công: 82%","Số tin rao bán cùng phân khúc trong bán kính 1km: 21 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	92
+e3594d22-82be-4f92-add9-0b67d19aae39	REQ-2026-2006	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2020.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	35
+cd8270b9-a306-452f-8096-e8a7e53fddbe	REQ-2026-2008	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 0.9km."]	Giá giao dịch so sánh dao động 150.9–217.0 triệu/m², trung vị khoảng 189.4 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	88
+f3e2b75e-26a5-432c-9a52-6d734c2754f8	REQ-2026-2008	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 4m theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	81
+a8e13c4e-50a2-40e9-8dfe-4db0eb31899e	REQ-2026-2008	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 09/08/2018.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	95
+d67dd373-fe7f-443c-a6a0-101a66ec0b5d	REQ-2026-2008	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 362m · Chợ dân sinh: 339m","Trạm xe bus: 210m · Bệnh viện quận: 2.0km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	83
+2b62c3dd-263c-44b9-aabe-c37ac1629472	REQ-2026-2008	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	83
+52156128-e51f-4041-99c7-9fd38ae6e7d4	REQ-2026-2008	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 46 ngày · Tỷ lệ giao dịch thành công: 90%","Số tin rao bán cùng phân khúc trong bán kính 1km: 16 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	89
+94795490-0d1f-4ab0-92cf-6d9180f9413f	REQ-2026-2008	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	92
+16087fdb-1898-4118-a023-f7d70f6fef59	REQ-2026-2009	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 1.5km."]	Giá giao dịch so sánh dao động 60.3–85.6 triệu/m², trung vị khoảng 77.0 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	91
+e462e333-9391-461e-8a0f-aa4716846df0	REQ-2026-2009	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (4m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	57
+51e3efdf-058f-4583-81f3-a6426cb0807e	REQ-2026-2009	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 01/06/2014.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	85
+88f4b86e-56db-4a8b-9332-afc386fff6b4	REQ-2026-2009	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 1899m · Chợ dân sinh: 1970m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	61
+0e14dfa2-adab-4034-8102-b938e7e12a9e	REQ-2026-2009	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	84
+3e8c1d2a-361b-4ec5-a25e-20603685df6a	REQ-2026-2009	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 34 ngày · Tỷ lệ giao dịch thành công: 78%","Số tin rao bán cùng phân khúc trong bán kính 1km: 16 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	97
+37b2a398-61dc-46f2-bd65-1e6ac6cfc857	REQ-2026-2009	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2015.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	51
+e83737da-a30a-4926-af18-8c57295c525f	REQ-2026-2010	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 0.5km."]	Giá giao dịch so sánh dao động 44.7–56.9 triệu/m², trung vị khoảng 51.3 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	90
+897e5da0-74b8-4520-9080-ca2cdde4eb57	REQ-2026-2010	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2019.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	90
+fc7793df-bb73-4cac-a1d8-225e155a11a3	REQ-2026-2010	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 26/06/2018.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	92
+c1fd707f-89c9-4977-948f-a58212478236	REQ-2026-2010	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 1991m · Chợ dân sinh: 1347m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	41
+ceb555da-12d3-4cad-a6d0-ad43a77e99ec	REQ-2026-2010	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	95
+4f2427f9-6505-42c5-b75c-664fa20bf457	REQ-2026-2010	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 50 ngày · Tỷ lệ giao dịch thành công: 91%","Số tin rao bán cùng phân khúc trong bán kính 1km: 12 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	82
+003b0e34-6129-4494-abe6-78066201a516	REQ-2026-2010	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2016.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	57
+5a43742b-36a2-4122-a546-96cc7e5f9154	REQ-2026-2011	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["5 giao dịch so sánh trong bán kính 1.4km."]	Giá giao dịch so sánh dao động 72.0–102.9 triệu/m², trung vị khoảng 84.6 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	92
+7d743b02-08c6-4c84-b898-726f252a5417	REQ-2026-2011	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 8m theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	83
+f59e5f4d-dadb-4989-85e9-2c81b1c39d8e	REQ-2026-2011	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	38
+51b8bbac-1a1d-4b14-a645-bbcbc2417102	REQ-2026-2011	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 402m · Chợ dân sinh: 213m","Trạm xe bus: 284m · Bệnh viện quận: 1.7km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	91
+f341ad0f-bdd8-42b8-83f2-2869814d8397	REQ-2026-2011	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	97
+0d07e5b1-78ef-4466-a0c0-2406cd96136a	REQ-2026-2011	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 53 ngày · Tỷ lệ giao dịch thành công: 77%","Số tin rao bán cùng phân khúc trong bán kính 1km: 9 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	89
+54fff12f-03f7-4bad-84ec-9d2539a1fdd2	REQ-2026-2011	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	95
+84907a0f-f1ba-4dac-9a1d-aa84a4f6c67b	REQ-2026-2012	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 1.2km."]	Giá giao dịch so sánh dao động 319.9–377.7 triệu/m², trung vị khoảng 363.4 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	71
+305b9da9-fc32-456e-bef4-23bcf6e96ab1	REQ-2026-2012	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 6m theo đồ án quy hoạch 1/2000 phê duyệt 2023.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	94
+24159949-3bc8-4bf8-b7d1-33e0ff92b6aa	REQ-2026-2012	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 17/03/2015.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	90
+ba22d0a7-1184-4eba-aba7-d7922c493718	REQ-2026-2012	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 465m · Chợ dân sinh: 578m","Trạm xe bus: 253m · Bệnh viện quận: 1.7km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	96
+d1d03d34-26d4-49e3-9337-26f49a2297c1	REQ-2026-2012	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2024–2024 (mức nước <15cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	31
+64e2809e-37be-4047-838f-02206eea1b12	REQ-2026-2012	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 46 ngày · Tỷ lệ giao dịch thành công: 78%","Số tin rao bán cùng phân khúc trong bán kính 1km: 14 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	89
+e44bdcac-4c20-4610-98bf-4ff4941af6a8	REQ-2026-2012	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2015.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	60
+80db83e4-b59f-44a0-801d-1ae4cc7e47ba	REQ-2026-2013	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["5 giao dịch so sánh trong bán kính 1.2km."]	Giá giao dịch so sánh dao động 248.4–337.6 triệu/m², trung vị khoảng 322.3 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	78
+1f52f00c-e11e-44dc-9948-53ffd703aac4	REQ-2026-2013	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	94
+6f86c2ee-18fa-471f-ae72-62c45a048b81	REQ-2026-2013	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 23/03/2005.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	90
+d22e8182-3149-4502-b5c7-6f0744c15163	REQ-2026-2013	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 2362m · Chợ dân sinh: 1690m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	42
+e363fea0-762e-48cb-a27b-61ccc89fedc5	REQ-2026-2013	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	92
+7c8149d4-f92e-4309-9e25-cd8ae52b6971	REQ-2026-2013	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 122 ngày · Tỷ lệ giao dịch thành công: 55%","Số tin rao bán cùng phân khúc trong bán kính 1km: 1 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	55
+44ab2504-8af5-4e7d-aa7d-90855a83d4d2	REQ-2026-2013	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	85
+3a701887-6770-4766-a997-7c3f8eb901f3	REQ-2026-2014	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 1.7km."]	Giá giao dịch so sánh dao động 139.5–177.4 triệu/m², trung vị khoảng 165.9 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	73
+87dd676c-e46c-4386-bd9d-e7fbda9a108c	REQ-2026-2014	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 8m theo đồ án quy hoạch 1/2000 phê duyệt 2019.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	87
+627af86c-fbc9-4df5-809f-ae85cfe6eb60	REQ-2026-2014	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 04/10/2006.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	94
+9dfc12ed-ce3d-443a-8202-06a6714b1d9c	REQ-2026-2014	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 174m · Chợ dân sinh: 325m","Trạm xe bus: 122m · Bệnh viện quận: 1.4km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	87
+cc3e9d32-cc38-47df-aa63-2883c0977133	REQ-2026-2014	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	81
+71848bd1-8b0c-4650-a0df-56f6205c7316	REQ-2026-2014	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 34 ngày · Tỷ lệ giao dịch thành công: 82%","Số tin rao bán cùng phân khúc trong bán kính 1km: 21 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	90
+22c844fd-9425-4b6e-990d-d405c0bd6df0	REQ-2026-2014	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	90
+79fe7d30-d7d7-4ce3-b68b-5998ee2e7efd	REQ-2026-2015	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 0.7km."]	Giá giao dịch so sánh dao động 381.5–514.1 triệu/m², trung vị khoảng 456.2 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	86
+36c16ade-8522-4e85-aa7a-32c527bac5c6	REQ-2026-2015	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2022.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	82
+13790430-a1ba-40f8-b296-b2b1d33bfa58	REQ-2026-2015	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 13/08/2012.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	87
+2dd1a738-b482-4b85-af46-3335e8080208	REQ-2026-2015	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 191m · Chợ dân sinh: 534m","Trạm xe bus: 116m · Bệnh viện quận: 0.8km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	92
+4b9881c5-7adf-4515-9ea5-66268aef4710	REQ-2026-2015	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	95
+17304d48-c54c-41cf-8a7b-717fd2304c41	REQ-2026-2015	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 25 ngày · Tỷ lệ giao dịch thành công: 80%","Số tin rao bán cùng phân khúc trong bán kính 1km: 9 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	95
+6ea39a4d-2286-430b-b91e-f768d7a5fe5a	REQ-2026-2015	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2020.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	36
+67a09018-c497-48f7-b46f-cbabbbac16cd	REQ-2026-2016	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["5 giao dịch so sánh trong bán kính 1.1km."]	Giá giao dịch so sánh dao động 71.6–99.5 triệu/m², trung vị khoảng 84.1 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	88
+e24521c8-d629-4148-9d38-8818562cb03f	REQ-2026-2016	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (8m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	54
+f23fe38a-7d5f-4d72-88e2-bc39c94546df	REQ-2026-2016	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 26/07/2016.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	83
+d6c6b2da-cba6-4a65-a7ca-60d0ee3099ec	REQ-2026-2016	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 1609m · Chợ dân sinh: 1606m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	64
+9ba761c4-f2ba-4d46-ae73-912646b99f5f	REQ-2026-2016	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	97
+773c09d0-3666-408c-806c-8ebe3fde2a23	REQ-2026-2016	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 48 ngày · Tỷ lệ giao dịch thành công: 89%","Số tin rao bán cùng phân khúc trong bán kính 1km: 19 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	86
+7b5fb748-2ec2-47c8-984d-a07b12e92029	REQ-2026-2016	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	89
+adc3f259-47b7-4f53-9f9e-b0f718ed3bd1	REQ-2026-2017	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["5 giao dịch so sánh trong bán kính 1.2km."]	Giá giao dịch so sánh dao động 106.6–133.9 triệu/m², trung vị khoảng 112.8 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	85
+f29b2eef-a015-41f0-9614-02bfe0917710	REQ-2026-2017	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2024.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	94
+3d017b0a-b252-468b-b2cd-0d6bb1361875	REQ-2026-2017	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 03/10/2005.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	87
+d8e2cfd7-9995-4d53-962d-74bd391bdda2	REQ-2026-2017	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 290m · Chợ dân sinh: 315m","Trạm xe bus: 375m · Bệnh viện quận: 1.1km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	94
+d8500308-45d2-4dd1-bf54-da75284a42ff	REQ-2026-2017	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	95
+46c3ca7a-4f06-4a5a-bb12-41105edb5ea8	REQ-2026-2017	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 28 ngày · Tỷ lệ giao dịch thành công: 78%","Số tin rao bán cùng phân khúc trong bán kính 1km: 12 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	97
+f46c8b22-2921-4d75-af24-5bc5fc879ba7	REQ-2026-2017	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2020.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	64
+c9aa181b-bfaf-4e47-b5f5-4a8a22f4a174	REQ-2026-2018	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["4 giao dịch so sánh trong bán kính 0.8km."]	Giá giao dịch so sánh dao động 49.8–69.5 triệu/m², trung vị khoảng 64.2 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	91
+71dfcc27-612f-4bf2-a4b7-174ba3c76081	REQ-2026-2018	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2021.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	83
+549de4c6-a299-4142-8038-7d0b062f20c9	REQ-2026-2018	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	57
+0523acaa-ee56-41eb-b5e5-4da3901835fb	REQ-2026-2018	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 394m · Chợ dân sinh: 236m","Trạm xe bus: 217m · Bệnh viện quận: 1.3km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	83
+6a9f321b-4f61-4cf9-9bc7-c04a70bf70f6	REQ-2026-2018	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	91
+fc2a7cfe-692f-4bb4-95a5-9afcac92c118	REQ-2026-2018	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 98 ngày · Tỷ lệ giao dịch thành công: 57%","Số tin rao bán cùng phân khúc trong bán kính 1km: 2 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	39
+f11ddb4d-cada-4ff3-83f6-7dffafc95278	REQ-2026-2018	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	80
+dd119a54-c492-4e04-8666-12703cf20ba9	REQ-2026-2019	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["4 giao dịch so sánh trong bán kính 0.7km."]	Giá giao dịch so sánh dao động 51.6–72.1 triệu/m², trung vị khoảng 67.3 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	71
+834d657a-faca-476e-a192-5e4f8c917023	REQ-2026-2019	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 8m theo đồ án quy hoạch 1/2000 phê duyệt 2024.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	93
+d7e30a58-6b91-4b82-82c0-5935c8f5f8f8	REQ-2026-2019	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 08/07/2015.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	88
+5793108e-ab6b-4408-85bf-3fa1c857f3c8	REQ-2026-2019	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 2370m · Chợ dân sinh: 1381m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	37
+df1d7625-55d3-4657-8bc2-edf1c8a434e1	REQ-2026-2019	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	81
+ee33be36-e226-4fe5-b092-6871e96f6969	REQ-2026-2019	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 50 ngày · Tỷ lệ giao dịch thành công: 91%","Số tin rao bán cùng phân khúc trong bán kính 1km: 8 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	92
+e5e9a0da-39a5-4fe6-814d-4d5e08ddb6ab	REQ-2026-2019	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	94
+3fa53f9a-0a39-4a92-980c-5be8487d88a5	REQ-2026-2020	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 0.9km."]	Giá giao dịch so sánh dao động 121.5–150.1 triệu/m², trung vị khoảng 140.4 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	77
+dd012a5c-768a-45b1-bae1-21a4333bdd95	REQ-2026-2020	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 6m theo đồ án quy hoạch 1/2000 phê duyệt 2019.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	95
+7aee5b61-3715-4d6f-a390-a2aa54596d83	REQ-2026-2020	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 25/10/2012.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	85
+1e81b994-4dce-40bd-bc1c-3baddc5e4817	REQ-2026-2020	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 486m · Chợ dân sinh: 323m","Trạm xe bus: 236m · Bệnh viện quận: 1.6km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	81
+8c10b34f-1246-4e0f-b92b-c993bba3cd9a	REQ-2026-2020	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2022–2025 (mức nước <15cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	41
+b6467e46-b890-47fb-8e29-c976e056a96f	REQ-2026-2020	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 43 ngày · Tỷ lệ giao dịch thành công: 85%","Số tin rao bán cùng phân khúc trong bán kính 1km: 20 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	91
+613f26de-d10d-475c-a01e-cabff7f2ee3c	REQ-2026-2020	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2015.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	52
+83b862a9-8499-4406-97b2-dd4e0d93ae03	REQ-2026-2021	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["5 giao dịch so sánh trong bán kính 0.6km."]	Giá giao dịch so sánh dao động 68.9–94.2 triệu/m², trung vị khoảng 71.6 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	88
+7ebe3953-83ea-4e08-a464-6ae09244e00e	REQ-2026-2021	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2019.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	91
+7b7c847e-57c2-4706-b2fa-b2c1d46b651b	REQ-2026-2021	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 03/05/2020.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	86
+2b27c972-e67d-4305-b203-a7ce07b0d7d1	REQ-2026-2021	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 255m · Chợ dân sinh: 287m","Trạm xe bus: 249m · Bệnh viện quận: 2.5km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	95
+156d3ff6-5d2a-4bad-a5bd-a53e4c7dca29	REQ-2026-2021	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2023–2025 (mức nước <15cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	61
+884bbc98-67b5-4fe0-8292-ccdefc4eae6d	REQ-2026-2021	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 106 ngày · Tỷ lệ giao dịch thành công: 47%","Số tin rao bán cùng phân khúc trong bán kính 1km: 5 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	54
+5600943f-e907-4aed-9d00-273c93f33b5d	REQ-2026-2021	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	92
+ace9ca6c-1b6a-4481-9e9c-cc06945761a8	REQ-2026-2022	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["4 giao dịch so sánh trong bán kính 1.6km."]	Giá giao dịch so sánh dao động 84.0–107.5 triệu/m², trung vị khoảng 99.3 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	71
+1c5db00e-16ab-4f50-8faf-2fe1e68bdbc8	REQ-2026-2022	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2021.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	86
+fdf8bcde-041f-4a2f-86ac-6a7f59fe61fa	REQ-2026-2022	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 27/08/2021.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	92
+50905a06-8ecb-4740-939a-6b1224f25376	REQ-2026-2022	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 213m · Chợ dân sinh: 548m","Trạm xe bus: 115m · Bệnh viện quận: 1.1km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	95
+ae5505f8-2a93-4395-980f-a64f58c41d52	REQ-2026-2022	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	85
+61d3aaad-cdd3-43cb-ae3b-bcad0a2a2948	REQ-2026-2022	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 120 ngày · Tỷ lệ giao dịch thành công: 63%","Số tin rao bán cùng phân khúc trong bán kính 1km: 5 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	52
+80c7692c-0c73-45d2-af14-01122e7bab51	REQ-2026-2022	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	88
+1bd73d37-c1fc-4349-97d2-548ca731ba2f	REQ-2026-2023	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 0.7km."]	Giá giao dịch so sánh dao động 125.8–152.7 triệu/m², trung vị khoảng 139.2 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	82
+aad3b932-1a87-4547-a42c-182106477dc0	REQ-2026-2023	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	86
+c73b9c1f-1358-4c00-8484-73db59d813f1	REQ-2026-2023	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	62
+d2420882-1e89-47af-b453-32a590fabdc4	REQ-2026-2023	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 337m · Chợ dân sinh: 564m","Trạm xe bus: 119m · Bệnh viện quận: 1.3km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	88
+9c8bfc1b-a025-45d3-8082-6d1f465028fc	REQ-2026-2023	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2021–2022 (mức nước <20cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	36
+7b0c56f5-fb4f-47d3-b118-611c0901fa00	REQ-2026-2023	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 25 ngày · Tỷ lệ giao dịch thành công: 76%","Số tin rao bán cùng phân khúc trong bán kính 1km: 19 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	83
+34fe6de2-a786-442f-8092-72a9b3733925	REQ-2026-2023	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	92
+ef6f95ad-a537-4738-aa65-e8a86cac8b6a	REQ-2026-2025	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["4 giao dịch so sánh trong bán kính 1.0km."]	Giá giao dịch so sánh dao động 44.8–62.5 triệu/m², trung vị khoảng 61.8 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	84
+3844f011-6868-4f0b-86e3-28f5d41eb442	REQ-2026-2025	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 4m theo đồ án quy hoạch 1/2000 phê duyệt 2019.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	90
+e53aeb34-faa7-4027-8027-fffab4b02460	REQ-2026-2025	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 21/05/2022.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	96
+15d4ed6e-e97a-4d92-a5a7-92c8e0e08079	REQ-2026-2025	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 204m · Chợ dân sinh: 223m","Trạm xe bus: 184m · Bệnh viện quận: 1.5km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	93
+12dce3cf-4a7b-4fce-bc09-73e514b4f9be	REQ-2026-2025	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	86
+2637c6a7-6a83-4c09-a900-5882dde17f9a	REQ-2026-2025	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 54 ngày · Tỷ lệ giao dịch thành công: 87%","Số tin rao bán cùng phân khúc trong bán kính 1km: 11 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	94
+4991e270-93c1-4010-943e-8cec81478323	REQ-2026-2025	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2018.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	51
+20baa408-bf9d-45c3-b2bc-a42ff21faf0b	REQ-2026-2027	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["4 giao dịch so sánh trong bán kính 1.2km."]	Giá giao dịch so sánh dao động 56.5–70.8 triệu/m², trung vị khoảng 70.5 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	90
+bbe67e08-6dfa-4af5-adf3-19d434a031e6	REQ-2026-2027	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 6m theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	87
+8f44cb8b-2823-44ba-bf62-9cefcdbb149a	REQ-2026-2027	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	50
+16c2c183-e1d0-4176-bbaa-1f31ed7cbe9b	REQ-2026-2027	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 208m · Chợ dân sinh: 397m","Trạm xe bus: 231m · Bệnh viện quận: 1.6km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	89
+177aa8a0-64d4-4a6d-af45-56dc49c3d4f6	REQ-2026-2027	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	96
+a6fcbcb2-ccc8-43aa-a8df-6365ae06c329	REQ-2026-2027	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 113 ngày · Tỷ lệ giao dịch thành công: 61%","Số tin rao bán cùng phân khúc trong bán kính 1km: 5 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	58
+d290816b-e5a2-4b95-aac5-05cf8e26f018	REQ-2026-2027	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	89
+b89d2dad-0938-4d68-9fcc-420576d7549d	REQ-2026-2028	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.0km."]	Giá giao dịch so sánh dao động 153.5–204.6 triệu/m², trung vị khoảng 180.0 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	70
+6921df39-d548-4c07-9d46-dd0d1a3a68b1	REQ-2026-2028	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 8m theo đồ án quy hoạch 1/2000 phê duyệt 2024.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	85
+354b7cdd-576b-4d7b-80dd-df2c76cb38c3	REQ-2026-2028	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	38
+7158b200-65d8-4cae-8e70-d851dcb591c7	REQ-2026-2028	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 241m · Chợ dân sinh: 489m","Trạm xe bus: 389m · Bệnh viện quận: 1.9km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	84
+39444555-719a-44a4-972f-9959f42ac0db	REQ-2026-2028	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2024–2024 (mức nước <10cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	44
+ec0f5ed2-fbe7-45a6-aaab-869d1b127389	REQ-2026-2028	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 104 ngày · Tỷ lệ giao dịch thành công: 47%","Số tin rao bán cùng phân khúc trong bán kính 1km: 3 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	53
+41b2ffc2-4574-4cff-9d7d-039825e47123	REQ-2026-2028	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	86
+e0807c85-1942-4f29-9730-11c230c87642	REQ-2026-2029	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 1.4km."]	Giá giao dịch so sánh dao động 196.6–282.1 triệu/m², trung vị khoảng 236.6 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	76
+257b67b9-97bc-4c05-acf9-47a5e1eb180a	REQ-2026-2029	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 6m theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	91
+a8f11f53-8b0b-4e7d-bc2c-e5d9bfc502eb	REQ-2026-2029	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 16/05/2014.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	91
+b87bdc2a-ddc0-47e4-b352-0d3f345e2acb	REQ-2026-2029	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 2015m · Chợ dân sinh: 1753m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	38
+c34004d4-42cb-4a50-96d3-fdaf4b5605b1	REQ-2026-2029	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2021–2023 (mức nước <15cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	40
+dd960acb-cfc7-4be1-aba0-1c0053598589	REQ-2026-2029	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 41 ngày · Tỷ lệ giao dịch thành công: 87%","Số tin rao bán cùng phân khúc trong bán kính 1km: 20 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	90
+c11f460a-3a85-47b6-a166-35d642a037b7	REQ-2026-2037	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	90
+854942c6-edb7-4189-a914-b542fdd350bc	REQ-2026-2029	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2015.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	40
+6c0e73f3-0cd4-413b-875b-84e1bd2587f2	REQ-2026-2030	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 0.9km."]	Giá giao dịch so sánh dao động 325.6–448.6 triệu/m², trung vị khoảng 410.1 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	70
+261ecd9e-4687-401a-ba3e-cb5b1bd0f8d8	REQ-2026-2030	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2023.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	83
+c43b2cb5-7610-4aa8-8d32-ba1a9fcd71bb	REQ-2026-2030	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 20/05/2010.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	97
+a0e65738-0bb7-43f6-8c1e-b523fda1e721	REQ-2026-2030	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 287m · Chợ dân sinh: 441m","Trạm xe bus: 275m · Bệnh viện quận: 1.3km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	95
+3bcd06d0-0d17-4820-988f-527eaa303b94	REQ-2026-2030	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	93
+68a5e0c7-7ce3-4e33-8255-ef8ed43feee4	REQ-2026-2030	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 113 ngày · Tỷ lệ giao dịch thành công: 56%","Số tin rao bán cùng phân khúc trong bán kính 1km: 4 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	47
+84db69ec-3f14-4ed6-ad50-60c6d199053d	REQ-2026-2030	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	84
+7f786386-66ce-47f1-af08-43626e9daf84	REQ-2026-2032	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["4 giao dịch so sánh trong bán kính 1.5km."]	Giá giao dịch so sánh dao động 45.3–58.3 triệu/m², trung vị khoảng 52.9 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	78
+2a37dc9e-0422-4cbb-8396-911b97711e78	REQ-2026-2032	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 4m theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	89
+066d955b-4b57-46cb-8cf0-144691d7e9e5	REQ-2026-2032	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 15/10/2019.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	88
+134de824-c321-460c-86e5-fd9921784d5d	REQ-2026-2032	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 2207m · Chợ dân sinh: 1192m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	50
+7852365b-5b3b-4585-96d4-c2682e2ff65e	REQ-2026-2032	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	81
+57f74f7b-2c3a-49e2-8ea9-094fb72f5f10	REQ-2026-2032	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 91 ngày · Tỷ lệ giao dịch thành công: 50%","Số tin rao bán cùng phân khúc trong bán kính 1km: 1 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	48
+adf6e600-1575-425f-8bc9-69d8a666aade	REQ-2026-2032	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	94
+406ed18f-41cc-4779-ae02-937bd80d4330	REQ-2026-2037	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 43 ngày · Tỷ lệ giao dịch thành công: 75%","Số tin rao bán cùng phân khúc trong bán kính 1km: 21 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	85
+540f3f5f-36a7-40fc-97a8-d3731eac3e40	REQ-2026-2033	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["4 giao dịch so sánh trong bán kính 1.4km."]	Giá giao dịch so sánh dao động 319.7–423.6 triệu/m², trung vị khoảng 408.6 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	80
+89a11712-057f-4a42-9ea1-12fcfcc52ab3	REQ-2026-2033	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (3m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	33
+bb6a6165-8d10-4c0f-b28f-8758c7973dcc	REQ-2026-2033	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 05/12/2022.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	83
+98b1659b-21ee-4f49-91ac-2cec4fc5e179	REQ-2026-2033	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 269m · Chợ dân sinh: 362m","Trạm xe bus: 385m · Bệnh viện quận: 2.1km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	91
+64f29ca5-9ed4-4fe1-8aea-99281d5984f4	REQ-2026-2033	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2024–2023 (mức nước <10cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	54
+5ebd0748-abe9-45eb-869a-af80637d5a06	REQ-2026-2033	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 29 ngày · Tỷ lệ giao dịch thành công: 83%","Số tin rao bán cùng phân khúc trong bán kính 1km: 22 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	81
+f3987f0e-95b7-40be-b13e-c1cc043d1890	REQ-2026-2033	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	94
+a46cdbd2-f0f9-4fd6-b409-62030320c747	REQ-2026-2034	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 0.8km."]	Giá giao dịch so sánh dao động 104.0–136.7 triệu/m², trung vị khoảng 116.5 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	79
+03e68bc0-5dc1-452e-b3d1-5b6d7dfe8379	REQ-2026-2034	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	82
+df6c2b1a-6c23-4ade-b915-7e6c62c0f5df	REQ-2026-2034	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	60
+2ed76cbd-63ed-46ad-9225-7b5a85db2a3f	REQ-2026-2034	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 445m · Chợ dân sinh: 619m","Trạm xe bus: 148m · Bệnh viện quận: 1.7km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	89
+a091d998-67a1-46ec-8d05-84487f781b78	REQ-2026-2034	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	92
+7eadd174-aaa3-4e0d-9e84-61ac6f7c9a20	REQ-2026-2034	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 26 ngày · Tỷ lệ giao dịch thành công: 85%","Số tin rao bán cùng phân khúc trong bán kính 1km: 13 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	93
+9e9bb9fe-b623-43e2-babe-f772d9ad1753	REQ-2026-2034	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	83
+c4c6d809-eb69-48ca-a1f6-0cf550b70fa0	REQ-2026-2035	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 1.2km."]	Giá giao dịch so sánh dao động 162.6–210.7 triệu/m², trung vị khoảng 188.6 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	71
+0059f219-dead-41cd-af3c-545f253d28c2	REQ-2026-2035	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 4m theo đồ án quy hoạch 1/2000 phê duyệt 2023.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	88
+073099e8-b338-4f0a-84a4-abdaf6ab84c9	REQ-2026-2035	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 11/07/2009.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	82
+81abc777-fdb1-445c-9cd8-b5763e2c6219	REQ-2026-2035	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 2266m · Chợ dân sinh: 1983m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	44
+d6b889e1-b4e1-4113-822f-66627c6a1123	REQ-2026-2035	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	84
+1586f2d4-b847-4a99-87f0-a607ce2ecb23	REQ-2026-2035	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 34 ngày · Tỷ lệ giao dịch thành công: 85%","Số tin rao bán cùng phân khúc trong bán kính 1km: 15 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	97
+5a48d522-f7b3-4bcb-bdb0-da33aee9b265	REQ-2026-2035	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	84
+686b677c-cfd7-4d18-9240-dc883d8140ce	REQ-2026-2036	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["5 giao dịch so sánh trong bán kính 1.3km."]	Giá giao dịch so sánh dao động 81.5–106.0 triệu/m², trung vị khoảng 98.9 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	82
+0e8b0ef3-3349-4ac1-9127-0113bbeae832	REQ-2026-2036	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (9m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	64
+2b459014-486d-4d84-9523-9e252732088f	REQ-2026-2036	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 23/01/2021.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	83
+ab2ef8ef-03ee-429c-b92d-12bd8c6fae2d	REQ-2026-2036	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 171m · Chợ dân sinh: 649m","Trạm xe bus: 225m · Bệnh viện quận: 1.6km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	92
+653b73fb-9954-4067-ae90-f77f35b8e678	REQ-2026-2036	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2021–2025 (mức nước <20cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	33
+ff748021-dfd2-401f-8783-81e7760647d4	REQ-2026-2036	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 39 ngày · Tỷ lệ giao dịch thành công: 87%","Số tin rao bán cùng phân khúc trong bán kính 1km: 22 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	89
+b597a451-fc85-46ba-9d04-d9575dc6371d	REQ-2026-2036	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2019.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	59
+34667de1-7cd2-4d98-a2be-2dc007392509	REQ-2026-2037	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 1.0km."]	Giá giao dịch so sánh dao động 33.0–40.4 triệu/m², trung vị khoảng 39.5 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	71
+de155ed4-053a-4b03-b0b2-015c1adb982a	REQ-2026-2037	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 8m theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	80
+bc59263c-9621-4f3c-8f7b-9a5de86efcb4	REQ-2026-2037	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 23/05/2013.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	82
+6aacee14-a04f-4b24-899a-5bedbc0bf56e	REQ-2026-2037	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 409m · Chợ dân sinh: 481m","Trạm xe bus: 265m · Bệnh viện quận: 2.1km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	83
+dd399984-c8fb-4c2d-b12c-8009e65308a3	REQ-2026-2037	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	90
+5eb379d1-8466-4bda-89c8-2e2f9e094c31	REQ-2026-2039	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.1km."]	Giá giao dịch so sánh dao động 263.3–344.5 triệu/m², trung vị khoảng 312.9 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	75
+2ba9dbd1-3b20-460f-b937-ebfe211c7265	REQ-2026-2039	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2023.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	84
+72d043a4-258c-4ff1-8562-2a453bc961ae	REQ-2026-2039	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 13/12/2008.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	90
+d5c8350a-d4ae-4076-ae87-7a251c47f54b	REQ-2026-2039	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 186m · Chợ dân sinh: 605m","Trạm xe bus: 254m · Bệnh viện quận: 1.6km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	92
+9895b006-8361-449e-a16b-a237d4867a27	REQ-2026-2039	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	87
+84a6a2af-e0b2-4dc7-9f44-a61798088864	REQ-2026-2039	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 42 ngày · Tỷ lệ giao dịch thành công: 80%","Số tin rao bán cùng phân khúc trong bán kính 1km: 15 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	92
+9648194b-7070-43c5-b2cf-91a271113da2	REQ-2026-2039	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	86
+5c6a50a2-ff8b-4420-a3cc-23bdf5ee094f	REQ-2026-2040	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 1.5km."]	Giá giao dịch so sánh dao động 69.9–95.1 triệu/m², trung vị khoảng 83.7 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	70
+1c2cc8e1-5e9a-4d6d-bae7-c0081c0decd2	REQ-2026-2040	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2023.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	82
+b2c262d1-c55e-4fcb-84df-d7f77d4f55c5	REQ-2026-2040	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	47
+99f829f5-9819-4055-af71-b3348ce9cb2d	REQ-2026-2040	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 465m · Chợ dân sinh: 343m","Trạm xe bus: 240m · Bệnh viện quận: 2.2km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	80
+99082a9b-0697-40a5-9541-4030581d4b65	REQ-2026-2040	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2022–2023 (mức nước <20cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	58
+3316ee38-befd-47a7-9416-abd84b7ce373	REQ-2026-2040	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 30 ngày · Tỷ lệ giao dịch thành công: 83%","Số tin rao bán cùng phân khúc trong bán kính 1km: 20 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	87
+d108c681-fc2e-4421-bfd7-b059dcbef8c2	REQ-2026-2040	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	96
+551c1098-8b32-41a5-9202-cf43a328dd17	REQ-2026-2041	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 0.6km."]	Giá giao dịch so sánh dao động 118.4–168.2 triệu/m², trung vị khoảng 153.6 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	92
+9080c9ed-963f-4d5f-b160-de23c07341f7	REQ-2026-2041	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2024.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	94
+9382d85a-f10f-449c-a96c-dd45e6593526	REQ-2026-2041	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	38
+060154bc-e4ac-4fb8-9274-384c97475a2a	REQ-2026-2041	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 162m · Chợ dân sinh: 568m","Trạm xe bus: 222m · Bệnh viện quận: 1.5km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	82
+c6cf6d9f-4920-461e-be09-82d6a5b210e1	REQ-2026-2041	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2023–2025 (mức nước <20cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	58
+1cecce68-8b45-4bdb-a347-a874c4c2afb2	REQ-2026-2041	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 91 ngày · Tỷ lệ giao dịch thành công: 46%","Số tin rao bán cùng phân khúc trong bán kính 1km: 3 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	33
+36a501a1-152d-40fa-900a-ff96a8adcd35	REQ-2026-2041	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	81
+315075f0-40e8-4d3f-97a2-7ce5147f0acf	REQ-2026-2042	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.1km."]	Giá giao dịch so sánh dao động 189.2–253.2 triệu/m², trung vị khoảng 240.2 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	73
+e1260e18-ff50-4ff3-856f-1e192683c90d	REQ-2026-2042	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2022.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	90
+fa0c5ff3-1d13-461e-98ea-52068c0b52f4	REQ-2026-2042	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 24/11/2015.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	87
+43095667-7bbb-498a-bdea-403d064186bc	REQ-2026-2042	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 1867m · Chợ dân sinh: 1233m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	36
+58ecad3a-002f-4724-b977-d43187f0fb25	REQ-2026-2042	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	93
+68e048e5-349e-4ce2-ba19-956ec2973d9e	REQ-2026-2042	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 114 ngày · Tỷ lệ giao dịch thành công: 52%","Số tin rao bán cùng phân khúc trong bán kính 1km: 1 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	60
+b049b6b3-6a81-4cc9-87d0-410502bbd3a9	REQ-2026-2042	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	81
+35a6f978-a830-4b1b-ae4c-756313965a64	REQ-2026-2043	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.0km."]	Giá giao dịch so sánh dao động 78.7–116.3 triệu/m², trung vị khoảng 106.7 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	84
+2628ff06-2089-42f5-a460-ad07173683c3	REQ-2026-2043	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (3m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	34
+1b85ef15-aea5-4623-86b3-3333be4b37e5	REQ-2026-2043	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 23/06/2021.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	81
+38372df6-0f3e-4d06-b477-d5e0bbfdb3c7	REQ-2026-2043	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 288m · Chợ dân sinh: 557m","Trạm xe bus: 377m · Bệnh viện quận: 1.7km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	86
+e2cda26b-3d0e-437b-b1da-bdfa24ca627d	REQ-2026-2043	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2021–2024 (mức nước <20cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	33
+0a5c3951-321d-4f26-9a48-15edc34d565f	REQ-2026-2043	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 54 ngày · Tỷ lệ giao dịch thành công: 86%","Số tin rao bán cùng phân khúc trong bán kính 1km: 22 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	81
+09c6b4e6-2a18-4055-a11d-97049440dfe3	REQ-2026-2043	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	91
+f2756a6d-f434-4342-bcbe-cf21f6d8339c	REQ-2026-2044	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 0.9km."]	Giá giao dịch so sánh dao động 164.7–210.5 triệu/m², trung vị khoảng 204.7 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	71
+ffa60f31-b782-4367-9b06-edc5ae6f935d	REQ-2026-2044	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	85
+dc2c1acf-e80c-48c8-ae03-afdbd686a58f	REQ-2026-2044	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	48
+4315d0e2-1c15-488c-af98-3d47bb8ccb2b	REQ-2026-2044	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 239m · Chợ dân sinh: 629m","Trạm xe bus: 178m · Bệnh viện quận: 0.9km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	83
+8725ee92-89f8-4470-8019-e50b1bd0c76e	REQ-2026-2044	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	90
+f453dcfd-7a0d-41a1-a662-fd449b7f9953	REQ-2026-2044	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 39 ngày · Tỷ lệ giao dịch thành công: 83%","Số tin rao bán cùng phân khúc trong bán kính 1km: 13 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	85
+e03a59d2-fa2d-4b5d-aa2e-3b275c67b781	REQ-2026-2044	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	81
+ead853e5-0427-41bd-b637-c3a8fb116b2b	REQ-2026-2045	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 0.9km."]	Giá giao dịch so sánh dao động 86.6–106.5 triệu/m², trung vị khoảng 98.5 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	90
+09cbdcda-e8f7-4791-a5b6-dd11a296ea33	REQ-2026-2045	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (11m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	42
+a9540e91-fd52-474e-abba-66cd33b0d2d3	REQ-2026-2045	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	41
+ddf11c68-2898-423b-a5ba-9fc8651f5b97	REQ-2026-2045	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 2426m · Chợ dân sinh: 1770m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	40
+b498900e-fc4e-49db-8199-1f5ff42cca44	REQ-2026-2045	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	90
+eff6c10f-3e43-47f6-a860-d666fed866b2	REQ-2026-2045	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 133 ngày · Tỷ lệ giao dịch thành công: 54%","Số tin rao bán cùng phân khúc trong bán kính 1km: 3 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	53
+24a2cfd6-40e9-43a7-9fa5-2228a7c3fb73	REQ-2026-2045	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	91
+aa1740c5-3740-45a1-9b9e-765c064ea98f	REQ-2026-2047	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["5 giao dịch so sánh trong bán kính 0.6km."]	Giá giao dịch so sánh dao động 252.0–350.5 triệu/m², trung vị khoảng 325.1 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	86
+9b26660a-7876-4b21-b124-e813ecf05893	REQ-2026-2047	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (10m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	42
+3f12efbd-36a4-460a-9f56-9acd6601ffaa	REQ-2026-2047	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 16/08/2021.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	88
+587023cc-c8cd-43d4-890e-c2f243b1b9e1	REQ-2026-2047	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 426m · Chợ dân sinh: 479m","Trạm xe bus: 109m · Bệnh viện quận: 2.4km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	81
+91824e7a-6b3d-48bf-8000-aec3b5b27d50	REQ-2026-2047	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2021–2025 (mức nước <15cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	50
+da357c85-fc85-43d6-987b-70ee35500ee8	REQ-2026-2047	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 118 ngày · Tỷ lệ giao dịch thành công: 59%","Số tin rao bán cùng phân khúc trong bán kính 1km: 1 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	32
+dd6fc8bd-e36e-4557-aa87-640d7bb7547b	REQ-2026-2047	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	89
+738c7a0e-092d-4bde-b7ef-f6b9412eda1e	REQ-2026-2048	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 1.4km."]	Giá giao dịch so sánh dao động 336.9–446.2 triệu/m², trung vị khoảng 408.5 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	77
+977bfe41-46b3-4a4a-aac6-55a8219d29ea	REQ-2026-2048	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	80
+11ffdafb-8b0b-4cf6-af2f-a727d68d114b	REQ-2026-2048	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 27/05/2019.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	95
+a0ca5765-2457-422c-8aaf-1926af763d47	REQ-2026-2048	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 373m · Chợ dân sinh: 416m","Trạm xe bus: 118m · Bệnh viện quận: 1.0km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	88
+1190304b-af13-46d3-847b-7e65187a47f5	REQ-2026-2048	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	88
+ddc80bde-d820-4be7-bfe0-6e6f1588dd79	REQ-2026-2048	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 107 ngày · Tỷ lệ giao dịch thành công: 62%","Số tin rao bán cùng phân khúc trong bán kính 1km: 2 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	32
+899e9d2a-2cd2-4473-a29a-74da4a28f9af	REQ-2026-2051	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (10m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	49
+8b458b2e-97f6-4788-b4b5-2b9cc902303e	REQ-2026-2048	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2022.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	31
+f400f351-562c-413d-b895-1c42fc1537d9	REQ-2026-2049	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 0.7km."]	Giá giao dịch so sánh dao động 44.5–59.9 triệu/m², trung vị khoảng 50.1 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	81
+d7936b96-4c18-4a25-98bc-8ab9a9b54e49	REQ-2026-2049	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 4m theo đồ án quy hoạch 1/2000 phê duyệt 2024.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	96
+662819fc-a3f1-4e1f-894b-255186e11e1e	REQ-2026-2049	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 15/11/2020.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	83
+27b58297-d274-4017-9b88-900682cc8ac2	REQ-2026-2049	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 254m · Chợ dân sinh: 297m","Trạm xe bus: 236m · Bệnh viện quận: 1.1km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	95
+8d204848-27ad-49d0-9b43-e85d4d2d111d	REQ-2026-2049	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	93
+03031016-aed2-4bed-8811-80405f811d96	REQ-2026-2049	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 128 ngày · Tỷ lệ giao dịch thành công: 51%","Số tin rao bán cùng phân khúc trong bán kính 1km: 3 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	42
+4c479632-d452-43e3-969c-348a36504745	REQ-2026-2049	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	93
+f130d9e5-919c-4b35-963e-2c240bf36d3d	REQ-2026-2050	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["6 giao dịch so sánh trong bán kính 1.5km."]	Giá giao dịch so sánh dao động 81.5–110.9 triệu/m², trung vị khoảng 102.7 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	79
+775867b3-9b8e-401f-8233-685d21ff9a06	REQ-2026-2050	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (12m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	38
+9c6964df-6ba5-4c11-b09d-f8813369d59d	REQ-2026-2050	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 04/06/2021.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	86
+c80162c6-362e-4f4d-bcdb-331fdd0bc949	REQ-2026-2050	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 348m · Chợ dân sinh: 443m","Trạm xe bus: 237m · Bệnh viện quận: 1.7km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	93
+68ac2913-df8e-4342-a8e5-a2e94bc0c2c8	REQ-2026-2050	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	93
+4ff6c9db-e98c-4be2-b1de-94d69863793a	REQ-2026-2050	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 129 ngày · Tỷ lệ giao dịch thành công: 50%","Số tin rao bán cùng phân khúc trong bán kính 1km: 4 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	57
+bc3ce884-fa94-49c8-919d-7944d5552a70	REQ-2026-2050	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	96
+5faafea4-e4a5-4fff-a990-2529909960fe	REQ-2026-2051	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 1.3km."]	Giá giao dịch so sánh dao động 202.6–289.8 triệu/m², trung vị khoảng 270.4 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	73
+7e9c88d6-5893-4fb7-9b2c-08301d68dd11	REQ-2026-2051	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 18/01/2005.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	91
+ab4799be-95d4-4b53-9555-235b10b14179	REQ-2026-2051	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 1931m · Chợ dân sinh: 1693m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	40
+d9f2dc35-d0de-4a70-9358-cce5d29933ef	REQ-2026-2051	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	96
+b8e55787-2b06-4988-ba5e-d787055919a8	REQ-2026-2051	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 27 ngày · Tỷ lệ giao dịch thành công: 85%","Số tin rao bán cùng phân khúc trong bán kính 1km: 14 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	83
+c7116479-fe6d-4cde-b880-2a8475268553	REQ-2026-2051	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	83
+80a2be91-349f-4239-995a-3722f153f4ee	REQ-2026-2052	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["4 giao dịch so sánh trong bán kính 1.5km."]	Giá giao dịch so sánh dao động 203.2–253.1 triệu/m², trung vị khoảng 241.8 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	73
+424cdc9b-2b58-4507-9f97-6e4706340ba6	REQ-2026-2052	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến mở rộng lên 4m theo đồ án quy hoạch 1/2000 phê duyệt 2022.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	90
+31ec31cf-3950-4ad3-ac0c-10387974fdba	REQ-2026-2052	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	64
+69d57916-b25a-4c29-9bf5-44f3a2ee8b9a	REQ-2026-2052	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 1678m · Chợ dân sinh: 1358m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	49
+4dd3a351-85e0-47b8-8b08-f58bb2dce0bf	REQ-2026-2052	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	84
+9bc9733b-3922-422f-a179-99bdb301cf14	REQ-2026-2052	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 123 ngày · Tỷ lệ giao dịch thành công: 52%","Số tin rao bán cùng phân khúc trong bán kính 1km: 1 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	50
+eddf0e8c-54ce-4231-b387-a724bffe6467	REQ-2026-2052	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	86
+a48fd2ac-b20a-4932-a53e-ecb0778cbfd1	REQ-2026-2053	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 1.1km."]	Giá giao dịch so sánh dao động 43.7–57.1 triệu/m², trung vị khoảng 47.7 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	83
+fcc69947-d5f3-4124-9523-ca18230328a7	REQ-2026-2053	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2024.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	87
+e4ae4ce5-4747-4307-bb80-72b136cc8d20	REQ-2026-2053	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	31
+df0782d9-a46e-400b-935c-53bcc15d09c1	REQ-2026-2053	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 450m · Chợ dân sinh: 545m","Trạm xe bus: 151m · Bệnh viện quận: 1.1km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	97
+903c9fd3-7a16-4331-9df8-243274fe3554	REQ-2026-2053	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	84
+4bdd5c5e-dc8e-42d1-a888-249a98052346	REQ-2026-2053	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 38 ngày · Tỷ lệ giao dịch thành công: 89%","Số tin rao bán cùng phân khúc trong bán kính 1km: 9 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	96
+d909a82e-6595-4f4b-bb2c-6380796341d5	REQ-2026-2053	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	84
+b73790c4-5897-4685-8886-b5c54f0bac6c	REQ-2026-2054	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 1.7km."]	Giá giao dịch so sánh dao động 45.1–61.2 triệu/m², trung vị khoảng 50.2 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	77
+3d156571-e2a4-4833-b43e-0a6bf80061ba	REQ-2026-2054	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2019.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	83
+0ca459a7-faa5-41f7-859b-decfbd6d1b36	REQ-2026-2054	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 14/01/2015.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	88
+4fb4301f-6853-4fab-a9a6-2b3014a06faf	REQ-2026-2054	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 392m · Chợ dân sinh: 322m","Trạm xe bus: 274m · Bệnh viện quận: 2.2km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	90
+c57af446-2eec-4450-a6b6-2c1072152c59	REQ-2026-2054	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	87
+2a784817-3cb0-40db-b0ae-570059d1e0e0	REQ-2026-2054	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 139 ngày · Tỷ lệ giao dịch thành công: 64%","Số tin rao bán cùng phân khúc trong bán kính 1km: 5 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	58
+968e561c-a698-478e-b977-ff89ff0690c6	REQ-2026-2054	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2022.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	37
+3b6a2db8-f4f2-45a2-88ee-4f255ba6b54f	REQ-2026-2055	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 0.7km."]	Giá giao dịch so sánh dao động 46.0–62.7 triệu/m², trung vị khoảng 51.4 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	74
+7f892af3-5ca9-4079-bf17-63d89f7f8054	REQ-2026-2055	planning_zoning	planning_zoning_lookup	luu_y	Quy hoạch	["Một phần thửa đất (6m²) nằm trong hành lang lộ giới quy hoạch mở rộng đường.","Chưa có quyết định thu hồi đất chính thức tại thời điểm tra cứu."]	Cần đối chiếu thêm bản vẽ quy hoạch chi tiết 1/500 để xác định chính xác phần diện tích ảnh hưởng trước khi đưa vào định giá.	planning_zoning_lookup	64
+77a9bb65-e0b8-48bd-99f0-07334fede5b7	REQ-2026-2055	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 12/06/2018.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	87
+dc338a03-c108-479d-8227-2c49a5bc04e5	REQ-2026-2055	neighborhood_amenity	neighborhood_amenity_lookup	luu_y	Tiện ích xung quanh	["Trường tiểu học gần nhất: 2461m · Chợ dân sinh: 1601m","Chưa có tuyến xe bus đi qua trong bán kính 1km."]	Mật độ tiện ích thấp hơn trung bình khu vực, có thể ảnh hưởng nhẹ đến nhu cầu ở thực so với các vị trí trung tâm hơn.	neighborhood_amenity_lookup	42
+6434aa4d-ad69-4264-86fd-1ef1ee087e6d	REQ-2026-2055	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["Ghi nhận ngập nhẹ cục bộ mùa mưa 2023–2023 (mức nước <15cm, rút trong ngày).","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro ngập ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá, nhưng nên khuyến nghị khách hàng mua bảo hiểm tài sản.	environmental_risk_lookup	45
+d9d52a73-b3cb-420d-ba75-f885a04f03eb	REQ-2026-2055	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 50 ngày · Tỷ lệ giao dịch thành công: 83%","Số tin rao bán cùng phân khúc trong bán kính 1km: 21 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	84
+fc6120ca-6f50-4333-9ab5-9a5c464eb5fa	REQ-2026-2055	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2022.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	43
+4baa7372-7d27-4db7-a3c6-b4ac08a0227c	REQ-2026-2056	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.2km."]	Giá giao dịch so sánh dao động 31.3–40.0 triệu/m², trung vị khoảng 36.9 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	84
+15be0bd4-af5d-497d-9cf9-514927c78d10	REQ-2026-2056	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	83
+8145c0dc-8aec-4155-8d1a-415df055c51a	REQ-2026-2056	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 06/01/2020.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	80
+fbacf25d-4663-4456-b19d-29a5c9e9c53f	REQ-2026-2056	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 185m · Chợ dân sinh: 666m","Trạm xe bus: 297m · Bệnh viện quận: 1.1km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	87
+c40f603e-c3c1-4a95-8031-c0ea5f92fad1	REQ-2026-2056	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	96
+2bf9f5bc-1ec4-46ba-b6d1-4a209f8b8191	REQ-2026-2056	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 26 ngày · Tỷ lệ giao dịch thành công: 86%","Số tin rao bán cùng phân khúc trong bán kính 1km: 16 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	80
+c5f86dda-9a30-412e-83bd-80eeacaa02d4	REQ-2026-2056	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	93
+4ff7de2e-d7b8-4d06-b55d-dbf331c7eb49	REQ-2026-2057	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["8 giao dịch so sánh trong bán kính 1.6km."]	Giá giao dịch so sánh dao động 281.7–364.3 triệu/m², trung vị khoảng 306.6 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	80
+c7443fe1-4838-42f8-b2bc-1ac6bb3f56b1	REQ-2026-2057	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2020.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	97
+7f8598ce-8372-4455-869d-2e4b28c90b26	REQ-2026-2057	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 14/02/2012.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	86
+2079d23b-840b-49bf-a1c4-71fdbae4375e	REQ-2026-2057	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 315m · Chợ dân sinh: 288m","Trạm xe bus: 107m · Bệnh viện quận: 1.4km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	90
+fbbe4b04-e9ac-42c3-b487-8238d6290738	REQ-2026-2057	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	86
+4d2c2d66-81ae-4558-bfdd-72a737cb8709	REQ-2026-2057	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 27 ngày · Tỷ lệ giao dịch thành công: 83%","Số tin rao bán cùng phân khúc trong bán kính 1km: 18 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	91
+a65d9a5e-4fce-4b05-b9ae-a4c779365b12	REQ-2026-2057	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	86
+8e7a1998-8615-4b53-9eb0-f3454b039b5a	REQ-2026-2058	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.7km."]	Giá giao dịch so sánh dao động 69.2–93.2 triệu/m², trung vị khoảng 82.5 triệu/m². Giá tương đối ổn định qua các giao dịch gần đây, chưa thấy biến động bất thường. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	81
+c3e28da7-f886-45be-a791-cee53ae18525	REQ-2026-2058	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2024.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	91
+b60db829-6f4f-4e08-adee-192571b92050	REQ-2026-2058	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["Sổ hồng đứng tên chính chủ, cấp 21/07/2018.","Không ghi nhận tranh chấp, kê biên hay khiếu nại.","Không đang thế chấp tại tổ chức tín dụng khác."]	Tình trạng pháp lý sạch, đủ điều kiện nhận thế chấp. Yếu tố tích cực, giảm đáng kể rủi ro khi xử lý tài sản bảo đảm nếu phát sinh nợ xấu.	legal_status_lookup	87
+908f25eb-5068-4d76-ad3a-25e2d7fa13c6	REQ-2026-2058	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 167m · Chợ dân sinh: 671m","Trạm xe bus: 285m · Bệnh viện quận: 1.8km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	80
+3b4cd336-03fd-4bfa-a893-8f9d735ec7d3	REQ-2026-2058	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	84
+d8bd83ec-ffe0-407d-9a06-b8ae16d77a59	REQ-2026-2058	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản khu vực	["Thời gian bán trung bình: 39 ngày · Tỷ lệ giao dịch thành công: 79%","Số tin rao bán cùng phân khúc trong bán kính 1km: 12 tin"]	Thanh khoản khá tốt so với mặt bằng chung phân khúc — hỗ trợ tích cực cho khả năng xử lý tài sản bảo đảm khi cần thiết.	liquidity_stat_lookup	87
+47a5bd78-347c-43a8-a1f7-9a217f8040c9	REQ-2026-2058	stigma_reputation	stigma_reputation_lookup	da_xac_thuc	Dư luận / tâm linh	["Không ghi nhận tin đồn hay sự việc bất thường liên quan tài sản/khu vực.","Không có bài báo, hồ sơ công an hoặc dữ liệu tiêu cực liên quan."]	Không phát hiện yếu tố bất lợi về dư luận/tâm linh — không ảnh hưởng đến giá trị hay thanh khoản.	stigma_reputation_lookup	85
+64fe5c94-2dec-4766-8e81-f5a537edcd4b	REQ-2026-2059	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["7 giao dịch so sánh trong bán kính 1.1km."]	Giá giao dịch so sánh dao động 573.2–797.9 triệu/m², trung vị khoảng 635.1 triệu/m². Xu hướng tăng theo thời gian, giao dịch gần nhất cao hơn đáng kể so với giao dịch xa nhất, cho thấy khu vực đang trong đà tăng giá. Nên ưu tiên trọng số cao hơn cho các giao dịch gần đây khi đưa vào bước định giá.	market_price_lookup	81
+1093e05a-e909-4172-8c62-286e73f29843	REQ-2026-2059	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["Không nằm trong khu vực quy hoạch treo.","Lộ giới hẻm/đường dự kiến giữ nguyên theo đồ án quy hoạch 1/2000 phê duyệt 2021.","Không thuộc diện giải toả, thu hồi đất."]	Không có yếu tố quy hoạch bất lợi, có thể tăng nhẹ giá trị nếu lộ giới được mở rộng trong 2–3 năm tới nhờ cải thiện khả năng tiếp cận.	planning_zoning_lookup	87
+d78d110f-0aab-436d-8772-8f65f63ecaa0	REQ-2026-2059	legal_status	legal_status_lookup	luu_y	Pháp lý	["Sổ hồng đứng tên chính chủ nhưng có ghi chú thế chấp đã tất toán, chưa xoá đăng ký.","Không ghi nhận tranh chấp tại thời điểm tra cứu."]	Cần yêu cầu khách hàng bổ sung văn bản xoá đăng ký thế chấp cũ trước khi hoàn tất hồ sơ.	legal_status_lookup	55
+da764ad3-0042-437e-a5d4-d5c594b5ef53	REQ-2026-2059	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích xung quanh	["Trường tiểu học: 179m · Chợ dân sinh: 699m","Trạm xe bus: 282m · Bệnh viện quận: 2.3km"]	Mật độ tiện ích cao hơn trung bình khu vực — yếu tố hỗ trợ tích cực cho nhu cầu ở thực và thanh khoản khi cần bán lại.	neighborhood_amenity_lookup	83
+7bdb812a-4570-4c42-93c0-2fd4750fbbed	REQ-2026-2059	environmental_risk	environmental_risk_lookup	da_xac_thuc	Môi trường	["Không ghi nhận ngập úng trong 3 năm gần nhất.","Không nằm trong vùng cảnh báo sạt lở, ô nhiễm công nghiệp."]	Rủi ro môi trường ở mức thấp, không ảnh hưởng đáng kể đến giá trị định giá.	environmental_risk_lookup	92
+2abb9e8f-7077-45dc-8445-ad495a80d747	REQ-2026-2059	liquidity_stat	liquidity_stat_lookup	luu_y	Thanh khoản khu vực	["Thời gian bán trung bình: 146 ngày · Tỷ lệ giao dịch thành công: 49%","Số tin rao bán cùng phân khúc trong bán kính 1km: 1 tin"]	Thanh khoản thấp hơn mặt bằng chung khu vực — cần cân nhắc thêm khi xác định LTV để đảm bảo khả năng xử lý tài sản bảo đảm.	liquidity_stat_lookup	37
+15f2571a-90c6-475a-a16c-5b848d1d98ce	REQ-2026-2059	stigma_reputation	stigma_reputation_lookup	chua_xac_thuc	Dư luận / tâm linh	["Ghi nhận tin đồn dân cư chưa xác thực liên quan 1 sự việc năm 2019.","Không có bài báo, hồ sơ công an hoặc dữ liệu chính thức xác nhận."]	Độ tin cậy nguồn tin thấp, chưa đủ cơ sở kết luận ảnh hưởng đến giá trị hay thanh khoản. Khuyến nghị thẩm định viên xác minh thực địa trước khi đưa vào báo cáo chính thức.	stigma_reputation_lookup	45
+9a853fc5-fc1d-42fd-aaab-f297903bd89d	REQ-E2E-0002	market_price	market_price_lookup	da_xac_thuc	Giá thị trường	["D\\u1eef li\\u1ec7u m\\u00f4 ph\\u1ecfng cho Gi\\u00e1 th\\u1ecb tr\\u01b0\\u1eddng"]	Nhận định mô phỏng: Giá thị trường ổn.	market_price_lookup	80
+275a0fc4-99a9-45a7-a1e2-39f581e0a0de	REQ-E2E-0002	planning_zoning	planning_zoning_lookup	da_xac_thuc	Quy hoạch	["D\\u1eef li\\u1ec7u m\\u00f4 ph\\u1ecfng cho Quy ho\\u1ea1ch"]	Nhận định mô phỏng: Quy hoạch ổn.	planning_zoning_lookup	90
+349374a5-7487-4470-a11c-94135629f095	REQ-E2E-0002	legal_status	legal_status_lookup	da_xac_thuc	Pháp lý	["D\\u1eef li\\u1ec7u m\\u00f4 ph\\u1ecfng cho Ph\\u00e1p l\\u00fd"]	Nhận định mô phỏng: Pháp lý ổn.	legal_status_lookup	92
+6f982d70-2e46-48ae-87e7-5e89d472fbe6	REQ-E2E-0002	neighborhood_amenity	neighborhood_amenity_lookup	da_xac_thuc	Tiện ích	["D\\u1eef li\\u1ec7u m\\u00f4 ph\\u1ecfng cho Ti\\u1ec7n \\u00edch"]	Nhận định mô phỏng: Tiện ích ổn.	neighborhood_amenity_lookup	82
+43c1c629-4422-4b38-bfb1-2d91c391ed9e	REQ-E2E-0002	environmental_risk	environmental_risk_lookup	luu_y	Môi trường	["D\\u1eef li\\u1ec7u m\\u00f4 ph\\u1ecfng cho M\\u00f4i tr\\u01b0\\u1eddng"]	Nhận định mô phỏng: Môi trường ổn.	environmental_risk_lookup	60
+c0b68aac-3f3e-4677-a75d-ed7ea5e85311	REQ-E2E-0002	liquidity_stat	liquidity_stat_lookup	da_xac_thuc	Thanh khoản	["D\\u1eef li\\u1ec7u m\\u00f4 ph\\u1ecfng cho Thanh kho\\u1ea3n"]	Nhận định mô phỏng: Thanh khoản ổn.	liquidity_stat_lookup	85
+\.
+
+
+--
+-- Data for Name: market_comparable; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.market_comparable (id, case_id, comp_address, distance_km, area_sqm, transaction_date, price_per_sqm_vnd, display_order) FROM stdin;
+c2d9b597-4358-48eb-b876-1bb8a5ed2099	REQ-2026-2000	Hẻm 39 Trường Sa	1.61	194.60	2025-12-23	141500000	0
+4a959f42-f075-4edf-814f-948f90751cee	REQ-2026-2000	Hẻm 31 Đỗ Trọng K	1.77	229.10	2026-05-30	122700000	1
+717de57b-b909-4c0b-b1a7-9205be4c84a1	REQ-2026-2000	Hẻm 83 Ngô Quyền	0.38	194.20	2025-12-22	159600000	2
+669b9eb5-48bc-4e47-abd8-f0b84ba33b05	REQ-2026-2000	84 Lê Văn C	1.14	181.30	2025-07-10	148800000	3
+c516b11d-b8a6-4b1d-82c0-365b852e16bb	REQ-2026-2000	Hẻm 36 Phan Đình Phùng	0.47	192.00	2026-04-12	152000000	4
+5ac44ea7-2844-4ae1-b133-db907449594f	REQ-2026-2000	Hẻm 6 Lý Tự L	0.78	174.00	2026-06-06	154200000	5
+f256e520-0b72-471a-9b73-6756acfc7625	REQ-2026-2000	42 Đặng Văn G	1.21	197.00	2025-09-17	162100000	6
+c7145b59-faf5-4c7d-b240-d5cea6319cff	REQ-2026-2001	Hẻm 18 Nguyễn Huệ	1.08	196.20	2025-07-13	173900000	0
+f928e6f9-383d-4535-be68-1ba2824f986b	REQ-2026-2001	Hẻm 14 Cách Mạng Tháng 8	0.70	208.50	2025-08-22	188400000	1
+38b47872-c0bd-4473-a31e-d3461497ed21	REQ-2026-2001	84 Phạm Ngọc D	0.20	231.80	2026-02-19	217600000	2
+60f4deec-94a2-496b-bd5d-7be51eaa0f7c	REQ-2026-2001	Hẻm 26 Phan Đình Phùng	0.86	209.30	2026-01-22	212900000	3
+f92e733b-3516-4885-bf81-bc10e11e23a2	REQ-2026-2001	11 Nguyễn Trãi	1.47	241.20	2025-11-11	173900000	4
+20c770cb-b7d8-4ba7-9742-f1636700637b	REQ-2026-2002	Hẻm 56 Phan Đình Phùng	0.12	172.70	2025-10-19	203500000	0
+ea69239a-3daf-4eb9-8a67-e76aa9c54611	REQ-2026-2002	Hẻm 6 Ngô Quyền	1.09	177.80	2025-02-25	269800000	1
+3be73247-5012-4185-a1f4-7163e55fb766	REQ-2026-2002	Hẻm 103 Trần Văn B	1.63	182.00	2025-12-27	200300000	2
+d0e75523-cbea-403f-bab4-6520f4a8bd41	REQ-2026-2002	Hẻm 73 Cách Mạng Tháng 8	1.76	219.20	2026-04-11	211500000	3
+9c28b6d1-79a1-44ec-a38d-d1f93d5c9dc0	REQ-2026-2002	104 Nguyễn Thị F	1.60	169.20	2026-02-01	273800000	4
+9e0b47fb-0143-4206-b55a-5cfd93ce3b80	REQ-2026-2002	54 Bùi Quang H	0.55	221.90	2025-12-14	256399999	5
+bd69f046-813b-4ba5-95bb-85e73e6fa078	REQ-2026-2003	Hẻm 93 Đỗ Trọng K	0.50	28.20	2025-10-28	146400000	0
+bf1b0d43-aff6-4cf5-aab9-328fc9de3f19	REQ-2026-2003	Hẻm 31 Điện Biên Phủ	1.28	31.90	2026-02-04	160900000	1
+d6cb90e8-7190-40f2-adbb-9e9da9d530d0	REQ-2026-2003	Hẻm 61 Cách Mạng Tháng 8	0.21	33.20	2025-08-21	115600000	2
+ec78d5c4-af96-48c8-9469-8baa151de224	REQ-2026-2003	Hẻm 91 Nguyễn Văn A	1.56	32.50	2025-02-16	133400000	3
+4dcb794b-6b67-48fe-9367-514058df887d	REQ-2026-2003	40 Điện Biên Phủ	1.55	34.40	2026-03-14	132900000	4
+5d23de28-85d2-48e1-832b-743f90f6e7f3	REQ-2026-2003	104 Trường Sa	1.63	29.70	2025-02-28	135000000	5
+d9553bd6-f4be-4d0d-aa66-1ac5c336ca57	REQ-2026-2003	Hẻm 45 Điện Biên Phủ	1.33	33.30	2025-07-12	127000000	6
+ae07f08e-e1cb-4110-a485-c86589aa5289	REQ-2026-2004	73 Nguyễn Văn A	0.98	85.70	2025-05-13	204900000	0
+25be848d-6b21-40fc-9b57-c8a33371749d	REQ-2026-2004	Hẻm 99 Bùi Quang H	1.27	100.60	2025-10-11	160200000	1
+c7cb535b-1395-4b13-bb73-2095adc8cbe3	REQ-2026-2004	Hẻm 39 Bùi Quang H	0.79	87.40	2025-03-28	177700000	2
+3ba29ee7-0d82-4fb6-a5be-96d367a4f0aa	REQ-2026-2004	Hẻm 69 Ngô Quyền	0.82	103.90	2025-10-31	189800000	3
+6261b612-066a-45fd-b419-56accc6ab5a7	REQ-2026-2004	Hẻm 41 Võ Thành I	0.49	103.10	2025-05-13	166500000	4
+fef05fa1-cf3f-41a2-871c-d80adc487783	REQ-2026-2004	Hẻm 99 Nguyễn Thị F	0.43	103.60	2025-04-22	165400000	5
+7104ed22-8b21-406c-9cb3-d6e5dc0c326d	REQ-2026-2005	Hẻm 15 Nguyễn Thị F	0.66	150.00	2025-11-20	72900000	0
+50040da9-4adc-48f6-8e80-ea2f546b6318	REQ-2026-2005	72 Trần Văn B	0.87	131.80	2025-10-16	71000000	1
+ac41bffa-60d9-4376-ad3f-6af51348198c	REQ-2026-2005	Hẻm 67 Nguyễn Văn A	1.22	142.80	2025-04-09	72100000	2
+ade90c49-4d60-482b-aa1a-4a4c9431ee5a	REQ-2026-2005	Hẻm 81 Lê Lợi	1.16	153.20	2026-02-02	74800000	3
+3d00b4c0-2e70-470e-8744-8588756aed87	REQ-2026-2005	Hẻm 38 Nguyễn Trãi	1.60	140.00	2025-08-01	68500000	4
+d42e2943-a85b-4f71-89ab-1e053cab1da3	REQ-2026-2005	32 Nguyễn Thị F	0.63	117.40	2025-06-21	63200000	5
+1d865c05-dfb4-4d71-9731-803a5384e6d6	REQ-2026-2005	118 Phạm Ngọc D	0.88	122.30	2026-01-14	74700000	6
+807da517-fed0-43bd-9440-f62624411619	REQ-2026-2006	27 Điện Biên Phủ	1.55	34.40	2025-10-30	120400000	0
+993deb75-7b9e-4ed4-a9bd-96092816c460	REQ-2026-2006	Hẻm 91 Đỗ Trọng K	0.14	44.30	2025-12-19	106800000	1
+fc439a98-8f25-4a0d-a6ea-967a32cd8b84	REQ-2026-2006	Hẻm 89 Trần Văn B	1.65	43.10	2026-06-16	107400000	2
+3ff4bd05-957d-4b01-a08b-f1c486980548	REQ-2026-2006	Hẻm 104 Bùi Quang H	1.13	37.80	2025-03-15	126600000	3
+e0318b66-fb05-402c-a6f1-5314f6fbd418	REQ-2026-2006	Hẻm 98 Hoàng Minh E	1.17	45.20	2025-08-07	118000000	4
+653f4626-38a7-4f07-8257-7d8db62d798f	REQ-2026-2006	6 Nguyễn Huệ	0.72	34.80	2026-01-13	118400000	5
+99893eaf-8b25-4d03-aa3e-ddda6b6937a3	REQ-2026-2006	24 Đặng Văn G	0.32	40.30	2026-01-04	130000000	6
+b3a652e9-4994-4186-804a-89f2c9bbfcf2	REQ-2026-2008	Hẻm 87 Phạm Ngọc D	0.80	60.30	2025-07-15	153100000	0
+b40eeb57-9444-45c5-a322-42d4c219ac5e	REQ-2026-2008	94 Trần Văn B	1.75	55.30	2025-09-24	217000000	1
+1356334d-b7dc-4844-9b8b-abe04f2fa5d8	REQ-2026-2008	Hẻm 21 Lê Lợi	0.48	46.30	2025-07-07	174200000	2
+c1304a72-a791-4646-912a-1cd6734b18f8	REQ-2026-2008	Hẻm 37 Nguyễn Huệ	0.48	52.20	2025-10-22	210000000	3
+9aadd69f-1e3d-4b36-bcb9-2d3e1dca62c3	REQ-2026-2008	80 Phan Đình Phùng	0.14	61.30	2025-04-01	189400000	4
+7c1470df-10e1-49bc-9b4d-ba065a9936ee	REQ-2026-2008	Hẻm 36 Đỗ Trọng K	1.67	50.80	2025-12-13	208900000	5
+86d628b5-b930-42d1-a830-fbcf41c19e08	REQ-2026-2008	Hẻm 53 Lê Văn C	0.34	55.90	2026-02-14	161900000	6
+96132e32-6e2a-4c2b-9686-0bc3c867d566	REQ-2026-2008	Hẻm 50 Cách Mạng Tháng 8	0.87	47.20	2025-04-11	150900000	7
+e962d43f-9100-4bbe-9ae1-d9cda91ff77f	REQ-2026-2009	Hẻm 24 Trần Văn B	0.52	41.20	2026-02-14	85600000	0
+887fd678-36cc-4f7f-bc07-c482761781db	REQ-2026-2009	48 Ngô Quyền	1.66	40.50	2025-07-05	70300000	1
+2650c8b1-c770-4092-ac5e-f570ef0fed66	REQ-2026-2009	Hẻm 103 Lý Tự L	0.21	36.30	2025-04-16	79700000	2
+0158f93d-cb91-42d8-a83f-0741ae6d53a0	REQ-2026-2009	Hẻm 111 Trường Sa	1.58	39.70	2025-11-04	77000000	3
+08ce3513-c1f2-4079-96c0-14fd5d3c66ec	REQ-2026-2009	41 Điện Biên Phủ	0.32	45.10	2026-01-16	74300000	4
+76978a9f-6ee9-47c6-8a05-a62bd6ca2b2b	REQ-2026-2009	Hẻm 103 Lý Tự L	1.48	44.60	2025-06-16	60300000	5
+ecbf0c54-c898-4457-9e4b-eb1b5a0875fc	REQ-2026-2010	Hẻm 56 Nguyễn Văn A	1.15	83.30	2025-04-13	52600000	0
+da8e3e40-c076-4b04-90b8-f38910f98029	REQ-2026-2010	69 Ngô Quyền	0.22	92.20	2025-05-10	49400000	1
+19d8fa48-1159-4662-835a-c6358fb62fb3	REQ-2026-2010	Hẻm 51 Lê Lợi	0.17	87.90	2025-07-30	51300000	2
+25cccce8-3642-4ef0-94f1-e75292d823b7	REQ-2026-2010	Hẻm 102 Lê Văn C	0.69	98.70	2025-03-29	48600000	3
+333a237d-8fc0-4bff-98a9-c9a389584f95	REQ-2026-2010	Hẻm 98 Lý Tự L	0.33	86.80	2025-03-16	53700000	4
+2d671038-e07a-41b2-91de-08895cabd158	REQ-2026-2010	Hẻm 101 Nguyễn Trãi	1.77	90.80	2025-05-21	47900000	5
+cde0ca32-247e-4219-8253-9db2103c2958	REQ-2026-2010	Hẻm 101 Nguyễn Trãi	0.16	82.10	2026-02-05	44700000	6
+83efd43d-5c2d-49b9-921d-cdfaa7f7c272	REQ-2026-2010	Hẻm 41 Hai Bà Trưng	0.78	101.30	2025-01-17	56900000	7
+9be484d1-deae-48a7-8e08-2200791d6297	REQ-2026-2011	Hẻm 37 Bùi Quang H	1.73	74.60	2025-11-25	87400000	0
+c686690a-9707-4cdd-9e1d-72cbc3877c38	REQ-2026-2011	Hẻm 73 Phạm Ngọc D	0.55	81.70	2025-09-24	75800000	1
+b86eb0a9-3d80-4855-a06b-11f002b9a73b	REQ-2026-2011	Hẻm 119 Lê Lợi	0.44	77.90	2025-08-07	84600000	2
+83316177-09a5-4d38-8c6e-e4a8b74d77a4	REQ-2026-2011	58 Lê Văn C	1.48	103.20	2026-03-20	72000000	3
+4bda4c75-6b66-4554-8f66-daa2aec7f036	REQ-2026-2011	Hẻm 10 Phan Đình Phùng	1.02	100.90	2025-07-10	102900000	4
+3138c913-f73c-4d6b-b0de-5111a887ffd7	REQ-2026-2012	66 Nguyễn Trãi	1.74	148.20	2026-03-22	377700000	0
+55b37067-e38d-409c-b300-8ae1a71ce7f2	REQ-2026-2012	Hẻm 78 Lê Lợi	0.59	136.60	2026-04-12	356300000	1
+d4215a00-02fb-425d-b3dd-1e8404d1c05d	REQ-2026-2012	95 Ngô Quyền	1.40	156.70	2026-02-28	319900000	2
+620d4f19-f18e-4982-81e2-d14f90d064a4	REQ-2026-2012	Hẻm 48 Phan Đình Phùng	0.59	157.80	2025-07-20	363400000	3
+402a446d-d1f5-4b78-85c2-eeaa38789af6	REQ-2026-2012	Hẻm 81 Trường Sa	0.30	190.80	2025-07-30	370800000	4
+018e2f82-e6d9-441e-a12d-4d3ec65889c8	REQ-2026-2012	73 Ngô Quyền	1.38	147.30	2025-03-27	362400000	5
+8dec9ba9-0ad6-4e43-b444-8f16070d50c1	REQ-2026-2013	Hẻm 84 Trần Văn B	1.64	151.10	2026-01-15	323100000	0
+7e80bc10-7510-4450-b5fc-a08fa1489a0f	REQ-2026-2013	110 Trần Văn B	1.65	156.30	2025-09-11	302100000	1
+ed9b3f3d-3ee3-459b-8142-bf84f87f0c6e	REQ-2026-2013	6 Điện Biên Phủ	1.44	157.00	2026-03-13	337600000	2
+d139e2a5-a071-46f2-bc2a-248d6f1065fe	REQ-2026-2013	114 Trần Văn B	0.12	179.90	2025-03-22	322300000	3
+b05eb999-cbe2-41cc-a0c2-bdfc060ed4f2	REQ-2026-2013	Hẻm 84 Phan Đình Phùng	0.99	199.20	2025-12-22	248400000	4
+ac31cefb-b276-4a62-8ffe-f42a855dac69	REQ-2026-2014	116 Lê Văn C	1.78	189.90	2025-07-22	176200000	0
+75923dcc-4b68-45a4-b922-8c6a9e7be664	REQ-2026-2014	100 Cách Mạng Tháng 8	0.74	217.40	2026-01-23	149700000	1
+c25c1af3-5cbb-42db-aa46-32b47fb6ed98	REQ-2026-2014	50 Lê Văn C	1.26	202.40	2025-01-11	160100000	2
+1852a72b-64d8-4d5a-9b3c-e7fdd4f37b76	REQ-2026-2014	17 Nguyễn Thị F	1.79	184.80	2025-05-26	165900000	3
+1108c57c-4ea4-48df-b9f6-04b051640ad6	REQ-2026-2014	98 Nguyễn Văn A	1.76	189.40	2026-01-01	139500000	4
+fe8dd8e3-aafb-4bcb-8102-477fa29a2cac	REQ-2026-2014	Hẻm 107 Bùi Quang H	0.52	181.70	2025-09-20	177400000	5
+d4dda1da-bbe7-477a-92d4-5364138c7fcf	REQ-2026-2015	Hẻm 99 Lê Lợi	1.74	175.30	2025-05-13	485600000	0
+c5b7d1fd-df5d-4e57-bf1c-f4cb03079a10	REQ-2026-2015	47 Nguyễn Thị F	0.34	169.80	2026-02-01	456200000	1
+2bd7d9a6-e2b5-418c-a232-31b0b3e4a4b3	REQ-2026-2015	Hẻm 84 Trần Văn B	0.99	186.50	2025-01-28	401200000	2
+d7c65777-af81-4795-812a-3138765c80e1	REQ-2026-2015	99 Nguyễn Văn A	0.80	186.70	2025-03-06	381500000	3
+851e2070-e2aa-445e-8070-a06695cdee2d	REQ-2026-2015	Hẻm 29 Hai Bà Trưng	0.88	142.10	2025-05-01	409700000	4
+f76320dc-ce32-4445-9ce2-67050ddbe347	REQ-2026-2015	86 Lê Lợi	0.13	169.00	2025-06-17	482600000	5
+f7dafac8-d396-4a51-872f-a79b1a02a354	REQ-2026-2015	Hẻm 37 Phan Đình Phùng	1.76	139.60	2026-04-20	442000000	6
+a2b67409-c776-42a6-af3b-9576099b4a73	REQ-2026-2015	Hẻm 118 Nguyễn Thị F	0.28	144.10	2025-05-18	514100000	7
+15a3caf2-6005-47ea-a0c3-6376fdefac3e	REQ-2026-2016	Hẻm 10 Nguyễn Thị F	0.84	48.40	2026-02-21	76900000	0
+232aa2ef-c5f8-4310-8b0c-0cabb0bcf20b	REQ-2026-2016	Hẻm 33 Lê Lợi	1.11	44.50	2026-05-30	84100000	1
+b58b8159-05ce-47c1-9c70-6c5d4af4b96e	REQ-2026-2016	Hẻm 52 Lý Tự L	1.53	47.70	2026-02-03	71600000	2
+8ba52a0f-7a7b-4184-beb2-6d0a220c1428	REQ-2026-2016	Hẻm 106 Trường Sa	0.33	46.70	2025-11-25	96600000	3
+5f610ff5-ad9d-4f3a-8356-38c3bcb61369	REQ-2026-2016	Hẻm 24 Điện Biên Phủ	1.75	46.20	2026-03-28	99500000	4
+acf68936-5fb0-4a55-862f-c784e8dd3124	REQ-2026-2017	119 Trường Sa	1.10	120.50	2025-03-21	129199999	0
+bcf655dd-8660-4843-adf9-ad330f7269f5	REQ-2026-2017	Hẻm 25 Ngô Quyền	1.28	114.20	2025-11-15	106600000	1
+8ebef36a-16cd-4566-8b26-e130ad6862c2	REQ-2026-2017	Hẻm 56 Nguyễn Thị F	0.93	115.20	2026-01-06	111400000	2
+3e1a6c43-b638-49fb-b264-9026062c511a	REQ-2026-2017	Hẻm 64 Đỗ Trọng K	0.34	106.60	2025-12-19	133900000	3
+cca260e7-1e10-4072-8f18-afc805c836db	REQ-2026-2017	3 Lê Lợi	0.33	126.00	2026-02-18	112800000	4
+8d89906d-6638-4cb2-b59e-5a87ed57b446	REQ-2026-2018	Hẻm 2 Cách Mạng Tháng 8	0.44	88.80	2025-12-20	69500000	0
+7de4ebd0-c389-4b2c-86cf-fd999c26e842	REQ-2026-2018	Hẻm 113 Võ Thành I	0.26	79.50	2025-04-12	50900000	1
+15eee1ac-a0d8-4353-886e-2d7024cf81ff	REQ-2026-2018	23 Trần Văn B	0.77	77.90	2025-04-04	49800000	2
+b8755b46-1532-49b9-ad6a-0063930cc9ac	REQ-2026-2018	Hẻm 13 Phạm Ngọc D	0.10	82.80	2025-11-11	64200000	3
+b3ec5203-454d-4a85-8ec5-b942f18162bb	REQ-2026-2019	Hẻm 56 Võ Thành I	0.99	40.70	2026-06-03	67300000	0
+0235f12b-72bd-43ef-950e-ea5bf63c3eac	REQ-2026-2019	Hẻm 60 Hai Bà Trưng	0.71	44.30	2025-08-01	72100000	1
+99854f95-55ab-4493-9446-c7d27cc44ffd	REQ-2026-2019	Hẻm 100 Phạm Ngọc D	1.62	46.90	2025-12-12	62400000	2
+51248b9e-db03-43b5-8ef4-6128212f7f84	REQ-2026-2019	Hẻm 7 Nguyễn Văn A	0.52	43.90	2025-06-04	51600000	3
+621077aa-8489-4027-b43d-17e256f4c83e	REQ-2026-2020	Hẻm 10 Đặng Văn G	1.63	86.80	2025-05-13	134500000	0
+14176591-16ef-457c-8913-3d580cb30df5	REQ-2026-2020	105 Lý Tự L	0.31	101.90	2025-03-27	126900000	1
+f9bd4f3e-0dc0-42aa-8b4c-6ba2075f0fa0	REQ-2026-2020	Hẻm 94 Điện Biên Phủ	0.94	85.00	2025-09-13	122400000	2
+09e73a70-3fef-401b-b3a2-37f98ce9c8cd	REQ-2026-2020	Hẻm 25 Võ Thành I	0.58	100.20	2026-01-03	144300000	3
+fc14a550-392c-42a4-9f62-219d71875cd4	REQ-2026-2020	84 Đỗ Trọng K	0.95	100.10	2025-08-20	121500000	4
+fd1b77f3-53e2-4138-b024-eaafb54d3fc8	REQ-2026-2020	Hẻm 19 Cách Mạng Tháng 8	0.44	100.20	2026-05-20	147400000	5
+7f935baf-3ac6-459f-9a7b-fe59b9ebc337	REQ-2026-2020	71 Nguyễn Văn A	1.78	97.10	2025-08-15	150100000	6
+d54f741e-7dbc-467f-b289-7b1426e0f9fe	REQ-2026-2020	46 Nguyễn Huệ	0.95	85.20	2025-09-28	140400000	7
+4d189e2c-6116-44c2-96c6-1a5690d27bd2	REQ-2026-2021	6 Đỗ Trọng K	0.13	128.60	2026-04-19	70700000	0
+2c20ec5f-90b8-453f-9a65-2d4e2759f645	REQ-2026-2021	Hẻm 50 Nguyễn Thị F	1.34	142.30	2025-12-02	68900000	1
+f423a3e3-c38c-49a4-b429-00387ce43046	REQ-2026-2021	Hẻm 80 Lê Lợi	1.30	136.70	2026-04-09	94200000	2
+e4e2ba42-e17d-477b-a8df-3b49d093eb7e	REQ-2026-2021	22 Trần Văn B	0.27	125.90	2025-07-20	86400000	3
+265c4ffa-e235-4192-841a-e0eafd5780ce	REQ-2026-2021	Hẻm 120 Phan Đình Phùng	0.55	129.60	2025-06-04	71600000	4
+7b9b53d5-b282-4fd1-bd5f-efebbc403f1b	REQ-2026-2022	Hẻm 97 Nguyễn Trãi	1.42	167.10	2026-01-01	107500000	0
+d18088ef-2fa6-42a4-9683-8dcca1795aa5	REQ-2026-2022	26 Nguyễn Trãi	0.46	197.60	2025-06-22	98800000	1
+f1b7a457-2761-4c02-896f-a888d463c863	REQ-2026-2022	Hẻm 49 Trần Văn B	0.98	157.20	2025-04-04	99300000	2
+eafb0a83-7d87-43a1-8448-f6d26db77aa9	REQ-2026-2022	Hẻm 101 Hai Bà Trưng	1.59	149.30	2025-08-11	84000000	3
+3444eb3b-68c3-4172-9657-5a79b58ebe07	REQ-2026-2023	Hẻm 112 Nguyễn Thị F	1.42	53.70	2025-09-06	152700000	0
+df27b3a7-adb2-4f56-87e5-849f7d09af48	REQ-2026-2023	Hẻm 9 Nguyễn Văn A	0.87	48.60	2026-01-28	139200000	1
+00ebd6c1-62d4-4ff6-bd85-0772b16c5d1a	REQ-2026-2023	64 Lê Văn C	0.32	52.70	2025-07-07	146600000	2
+efe95bde-e1e0-4a43-9cc3-626d56c586bf	REQ-2026-2023	51 Nguyễn Văn A	0.16	48.40	2025-09-21	128699999	3
+ec8e4727-3024-49e2-b5cc-e761c3c10def	REQ-2026-2023	98 Hai Bà Trưng	0.42	57.20	2026-04-21	125800000	4
+a1e25be4-df78-4263-9f73-97cc4a28739b	REQ-2026-2023	Hẻm 114 Ngô Quyền	0.63	46.60	2025-12-22	138900000	5
+efc6efad-529f-43ef-b92e-335e975de150	REQ-2026-2023	Hẻm 107 Trần Văn B	0.61	50.10	2025-11-23	132500000	6
+2d59c560-1712-4ed3-b913-b256e124dab2	REQ-2026-2023	Hẻm 57 Hoàng Minh E	0.68	61.30	2025-06-27	144200000	7
+d0944279-b4de-4337-aaf7-81a722b6950f	REQ-2026-2025	Hẻm 65 Nguyễn Văn A	0.27	159.20	2025-08-29	61800000	0
+bbd1ac88-09cd-4345-afe7-54ef54cc3322	REQ-2026-2025	103 Trường Sa	1.74	171.80	2026-04-14	55400000	1
+d9c6acb3-d31b-4bc5-b937-62962c558456	REQ-2026-2025	Hẻm 87 Nguyễn Trãi	1.72	156.40	2025-07-01	62500000	2
+a440a3a5-d80b-438f-83d9-feb90bec686b	REQ-2026-2025	44 Phan Đình Phùng	1.40	169.70	2025-12-21	44800000	3
+5c0d58d0-91fc-4eae-99ed-3b25bd70f0c0	REQ-2026-2027	86 Đỗ Trọng K	0.93	70.40	2025-05-08	70500000	0
+b8734825-e74f-418e-9eeb-ab66cdac541f	REQ-2026-2027	69 Bùi Quang H	1.73	69.20	2025-02-16	60100000	1
+bee902c7-2857-411f-b584-e99909290569	REQ-2026-2027	Hẻm 70 Điện Biên Phủ	0.26	62.10	2026-01-02	70800000	2
+df93dce4-94ce-4007-a1d1-38f87961727f	REQ-2026-2027	Hẻm 39 Đặng Văn G	1.72	71.40	2025-10-06	56500000	3
+107f4f41-2cde-4ff8-83ea-80952886fbbc	REQ-2026-2028	Hẻm 30 Cách Mạng Tháng 8	0.57	142.90	2026-01-05	153500000	0
+2860b9b6-fc2d-4574-a983-658da9fb02c4	REQ-2026-2028	61 Nguyễn Trãi	0.71	140.10	2025-12-27	188900000	1
+0e7a0162-5c0a-4a4a-a550-41e2d1662253	REQ-2026-2028	12 Võ Thành I	1.56	131.60	2026-03-17	180000000	2
+84ae87df-d134-44f6-93f7-533046269bbb	REQ-2026-2028	82 Lê Văn C	1.34	170.20	2026-01-31	179100000	3
+067206cc-a8da-492c-bf41-f54424e4439f	REQ-2026-2028	Hẻm 76 Nguyễn Huệ	0.79	154.70	2025-07-26	200700000	4
+4f65cac4-3166-439f-b515-390e283b4f32	REQ-2026-2028	Hẻm 116 Phan Đình Phùng	0.90	164.20	2025-09-05	204600000	5
+0385a450-9460-4760-bc5c-938cfa34f053	REQ-2026-2028	77 Đỗ Trọng K	0.33	150.10	2026-02-20	167200000	6
+27522fd5-6941-4d59-988b-d11d1f4d7fc5	REQ-2026-2029	Hẻm 98 Phạm Ngọc D	0.26	128.10	2025-04-02	199600000	0
+bb062bed-e07f-44fd-8e5b-f40e7a61b2e9	REQ-2026-2029	116 Cách Mạng Tháng 8	0.99	116.10	2025-08-05	282100000	1
+e066557f-f3aa-4ba7-9fa6-24f8d5c7c859	REQ-2026-2029	Hẻm 104 Lê Lợi	1.44	116.50	2025-08-10	200100000	2
+cb42dbc8-0aa8-4984-9d44-a5e1ce7a0f51	REQ-2026-2029	109 Nguyễn Huệ	0.27	106.30	2025-04-24	252200000	3
+3fa4acc8-9f82-4b7d-b04e-8627ce0757bd	REQ-2026-2029	12 Đỗ Trọng K	1.12	123.30	2026-01-09	241500000	4
+5a2567ec-ae96-4eff-8c13-a0ca52907663	REQ-2026-2029	103 Nguyễn Văn A	1.08	105.60	2026-05-06	220500000	5
+0fbd040c-2fe9-4447-9357-8d3a64a5aff4	REQ-2026-2029	Hẻm 104 Lý Tự L	0.80	105.10	2025-06-07	196600000	6
+84ee12e7-ac5b-4dd6-962c-cd046496af5f	REQ-2026-2029	Hẻm 111 Phan Đình Phùng	0.82	115.90	2025-07-13	236600000	7
+43c6a9e2-5d8b-4997-99bc-963cbe26118d	REQ-2026-2030	Hẻm 29 Nguyễn Huệ	0.56	99.80	2025-09-03	447400000	0
+bbc4ddb0-a5c7-44ef-a954-4caa65eda4d2	REQ-2026-2030	Hẻm 96 Đặng Văn G	0.50	79.00	2025-01-24	410100000	1
+5f9f5add-5c7b-4ddc-a333-2a85cf38b2f0	REQ-2026-2030	Hẻm 33 Trường Sa	0.71	94.90	2026-01-07	347500000	2
+60fae251-0b1c-401a-94ce-870fbf9fb73b	REQ-2026-2030	86 Lê Lợi	1.14	94.40	2026-03-25	325600000	3
+154450a8-abda-4273-91ec-a8161f5ff96f	REQ-2026-2030	49 Trường Sa	0.64	98.40	2026-04-13	388900000	4
+fdd04add-5483-43dd-9969-7e350e081639	REQ-2026-2030	64 Nguyễn Thị F	1.77	98.90	2025-07-14	439800000	5
+b1d48ce0-bd9f-43cb-9b06-ddcaaca5be2e	REQ-2026-2030	18 Trần Văn B	0.99	84.30	2026-01-11	349700000	6
+c91d8353-2fb8-4d39-98ab-2b1f30073e22	REQ-2026-2030	Hẻm 52 Nguyễn Thị F	0.88	75.40	2026-04-18	448600000	7
+0257b31c-db54-4d10-8a8c-5ff5072e80af	REQ-2026-2032	63 Đỗ Trọng K	0.12	195.30	2025-07-03	58300000	0
+8f2587e1-e2da-4a94-9345-f5a7f1605950	REQ-2026-2032	72 Ngô Quyền	0.42	226.20	2025-11-13	49900000	1
+68da697a-e891-4378-a9be-37c3c01408a7	REQ-2026-2032	Hẻm 96 Điện Biên Phủ	1.51	181.00	2025-11-04	52900000	2
+bdc2b071-6675-46df-9e8c-1681f2afcc7a	REQ-2026-2032	Hẻm 99 Trường Sa	1.47	212.70	2025-04-25	45300000	3
+f2a59bd4-d5b9-452a-8314-6eb1bc1bc927	REQ-2026-2033	Hẻm 34 Lê Lợi	1.19	80.70	2025-08-01	403000000	0
+74168058-ca92-4284-b0be-116e30717672	REQ-2026-2033	16 Bùi Quang H	1.18	84.60	2025-02-21	423600000	1
+62fedbca-6329-4bc6-a898-bf3cc4f8db2d	REQ-2026-2033	Hẻm 52 Bùi Quang H	0.12	75.90	2025-12-19	319700000	2
+aed3cdce-e12c-482d-ba53-bb7989ba89d9	REQ-2026-2033	21 Ngô Quyền	1.41	82.30	2025-09-08	408600000	3
+8c2608ef-f4cf-457e-b9f8-ef7e82a36aef	REQ-2026-2034	56 Phạm Ngọc D	0.38	36.30	2025-09-05	109300000	0
+9584429d-bd61-469d-a725-95d8913b692e	REQ-2026-2034	70 Trường Sa	0.85	38.60	2025-11-06	111300000	1
+597efad7-4022-463e-88eb-00ec4ee75618	REQ-2026-2034	54 Cách Mạng Tháng 8	1.50	38.20	2025-11-12	107300000	2
+bcd8000d-de01-4f66-b3b8-ea2f2a3fb3d8	REQ-2026-2034	Hẻm 100 Phan Đình Phùng	1.67	37.30	2025-07-22	104000000	3
+1e5080e0-04de-4970-a28c-5d167d3332e1	REQ-2026-2034	2 Trần Văn B	1.77	42.00	2025-09-10	136700000	4
+125d4d5d-9626-46ec-95d3-0636c5f069e2	REQ-2026-2034	Hẻm 40 Bùi Quang H	0.47	38.10	2025-01-27	116500000	5
+90cf4509-e71b-424e-b2a3-939c1c442376	REQ-2026-2034	119 Phan Đình Phùng	0.97	41.70	2025-05-09	128100000	6
+5c2e39eb-f7f3-4d2d-9a91-ba836d37a221	REQ-2026-2034	Hẻm 47 Hoàng Minh E	0.34	38.80	2026-03-10	119000000	7
+72663acc-1e17-4679-b1f3-3b64e67fe4c3	REQ-2026-2035	8 Nguyễn Trãi	1.21	62.10	2025-04-11	162600000	0
+7b3d353e-bc49-4a2b-bacd-c949da10e679	REQ-2026-2035	118 Ngô Quyền	1.57	62.40	2025-11-15	176100000	1
+0affe784-51cb-4ad2-a268-23926b5cb66a	REQ-2026-2035	Hẻm 50 Hai Bà Trưng	1.76	64.40	2025-05-05	210700000	2
+61af18b3-f750-459e-97ab-e0f5e2c99ee5	REQ-2026-2035	Hẻm 13 Nguyễn Thị F	0.44	86.50	2025-01-14	170800000	3
+35eb7178-c8d0-4109-b9e8-8425e5c36582	REQ-2026-2035	Hẻm 33 Hai Bà Trưng	0.62	74.40	2025-04-03	188600000	4
+87fe2baf-1008-4a3d-a3dd-62d363899c66	REQ-2026-2035	Hẻm 47 Ngô Quyền	1.16	67.90	2026-03-24	201800000	5
+3fda44f1-b2bf-47c3-9e09-e3fb2abc4152	REQ-2026-2036	Hẻm 101 Lê Lợi	0.33	246.80	2025-12-18	99400000	0
+0287c0ed-b348-46bb-aaea-30a3ac81817e	REQ-2026-2036	Hẻm 111 Điện Biên Phủ	0.94	193.40	2025-07-22	91500000	1
+e4090301-1d88-401f-a6bc-39ac3834c1c5	REQ-2026-2036	Hẻm 3 Võ Thành I	1.72	199.80	2026-06-03	81500000	2
+87d53afa-f819-45cc-a6c6-7a8d60428034	REQ-2026-2036	10 Nguyễn Thị F	1.68	257.30	2026-03-08	98900000	3
+ab4fa5a1-f2a4-4f23-9748-52b09dc4be3b	REQ-2026-2036	112 Nguyễn Trãi	1.61	215.20	2025-10-12	106000000	4
+fa54d68d-7063-4f87-b539-ce6d9359846d	REQ-2026-2037	37 Lý Tự L	1.00	158.60	2026-02-10	37100000	0
+918ba4fc-df53-4a70-aa37-00bedf5cc0d0	REQ-2026-2037	Hẻm 75 Hai Bà Trưng	1.78	156.40	2025-06-04	40400000	1
+512a9513-2cd2-4868-800c-259861584b62	REQ-2026-2037	38 Cách Mạng Tháng 8	1.14	147.40	2025-03-06	40300000	2
+1f209261-7129-4306-88b8-a3b1627971aa	REQ-2026-2037	Hẻm 18 Trường Sa	1.06	158.30	2025-05-29	37900000	3
+09630914-9007-4762-ae58-536e3f26e748	REQ-2026-2037	115 Trường Sa	0.50	146.00	2025-08-04	39500000	4
+3afc1ce1-c77c-4e6d-ad53-862415ac3318	REQ-2026-2037	Hẻm 82 Phạm Ngọc D	1.35	141.50	2026-02-12	33000000	5
+49199d4f-56e2-4f73-a95f-d641a61f7157	REQ-2026-2039	Hẻm 88 Trần Văn B	0.28	32.10	2026-03-21	263300000	0
+7a0db754-d641-4afb-a418-30a0592084a1	REQ-2026-2039	116 Nguyễn Huệ	1.17	40.30	2026-01-03	310400000	1
+3ad29d63-60dd-4970-8cf2-2d388bb12a71	REQ-2026-2039	Hẻm 106 Đặng Văn G	1.31	40.00	2025-10-04	312900000	2
+27cabe5d-2055-4490-baaf-e1821128510b	REQ-2026-2039	74 Hoàng Minh E	0.26	41.70	2025-03-14	323800000	3
+d417f9f7-b4d7-480b-ba8a-a42a67dbe4c3	REQ-2026-2039	Hẻm 89 Nguyễn Trãi	0.90	43.60	2026-02-14	344500000	4
+edab0210-7e6a-4cff-bf7a-a6fec5baf19e	REQ-2026-2039	118 Ngô Quyền	0.77	40.40	2025-01-01	275000000	5
+ccdec762-1a3e-4a88-8c1c-145039c46393	REQ-2026-2039	43 Nguyễn Trãi	0.93	32.20	2025-02-25	340300000	6
+601285ca-b1b0-40d6-b24f-15ccf60b747e	REQ-2026-2040	Hẻm 6 Trần Văn B	1.07	111.60	2025-08-10	75800000	0
+bffeac3b-8c54-4941-95fb-7851420125e4	REQ-2026-2040	12 Hoàng Minh E	1.34	105.30	2025-09-12	70700000	1
+362bd40b-fd73-4393-a0e5-f715ffc771b7	REQ-2026-2040	61 Hai Bà Trưng	0.23	118.20	2025-04-27	95100000	2
+0132f493-f560-4f1b-9533-59c574adccb4	REQ-2026-2040	86 Lê Văn C	1.26	105.70	2025-09-17	69900000	3
+71bf3201-2a2d-48c9-b285-50446340bcfc	REQ-2026-2040	Hẻm 45 Phan Đình Phùng	1.42	103.20	2025-07-07	85900000	4
+479f9a86-abc6-4d29-9e52-27509a218c88	REQ-2026-2040	Hẻm 44 Cách Mạng Tháng 8	0.70	121.40	2025-09-18	83700000	5
+97cfb437-668b-4120-b45a-35ec67ef1e36	REQ-2026-2040	Hẻm 120 Trường Sa	1.37	112.40	2026-02-20	76600000	6
+76779591-6399-4a93-acdf-506f7192f055	REQ-2026-2040	76 Nguyễn Thị F	1.07	109.90	2026-04-15	85400000	7
+dfff4d24-9d06-40b3-902d-46802a52a72f	REQ-2026-2041	Hẻm 35 Phạm Ngọc D	0.16	67.00	2025-01-05	148900000	0
+09c0d308-b12f-4044-8a6a-fc816e8971f9	REQ-2026-2041	Hẻm 116 Lê Lợi	0.35	82.30	2025-03-16	153600000	1
+94295d33-da06-40b9-9e31-ad499c0e6312	REQ-2026-2041	Hẻm 21 Lý Tự L	1.64	80.50	2025-05-12	164900000	2
+55062083-5249-4724-9aa3-0043fb530a3b	REQ-2026-2041	Hẻm 57 Điện Biên Phủ	1.53	86.00	2025-03-19	141800000	3
+3afce2dd-0938-4cf8-bcdd-1e4cd567aa1d	REQ-2026-2041	Hẻm 51 Lê Lợi	0.31	79.50	2025-07-15	156800000	4
+0974cbbf-6c9d-4a68-9d68-af623e12b366	REQ-2026-2041	53 Trần Văn B	1.17	90.80	2025-10-29	168200000	5
+5c4e7e05-8042-4aa2-beab-802483757d5b	REQ-2026-2041	45 Lê Văn C	1.53	85.50	2025-07-18	118400000	6
+6dd94767-1e63-41b4-851e-0f9a1749c979	REQ-2026-2041	Hẻm 7 Điện Biên Phủ	1.22	73.10	2026-01-04	129400000	7
+75b782f5-5738-4596-8b3e-3f9ed3950728	REQ-2026-2042	6 Trường Sa	0.41	145.40	2026-03-06	207800000	0
+c69201e3-824f-4288-9af1-fae2df545811	REQ-2026-2042	40 Ngô Quyền	0.81	148.30	2025-07-17	253200000	1
+3e255c6d-c20f-4604-a52d-ed8833e03356	REQ-2026-2042	81 Ngô Quyền	1.57	169.60	2025-09-05	189200000	2
+419ebe2c-cab0-4644-932d-319f886bf3a9	REQ-2026-2042	86 Đặng Văn G	0.57	130.20	2025-10-09	215800000	3
+79b46faf-8941-400e-a83f-1d9f74f19e05	REQ-2026-2042	118 Lê Lợi	0.95	128.50	2025-06-18	240200000	4
+4e84f92b-5e2f-4eeb-9f43-602b1d0dbdba	REQ-2026-2042	38 Đặng Văn G	0.84	137.20	2026-05-07	250900000	5
+e185afec-d0d0-4a7e-a46a-624cdb00efff	REQ-2026-2042	Hẻm 15 Trần Văn B	1.67	129.40	2025-05-11	240900000	6
+4a2f6adc-a261-4e37-9e7f-2d5ddb654570	REQ-2026-2043	Hẻm 56 Bùi Quang H	0.52	54.30	2026-01-02	110100000	0
+2c0e1d7a-70fb-4694-958d-f774b3355c11	REQ-2026-2043	118 Nguyễn Huệ	1.63	54.00	2025-07-26	86700000	1
+124b34b4-fa9f-48a1-b657-27994309b18a	REQ-2026-2043	66 Trần Văn B	0.82	53.60	2025-09-26	79900000	2
+4979fe77-196f-401f-9fb2-93f27eed0a0e	REQ-2026-2043	59 Lê Lợi	0.51	56.70	2025-06-02	109100000	3
+9607686b-42e6-453c-8d61-ae90501d2aa5	REQ-2026-2043	Hẻm 29 Hoàng Minh E	0.71	50.60	2025-05-15	78700000	4
+d88bb6f3-c717-46a2-a032-f10994d3fa85	REQ-2026-2043	Hẻm 41 Nguyễn Thị F	1.30	62.30	2026-05-16	116300000	5
+1b4817fb-17b4-41cc-bea4-f7bd26d0cd38	REQ-2026-2043	61 Hoàng Minh E	1.59	53.80	2026-05-12	106700000	6
+0886ac0d-1e97-43c8-aa09-64aa061b15cb	REQ-2026-2044	Hẻm 37 Phạm Ngọc D	1.29	138.90	2026-04-18	210500000	0
+bbffdb25-fa64-461a-be09-db5ac26ddbfd	REQ-2026-2044	4 Đỗ Trọng K	0.81	147.80	2025-09-03	204700000	1
+e5633850-5459-4078-a9e5-a1e6b3e39a74	REQ-2026-2044	Hẻm 58 Nguyễn Văn A	0.60	118.30	2025-09-27	208700000	2
+9e249213-032e-4467-a4f0-d6f4e2f41e30	REQ-2026-2044	68 Lý Tự L	0.80	131.60	2026-01-29	204500000	3
+746bf95e-54ad-42a3-a003-bf3151d16de3	REQ-2026-2044	Hẻm 87 Hai Bà Trưng	1.53	136.50	2025-12-11	188700000	4
+56c08988-1006-4cbd-8643-f266cadd78d1	REQ-2026-2044	41 Nguyễn Thị F	1.44	126.10	2026-03-21	164700000	5
+0d26ddbb-ad93-45be-a487-c8d4aadcd61a	REQ-2026-2045	62 Phạm Ngọc D	1.21	195.10	2025-04-22	98500000	0
+afc8affb-6b47-4e7e-8116-d7261c30d889	REQ-2026-2045	84 Bùi Quang H	0.15	187.50	2025-07-07	103400000	1
+e0db657d-104b-4b98-af5b-39ee098fdffe	REQ-2026-2045	Hẻm 48 Nguyễn Huệ	0.92	168.20	2026-02-09	106500000	2
+064c85ce-1307-44c6-afd0-c221a9d52e62	REQ-2026-2045	Hẻm 90 Phạm Ngọc D	0.73	185.70	2025-03-29	96700000	3
+5c031687-66cf-4db0-a26b-b805dc700f41	REQ-2026-2045	Hẻm 9 Hoàng Minh E	0.64	194.20	2025-11-03	86600000	4
+76c3043c-10ae-463f-b40b-fabbcf4e7482	REQ-2026-2045	Hẻm 48 Cách Mạng Tháng 8	1.18	198.70	2025-12-22	91600000	5
+e8637c03-acc3-4f28-8b82-d8935d48ed31	REQ-2026-2047	Hẻm 99 Nguyễn Huệ	1.11	129.00	2025-03-16	350500000	0
+69f09aa3-f9d2-4197-9c1e-44d6cac239ad	REQ-2026-2047	Hẻm 87 Trường Sa	1.72	138.30	2025-08-30	346000000	1
+7df78868-6307-4b72-995a-8362ffab4fa6	REQ-2026-2047	15 Phạm Ngọc D	0.53	118.50	2026-01-06	310900000	2
+a199d437-14a4-4b93-b7d7-9d0147f40602	REQ-2026-2047	Hẻm 96 Trần Văn B	1.51	118.50	2026-01-13	325100000	3
+064ab074-6bc8-4e3a-9a16-08e17257c296	REQ-2026-2047	Hẻm 88 Lý Tự L	0.36	123.50	2025-12-21	252000000	4
+7883b1bb-fd4a-44bc-a5d2-d3f0541b9b4d	REQ-2026-2048	Hẻm 55 Điện Biên Phủ	0.53	125.50	2025-08-22	380700000	0
+9c3ea6fb-3f22-468d-889a-00ba7dd97b4f	REQ-2026-2048	Hẻm 4 Hai Bà Trưng	1.57	128.10	2025-08-18	417200000	1
+05ab95dc-8764-43e7-9d28-e25126450743	REQ-2026-2048	61 Võ Thành I	1.69	126.20	2025-03-30	346900000	2
+f3bcbeb1-f340-4bd9-bcd4-3f38dd0b645f	REQ-2026-2048	74 Trần Văn B	0.99	119.10	2025-04-27	408500000	3
+01607d2f-e37c-473f-84f3-28088768ab71	REQ-2026-2048	99 Đỗ Trọng K	1.54	121.00	2026-03-09	336900000	4
+bf27074f-f4ed-4ef5-a038-3d88e089f034	REQ-2026-2048	Hẻm 28 Cách Mạng Tháng 8	0.55	115.80	2025-02-13	446200000	5
+b21910f5-c908-496a-bd68-aeb12f37b609	REQ-2026-2049	Hẻm 33 Hai Bà Trưng	1.31	208.10	2026-02-06	46800000	0
+5d0a904f-ae1c-44f4-9550-5c1afa07f06e	REQ-2026-2049	89 Cách Mạng Tháng 8	1.45	178.90	2026-01-13	53500000	1
+784d9099-7ab8-4041-ba11-933e6f31e51c	REQ-2026-2049	Hẻm 24 Nguyễn Huệ	1.51	210.10	2025-03-09	50100000	2
+63260602-ce2e-45e6-a104-c3a9c981aa68	REQ-2026-2049	Hẻm 52 Điện Biên Phủ	1.71	215.70	2025-08-20	44500000	3
+aefe3fac-6c19-4b00-babf-b1f4ad73abc7	REQ-2026-2049	84 Trường Sa	1.17	217.10	2026-03-09	45000000	4
+a4c36a5c-400d-4415-a01a-1de964b2744f	REQ-2026-2049	Hẻm 111 Nguyễn Thị F	0.18	198.30	2025-12-09	59900000	5
+a1fc0f86-cbf7-4b9f-b209-ba583a0b95d2	REQ-2026-2050	21 Nguyễn Văn A	0.24	134.30	2026-05-09	102700000	0
+45fb57a1-7778-432e-a724-1c6af699e9f2	REQ-2026-2050	36 Trường Sa	1.22	113.60	2025-11-12	105400000	1
+3db6798a-d611-4781-a8c4-8709afe7a0ee	REQ-2026-2050	43 Nguyễn Huệ	0.32	135.60	2025-08-18	81500000	2
+716e8476-0f1f-4463-9af5-f3e0852128e4	REQ-2026-2050	Hẻm 9 Lê Văn C	1.03	124.90	2026-02-08	110900000	3
+5505174b-9075-4db3-acd2-ffc7e7ed6acc	REQ-2026-2050	Hẻm 100 Điện Biên Phủ	0.25	135.20	2026-02-22	83400000	4
+e0bb3964-1046-4843-a554-5195d2c73910	REQ-2026-2050	Hẻm 84 Hoàng Minh E	0.31	120.30	2025-05-29	86100000	5
+58b7690c-81d5-451b-838d-fe705635a372	REQ-2026-2051	6 Lê Lợi	0.78	157.30	2025-08-03	259100000	0
+f2275dc1-2e11-4961-92d5-739cce89a52e	REQ-2026-2051	113 Lê Lợi	0.49	133.10	2025-05-31	271700000	1
+c74babb2-7661-4774-9f85-8f321f498879	REQ-2026-2051	Hẻm 10 Võ Thành I	1.62	152.20	2025-07-22	202600000	2
+b6f15444-0c90-4372-bed4-ea2364530242	REQ-2026-2051	84 Ngô Quyền	0.86	153.20	2025-09-02	247100000	3
+ca96b222-b56b-4ba2-9f4e-cae9cbd28713	REQ-2026-2051	Hẻm 46 Nguyễn Trãi	0.49	141.60	2025-05-07	216500000	4
+ec851b2c-845d-440f-ab6a-f1fe40b0b127	REQ-2026-2051	111 Nguyễn Trãi	0.32	145.60	2025-11-21	289800000	5
+c3c28938-0134-48cf-9b87-182c4c358d1d	REQ-2026-2051	88 Ngô Quyền	1.45	172.70	2025-10-12	270400000	6
+3a8b39bf-cc45-4cd7-b028-cc5d90647995	REQ-2026-2051	Hẻm 90 Lê Văn C	1.23	136.80	2025-06-29	283400000	7
+e2287421-0856-407c-87d5-5c43dea4d824	REQ-2026-2052	96 Hoàng Minh E	0.98	109.20	2025-12-13	253100000	0
+14838ded-aa85-49e7-b350-3b0eac259b73	REQ-2026-2052	Hẻm 68 Lý Tự L	1.39	95.20	2025-10-12	221400000	1
+8061a809-a8b4-4862-b4f6-e683fbce5889	REQ-2026-2052	Hẻm 35 Bùi Quang H	1.51	100.50	2025-05-19	203200000	2
+ef29b16c-9310-414d-aa73-543e18652b41	REQ-2026-2052	Hẻm 9 Ngô Quyền	0.54	108.00	2025-10-15	241800000	3
+9f4f36d2-b66f-4a57-a8c4-fc747a0f2a9b	REQ-2026-2053	Hẻm 28 Bùi Quang H	1.51	64.70	2026-03-27	43700000	0
+b15a4fb2-b66b-405e-9949-643b80ae060c	REQ-2026-2053	79 Lý Tự L	0.78	49.00	2026-02-21	51600000	1
+d057aa1d-5074-43ec-9cae-6b138f6a7c04	REQ-2026-2053	Hẻm 25 Cách Mạng Tháng 8	0.14	58.60	2026-03-25	57100000	2
+ba33c4f9-9f23-4e48-818c-4db58c459da0	REQ-2026-2053	Hẻm 14 Phan Đình Phùng	0.39	51.00	2026-02-18	47700000	3
+e745a687-3d46-4ab7-9a5d-8cd69dee58a8	REQ-2026-2053	Hẻm 54 Nguyễn Thị F	0.20	67.10	2026-02-19	45200000	4
+a3d5dabd-10ea-455c-ace9-5aa09f1a4862	REQ-2026-2053	Hẻm 51 Phạm Ngọc D	0.64	56.30	2025-04-05	43800000	5
+1f4e3eb0-890d-4f52-88c1-a971eff5274f	REQ-2026-2053	117 Phạm Ngọc D	0.19	52.90	2025-09-25	46600000	6
+dac4e778-0e25-401e-8b77-db3c395488cd	REQ-2026-2053	Hẻm 98 Hai Bà Trưng	0.75	50.40	2025-12-05	51900000	7
+185cd083-fbf6-48ba-a564-691a5f2ee87a	REQ-2026-2054	Hẻm 96 Nguyễn Huệ	1.24	186.10	2025-07-02	51600000	0
+9e848c02-5581-446d-ab74-544af46cecaa	REQ-2026-2054	Hẻm 10 Hoàng Minh E	0.54	184.10	2025-06-13	45100000	1
+9921ad29-003c-4999-bece-64561c4bac06	REQ-2026-2054	37 Đặng Văn G	1.54	150.50	2025-07-17	46200000	2
+911c7802-1326-445e-b9f7-7376ebaf2acb	REQ-2026-2054	Hẻm 34 Phan Đình Phùng	1.60	149.20	2025-04-28	61200000	3
+d5e948de-876a-47a6-8a45-066c2d81ff26	REQ-2026-2054	8 Lý Tự L	0.84	210.20	2025-05-01	50200000	4
+5ef54977-dfa7-482f-a404-d2694e1e6f6f	REQ-2026-2054	Hẻm 65 Ngô Quyền	0.98	151.80	2025-04-27	47100000	5
+b3cfed2b-77d1-413e-8a4c-8f94411ddf4d	REQ-2026-2054	Hẻm 55 Phan Đình Phùng	0.86	149.40	2026-03-17	56200000	6
+decba447-59ef-4cfc-a2a3-ef886f381fbc	REQ-2026-2054	105 Nguyễn Văn A	1.78	162.90	2026-02-28	45500000	7
+3293a233-43ef-4727-a09c-52d721d41a28	REQ-2026-2055	Hẻm 96 Điện Biên Phủ	0.45	141.10	2025-03-13	57500000	0
+0ef03e30-ddc9-4dc8-ac42-bffb94d79ec2	REQ-2026-2055	Hẻm 47 Nguyễn Văn A	1.04	138.80	2025-10-31	62700000	1
+83117385-7c9b-4b31-b656-31524faf070f	REQ-2026-2055	Hẻm 99 Ngô Quyền	0.17	132.80	2025-06-15	51400000	2
+dad4a36a-bfde-4602-a99e-a4ba6d3319ca	REQ-2026-2055	Hẻm 35 Nguyễn Thị F	0.68	161.10	2026-02-04	46400000	3
+9aea06ca-5784-425b-895c-2a74ef62891a	REQ-2026-2055	Hẻm 35 Phạm Ngọc D	0.14	167.70	2026-04-23	46000000	4
+ec1efb11-f356-4368-acc8-95b8f8409647	REQ-2026-2055	45 Đặng Văn G	0.62	144.10	2025-03-27	50100000	5
+181c435e-cac6-48c7-835d-1276a352c76f	REQ-2026-2055	Hẻm 69 Trường Sa	1.60	178.60	2025-05-31	59000000	6
+2ba1b833-3612-4407-ada1-fad325e0faab	REQ-2026-2056	Hẻm 12 Lý Tự L	1.54	97.20	2025-10-19	36900000	0
+fb9c2055-7fea-43c2-bc41-6cc256f6b897	REQ-2026-2056	Hẻm 59 Phan Đình Phùng	0.15	87.30	2025-11-11	39800000	1
+2b2c072c-7f84-4812-801b-0152d30f5ea4	REQ-2026-2056	3 Lê Lợi	1.48	111.00	2026-01-07	38900000	2
+52a53f94-2d66-4977-bd70-f1ef44cf6254	REQ-2026-2056	Hẻm 98 Điện Biên Phủ	1.40	106.10	2025-11-10	31800000	3
+8489a78c-6ba5-401a-b05e-749501bdb2b3	REQ-2026-2056	Hẻm 102 Trần Văn B	1.67	87.80	2025-08-16	31300000	4
+4527b23a-0bf8-4471-84c8-8a5a7a07245b	REQ-2026-2056	Hẻm 104 Trường Sa	1.65	102.10	2025-12-25	40000000	5
+634f4f15-2f81-4431-a2f8-c77fde0af78d	REQ-2026-2056	Hẻm 52 Lê Văn C	1.01	89.00	2025-11-29	32500000	6
+79ed114c-6568-4721-9117-bd891590c77a	REQ-2026-2057	19 Lê Lợi	1.49	153.50	2025-05-22	362700000	0
+2093d51a-6a95-4806-90b0-fcf24f5fe18f	REQ-2026-2057	24 Đỗ Trọng K	0.31	148.80	2026-05-13	297500000	1
+8d68e815-2e0e-478c-8905-8c718a2f23b8	REQ-2026-2057	88 Võ Thành I	0.36	130.80	2025-06-13	297200000	2
+cb208cd3-b2a1-47d2-b5b2-f44444b7c970	REQ-2026-2057	70 Đặng Văn G	0.85	116.20	2026-05-05	303700000	3
+22fdaa07-b323-4e79-9cb5-8632be54beb9	REQ-2026-2057	93 Phạm Ngọc D	0.76	128.50	2025-08-28	359700000	4
+f9ce3624-bbd0-41bc-9485-1697040c8f29	REQ-2026-2057	Hẻm 50 Đặng Văn G	1.68	131.60	2026-05-20	281700000	5
+e5a7f9e2-2114-4710-9d72-4eb6b4c85ad2	REQ-2026-2057	Hẻm 5 Nguyễn Văn A	0.67	123.00	2026-04-06	306600000	6
+b74d9de9-a46d-4fcb-a534-613cbbd25cc6	REQ-2026-2057	14 Nguyễn Thị F	1.33	116.10	2026-01-30	364300000	7
+c5d40570-7e27-4411-a668-7f369129de37	REQ-2026-2058	99 Hoàng Minh E	1.49	32.90	2025-08-06	83000000	0
+058efc22-dfff-461c-98d7-f6c215e7ca82	REQ-2026-2058	Hẻm 12 Đỗ Trọng K	1.11	26.40	2025-12-01	69500000	1
+40f32842-2330-4b5c-a7f9-8cd2e8fbe356	REQ-2026-2058	Hẻm 41 Nguyễn Trãi	0.58	30.60	2026-02-03	93200000	2
+a8e1f7e5-b33f-4870-b34f-8450627e712f	REQ-2026-2058	Hẻm 62 Đặng Văn G	0.36	26.80	2025-12-26	84900000	3
+cf919bd9-27e5-490d-b99c-fd5ee94328fe	REQ-2026-2058	49 Lê Lợi	0.79	29.10	2025-10-01	69200000	4
+a8799461-211c-4d0e-8f1c-00c8ed4f2443	REQ-2026-2058	Hẻm 64 Đỗ Trọng K	1.19	30.80	2025-05-30	82000000	5
+b431b0bb-261c-4575-b0f5-55893bb71c7e	REQ-2026-2058	17 Điện Biên Phủ	1.68	26.50	2026-05-26	82500000	6
+502fd9e6-7723-416f-8928-39899018e928	REQ-2026-2059	Hẻm 19 Đặng Văn G	0.93	44.50	2025-12-07	589600000	0
+f985472a-0a26-49d5-8e4b-37a014266706	REQ-2026-2059	25 Đặng Văn G	0.20	39.70	2025-08-30	573500000	1
+012f3234-e7c1-46bc-9615-c3ce46932c8a	REQ-2026-2059	113 Cách Mạng Tháng 8	0.85	50.80	2026-02-04	745800000	2
+5cbe766f-d419-4ca5-9ead-8b75b20d7c76	REQ-2026-2059	Hẻm 39 Lê Văn C	0.74	41.10	2025-07-26	573200000	3
+364a4cba-7a65-4407-bfe1-eed653982732	REQ-2026-2059	Hẻm 64 Phạm Ngọc D	0.12	40.90	2025-08-21	635100000	4
+0a6315e2-1b9b-46ce-b989-18e8f36b15e2	REQ-2026-2059	Hẻm 7 Phạm Ngọc D	0.46	48.90	2025-07-11	797900000	5
+8d351fc3-7d3c-4dee-96a3-396456d7a384	REQ-2026-2059	99 Võ Thành I	1.68	44.10	2025-09-23	644000000	6
+7490a8a6-56e4-45e7-b6eb-8aec60d52b54	REQ-E2E-0002	Hẻm 40 Nguyễn Văn A	0.30	58.00	2025-11-10	148000000	0
+c987086f-2e1a-47af-8a5c-58da1c41803b	REQ-E2E-0002	Đường Nguyễn Văn A	0.60	65.00	2025-09-05	152000000	1
+2d84f48a-63b4-41ce-9ea2-5708fe1bddb0	REQ-E2E-0002	Hẻm 12 Trần Văn B	0.80	60.00	2025-06-20	145000000	2
+b2482af7-5770-499c-811c-3c83263e1b53	REQ-E2E-0002	Hẻm 45 kế bên	0.10	64.00	2026-02-15	158000000	3
+104ddf87-3a6b-47c5-81d7-6b29f85ab17f	REQ-E2E-0002	Đường Lê Văn C	1.10	70.00	2026-01-08	150000000	4
+\.
+
+
+--
+-- Data for Name: plugin_runs; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.plugin_runs (id, job_id, plugin_id, tokens_used, latency_ms, model, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: property_legal_info; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.property_legal_info (case_id, certificate_type, certificate_number, issue_date, issuing_authority, land_plot_number, map_sheet_number, land_use_purpose, use_term, ownership_form, current_mortgage_status) FROM stdin;
+REQ-2026-2000	Sổ đỏ (QSDĐ)	CS 47338124	2015-01-25	Sở TN&MT TP.HCM	82	BĐ 45	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2001	Sổ hồng chung cư	CS 79467853	2018-08-04	Sở TN&MT TP.HCM	127	BĐ 15	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu riêng	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2002	Sổ đỏ (QSDĐ)	CS 24366125	2010-12-18	Sở TN&MT TP.HCM	80	BĐ 18	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2003	Sổ hồng (QSDĐ & QSH nhà ở)	CS 72363359	2024-11-17	Sở TN&MT TP.HCM	287	BĐ 39	Đất ở tại nông thôn (ONT)	Đến 2063 (50 năm, dự án)	Sở hữu chung (vợ chồng)	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2004	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CS 89520597	2024-05-11	Sở TN&MT TP.HCM	126	BĐ 54	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2005	Sổ hồng (QSDĐ & QSH nhà ở)	CH 53261270	2002-10-09	Sở TN&MT TP.HCM	14	BĐ 6	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2006	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CH 29208935	2013-04-15	Sở TN&MT TP.HCM	327	BĐ 17	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2007	Sổ hồng (QSDĐ & QSH nhà ở)	CS 58592048	2017-09-19	Sở TN&MT TP.HCM	56	BĐ 29	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2008	Sổ đỏ (QSDĐ)	CS 40667888	2017-07-11	Sở TN&MT TP.HCM	233	BĐ 26	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2009	Sổ hồng chung cư	CH 20298660	2008-11-28	Sở TN&MT Đà Nẵng	47	BĐ 40	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Đến 2063 (50 năm, dự án)	Sở hữu riêng	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2010	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CH 20633503	2024-01-09	Sở TN&MT Hà Nội	111	BĐ 54	Đất ở tại đô thị (ODT)	Đến 2063 (50 năm, dự án)	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2011	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CS 31473054	2012-01-05	Sở TN&MT TP.HCM	312	BĐ 44	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2012	Sổ hồng chung cư	CS 26444612	2012-05-15	Sở TN&MT Hà Nội	127	BĐ 10	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2013	Sổ đỏ (QSDĐ)	CS 99903592	2008-09-08	Sở TN&MT Hà Nội	327	BĐ 15	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2014	Sổ hồng (QSDĐ & QSH nhà ở)	CH 69791674	2008-01-15	Sở TN&MT TP.HCM	68	BĐ 33	Đất ở tại nông thôn (ONT)	Đến 2063 (50 năm, dự án)	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2015	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CS 73013937	2008-06-07	Sở TN&MT TP.HCM	190	BĐ 21	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2016	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CS 22028437	2021-06-18	Sở TN&MT TP.HCM	48	BĐ 39	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2017	Sổ hồng (QSDĐ & QSH nhà ở)	CH 82060023	2018-03-12	Sở TN&MT Hà Nội	167	BĐ 13	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2018	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CS 67665720	2007-04-16	Sở TN&MT Hà Nội	138	BĐ 21	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu chung (vợ chồng)	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2019	Sổ hồng (QSDĐ & QSH nhà ở)	CH 25567455	2024-08-20	Sở TN&MT Hà Nội	312	BĐ 4	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2020	Sổ hồng chung cư	CS 33336132	2018-01-13	Sở TN&MT Đà Nẵng	232	BĐ 36	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2021	Sổ hồng (QSDĐ & QSH nhà ở)	CS 43492807	2006-12-03	Sở TN&MT Hà Nội	180	BĐ 17	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2022	Sổ đỏ (QSDĐ)	CS 29307578	2002-10-20	Sở TN&MT Cần Thơ	349	BĐ 45	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2023	Sổ hồng chung cư	CH 72244897	2024-02-16	Sở TN&MT Hà Nội	28	BĐ 56	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2024	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CH 68809216	2018-03-20	Sở TN&MT Hà Nội	195	BĐ 50	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu chung (vợ chồng)	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2025	Sổ đỏ (QSDĐ)	CH 72986894	2012-08-28	Sở TN&MT Cần Thơ	85	BĐ 5	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2026	Sổ đỏ (QSDĐ)	CH 43629729	2017-03-27	Sở TN&MT TP.HCM	32	BĐ 45	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2027	Sổ đỏ (QSDĐ)	CH 19995059	2016-03-06	Sở TN&MT Hà Nội	377	BĐ 33	Đất ở tại đô thị (ODT)	Đến 2063 (50 năm, dự án)	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2028	Sổ hồng chung cư	CS 87926229	2002-08-11	Sở TN&MT Hà Nội	183	BĐ 9	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2029	Sổ đỏ (QSDĐ)	CH 55992559	2013-08-20	Sở TN&MT TP.HCM	303	BĐ 5	Đất ở tại đô thị (ODT)	Đến 2063 (50 năm, dự án)	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2030	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CH 13670948	2024-08-04	Sở TN&MT TP.HCM	133	BĐ 5	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu chung (vợ chồng)	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2031	Sổ hồng (QSDĐ & QSH nhà ở)	CS 73509922	2020-09-02	Sở TN&MT Đà Nẵng	14	BĐ 50	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2032	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CH 95836028	2023-09-10	Sở TN&MT TP.HCM	178	BĐ 31	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2033	Sổ đỏ (QSDĐ)	CS 43565097	2013-07-27	Sở TN&MT TP.HCM	7	BĐ 8	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2034	Sổ hồng (QSDĐ & QSH nhà ở)	CH 50789378	2021-02-07	Sở TN&MT TP.HCM	266	BĐ 7	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2035	Sổ hồng (QSDĐ & QSH nhà ở)	CS 24935479	2005-05-15	Sở TN&MT Hà Nội	242	BĐ 2	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu chung (vợ chồng)	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2036	Sổ hồng chung cư	CH 65571528	2005-07-10	Sở TN&MT TP.HCM	227	BĐ 48	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2037	Sổ đỏ (QSDĐ)	CH 92019078	2001-11-23	Sở TN&MT TP.HCM	359	BĐ 39	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2038	Sổ hồng (QSDĐ & QSH nhà ở)	CH 77116153	2011-03-07	Sở TN&MT TP.HCM	175	BĐ 60	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2039	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CH 46595028	2022-03-06	Sở TN&MT TP.HCM	141	BĐ 8	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu riêng	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2040	Sổ đỏ (QSDĐ)	CS 96200382	2024-07-28	Sở TN&MT Hà Nội	234	BĐ 58	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Đến 2063 (50 năm, dự án)	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2041	Sổ đỏ (QSDĐ)	CH 47216895	2003-01-13	Sở TN&MT TP.HCM	199	BĐ 22	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2042	Sổ đỏ (QSDĐ)	CH 15462513	2005-03-04	Sở TN&MT TP.HCM	324	BĐ 40	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2043	Sổ hồng (QSDĐ & QSH nhà ở)	CH 71549421	2020-07-06	Sở TN&MT Hà Nội	390	BĐ 22	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2044	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CS 18505267	2005-06-12	Sở TN&MT Đà Nẵng	232	BĐ 32	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2045	Sổ hồng (QSDĐ & QSH nhà ở)	CS 95739089	2024-05-14	Sở TN&MT TP.HCM	90	BĐ 36	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2046	Sổ hồng chung cư	CH 34847161	2024-08-22	Sở TN&MT TP.HCM	55	BĐ 12	Đất ở tại nông thôn (ONT)	Đến 2063 (50 năm, dự án)	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2047	Sổ hồng (QSDĐ & QSH nhà ở)	CH 75987927	2021-11-04	Sở TN&MT Hà Nội	203	BĐ 29	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2048	Sổ đỏ (QSDĐ)	CS 16379551	2005-05-19	Sở TN&MT TP.HCM	206	BĐ 52	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu chung (vợ chồng)	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2049	Sổ hồng chung cư	CH 23474864	2008-03-23	Sở TN&MT TP.HCM	134	BĐ 33	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu riêng	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2050	Sổ hồng chung cư	CS 32588172	2015-12-17	Sở TN&MT TP.HCM	140	BĐ 37	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2051	Sổ đỏ (QSDĐ)	CH 69762583	2010-08-16	Sở TN&MT TP.HCM	11	BĐ 56	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2052	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CS 84304333	2014-05-24	Sở TN&MT TP.HCM	381	BĐ 21	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu riêng	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2053	Sổ hồng chung cư	CH 32228439	2019-12-01	Sở TN&MT Hà Nội	293	BĐ 41	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu chung (vợ chồng)	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2054	Sổ hồng chung cư	CS 92334886	2013-11-10	Sở TN&MT Đà Nẵng	368	BĐ 15	Đất ở tại đô thị (ODT)	Đến 2063 (50 năm, dự án)	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2055	Sổ đỏ (QSDĐ)	CH 72733686	2008-10-23	Sở TN&MT Đà Nẵng	170	BĐ 55	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2056	Sổ hồng (QSDĐ & QSH nhà ở)	CH 47828631	2011-06-26	Sở TN&MT Cần Thơ	207	BĐ 26	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu riêng	Đã tất toán thế chấp trước đó tại NH khác
+REQ-2026-2057	Giấy chứng nhận QSDĐ & tài sản gắn liền với đất	CS 95747226	2006-12-22	Sở TN&MT Hà Nội	384	BĐ 30	Đất ở tại nông thôn (ONT)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-2026-2058	Sổ đỏ (QSDĐ)	CS 20491063	2002-07-24	Sở TN&MT TP.HCM	240	BĐ 20	Đất ở tại đô thị (ODT)	Lâu dài	Sở hữu riêng	Chưa thế chấp tại TCTD nào
+REQ-2026-2059	Sổ hồng (QSDĐ & QSH nhà ở)	CS 86854640	2015-06-27	Sở TN&MT TP.HCM	74	BĐ 18	Đất ở + một phần thương mại dịch vụ (ODT/TMD)	Lâu dài	Sở hữu chung (vợ chồng)	Chưa thế chấp tại TCTD nào
+REQ-E2E-0001	GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O	CS 01234567	2020-03-15	So TN&MT TP HCM	45	12	Dat o tai do thi (ODT)	Lau dai	\N	\N
+REQ-E2E-0002	GIAY CHUNG NHAN QUYEN SU DUNG DAT, QUYEN SO HUU NHA O	CS 01234567	2020-03-15	So TN&MT TP HCM	45	12	Dat o tai do thi (ODT)	Lau dai	\N	\N
+\.
+
+
+--
+-- Data for Name: property_physical_info; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.property_physical_info (case_id, address, ward, district, city, latitude, longitude, property_type, land_area_sqm, floor_area_sqm, num_floors_desc, frontage_m, depth_m, construction_year, structure_material, house_direction, road_type_desc, alley_width_m, current_usage_status) FROM stdin;
+REQ-2026-2000	64 Võ Thành I, Phường 12, Quận 10, TP.HCM	Phường 12	Quận 10	TP.HCM	18.398435	105.786189	Nhà phố (nhà trong hẻm)	199.30	245.20	3 tầng	4.90	40.70	2011	Bê tông cốt thép, tường gạch	Đông Bắc	Hẻm nhựa, rộng 4m, ô tô tránh nhau được	\N	Đang sửa chữa, cải tạo
+REQ-2026-2001	210 Lê Lợi, Phú Mỹ, Quận 7, TP.HCM	Phú Mỹ	Quận 7	TP.HCM	16.472841	105.520134	Nhà phố mặt tiền	209.80	282.70	5 tầng	8.00	26.20	2014	Bê tông cốt thép, tường gạch	Bắc	Hẻm bê tông, rộng 2.5m, xe máy vào được	\N	Đang ở, không cho thuê
+REQ-2026-2002	Hẻm 69 Phan Đình Phùng, Phường 12, Quận 10, TP.HCM	Phường 12	Quận 10	TP.HCM	16.976618	106.239155	Nhà phố mặt tiền	197.10	476.80	3 tầng	4.80	41.10	2009	Tường gạch, mái tôn	Đông	Hẻm bê tông, rộng 2.5m, xe máy vào được	3.90	Đang cho thuê một phần
+REQ-2026-2003	128 Điện Biên Phủ, Phường 8, Tân Bình, TP.HCM	Phường 8	Tân Bình	TP.HCM	14.694148	108.039193	Nhà phố mặt tiền	29.10	64.80	3 tầng	11.00	2.60	2022	Kết cấu khung thép tiền chế	Tây Bắc	Mặt tiền đường nhựa, rộng 8m	\N	Đang cho thuê một phần
+REQ-2026-2004	Hẻm 89 Phan Đình Phùng, Phường 6, Quận 3, TP.HCM	Phường 6	Quận 3	TP.HCM	16.268346	107.370928	Nhà phố (nhà trong hẻm)	93.50	222.00	2 tầng + sân thượng	9.80	9.50	2024	Bê tông cốt thép, tường gạch	Tây Bắc	Hẻm nhựa, rộng 4m, ô tô tránh nhau được	2.50	Đang cho thuê nguyên căn
+REQ-2026-2005	Hẻm 26 Lê Văn C, Bình Hưng, Bình Chánh, TP.HCM	Bình Hưng	Bình Chánh	TP.HCM	18.394199	105.990534	Biệt thự / nhà vườn	137.30	210.50	4 tầng + sân thượng	8.20	16.70	2001	Bê tông cốt thép toàn khối	Đông Nam	Hẻm bê tông, rộng 3.5m, ô tô vào được	5.00	Bỏ trống, chưa sử dụng
+REQ-2026-2006	179 Nguyễn Thị F, Phường 14, Quận 10, TP.HCM	Phường 14	Quận 10	TP.HCM	15.117786	106.305369	Nhà phố (nhà trong hẻm)	38.80	63.50	4 tầng + sân thượng	11.10	3.50	2011	Kết cấu khung thép tiền chế	Tây	Mặt tiền đường nhựa, rộng 8m	\N	Đang cho thuê một phần
+REQ-2026-2007	66 Phan Đình Phùng, Phường 13, Bình Thạnh, TP.HCM	Phường 13	Bình Thạnh	TP.HCM	19.996269	107.344929	Nhà phố (nhà trong hẻm)	96.80	221.00	2 tầng + sân thượng	9.50	10.20	2016	Bê tông cốt thép toàn khối	Đông	Hẻm bê tông, rộng 2.5m, xe máy vào được	\N	Bỏ trống, chưa sử dụng
+REQ-2026-2008	Hẻm 15 Nguyễn Trãi, Phường 14, Quận 10, TP.HCM	Phường 14	Quận 10	TP.HCM	12.803788	108.170059	Biệt thự / nhà vườn	52.20	106.30	5 tầng	5.80	9.00	2016	Bê tông cốt thép toàn khối	Tây	Hẻm bê tông, rộng 2.5m, xe máy vào được	4.50	Đang ở, không cho thuê
+REQ-2026-2009	Hẻm 86 Nguyễn Huệ, Bình Hiên, Hải Châu, Đà Nẵng	Bình Hiên	Hải Châu	Đà Nẵng	18.709996	108.008455	Căn hộ chung cư	41.10	72.50	3 tầng	8.00	5.10	2007	Kết cấu khung thép tiền chế	Đông Bắc	Mặt tiền đường nhựa, rộng 12m, có vỉa hè	3.40	Đang cho thuê nguyên căn
+REQ-2026-2010	62 Ngô Quyền, Phú Lãm, Hà Đông, Hà Nội	Phú Lãm	Hà Đông	Hà Nội	11.340332	106.167631	Căn hộ chung cư	89.20	111.40	5 tầng	5.10	17.50	2020	Bê tông cốt thép toàn khối	Tây	Hẻm bê tông, rộng 2.5m, xe máy vào được	\N	Bỏ trống, chưa sử dụng
+REQ-2026-2011	84 Đỗ Trọng K, Phường 17, Gò Vấp, TP.HCM	Phường 17	Gò Vấp	TP.HCM	17.096792	106.514022	Căn hộ chung cư	86.80	173.90	4 tầng + sân thượng	5.10	17.00	2011	Bê tông cốt thép, tường gạch	Nam	Mặt tiền đường nhựa, rộng 8m	\N	Đang cho thuê một phần
+REQ-2026-2012	Hẻm 36 Đỗ Trọng K, Cửa Nam, Hoàn Kiếm, Hà Nội	Cửa Nam	Hoàn Kiếm	Hà Nội	14.599482	108.195520	Căn hộ chung cư	160.20	214.20	2 tầng	10.80	14.80	2011	Tường gạch, mái tôn	Đông Bắc	Hẻm bê tông, rộng 3.5m, ô tô vào được	4.30	Bỏ trống, chưa sử dụng
+REQ-2026-2013	Hẻm 15 Đỗ Trọng K, Hàng Bạc, Hoàn Kiếm, Hà Nội	Hàng Bạc	Hoàn Kiếm	Hà Nội	11.105994	107.658145	Đất nền	171.50	\N	\N	9.50	18.10	\N	\N	Đông	Mặt tiền đường nhựa, rộng 12m, có vỉa hè	4.90	Đang cho thuê nguyên căn
+REQ-2026-2014	137 Nguyễn Trãi, Phú Mỹ, Quận 7, TP.HCM	Phú Mỹ	Quận 7	TP.HCM	17.400445	106.362875	Biệt thự / nhà vườn	187.10	459.20	1 tầng	8.00	23.40	2004	Bê tông cốt thép toàn khối	Đông Nam	Hẻm bê tông, rộng 2.5m, xe máy vào được	\N	Đang cho thuê nguyên căn
+REQ-2026-2015	Hẻm 20 Đặng Văn G, Bến Nghé, Quận 1, TP.HCM	Bến Nghé	Quận 1	TP.HCM	10.178419	107.049272	Nhà phố mặt tiền	163.10	276.40	4 tầng + sân thượng	9.70	16.80	2005	Bê tông cốt thép toàn khối	Đông Nam	Hẻm bê tông, rộng 3.5m, ô tô vào được	2.60	Đang cho thuê nguyên căn
+REQ-2026-2016	41 Võ Thành I, Tân Phong, Quận 7, TP.HCM	Tân Phong	Quận 7	TP.HCM	14.265795	105.737159	Đất nền	48.50	\N	\N	5.60	8.70	\N	\N	Bắc	Mặt tiền đường nhựa, rộng 12m, có vỉa hè	\N	Đang sửa chữa, cải tạo
+REQ-2026-2017	206 Bùi Quang H, Gia Thuỵ, Long Biên, Hà Nội	Gia Thuỵ	Long Biên	Hà Nội	15.804865	107.289504	Nhà phố mặt tiền	111.00	127.00	4 tầng + sân thượng	10.80	10.30	2017	Bê tông cốt thép toàn khối	Tây Nam	Mặt tiền đường nhựa, rộng 12m, có vỉa hè	\N	Đang ở, không cho thuê
+REQ-2026-2018	21 Nguyễn Trãi, Gia Thuỵ, Long Biên, Hà Nội	Gia Thuỵ	Long Biên	Hà Nội	19.376648	107.707250	Đất nền	81.40	\N	\N	4.20	19.40	\N	\N	Đông	Hẻm bê tông, rộng 2.5m, xe máy vào được	\N	Đang ở, không cho thuê
+REQ-2026-2019	23 Điện Biên Phủ, Gia Thuỵ, Long Biên, Hà Nội	Gia Thuỵ	Long Biên	Hà Nội	17.716496	105.958731	Căn hộ chung cư	43.20	107.20	2 tầng + sân thượng	9.40	4.60	2023	Tường gạch, mái tôn	Nam	Hẻm nhựa, rộng 4m, ô tô tránh nhau được	\N	Đang cho thuê nguyên căn
+REQ-2026-2020	69 Nguyễn Trãi, Nam Dương, Hải Châu, Đà Nẵng	Nam Dương	Hải Châu	Đà Nẵng	18.731907	105.840069	Nhà phố mặt tiền	86.40	186.40	1 tầng	3.90	22.20	2017	Kết cấu khung thép tiền chế	Nam	Hẻm bê tông, rộng 3.5m, ô tô vào được	\N	Bỏ trống, chưa sử dụng
+REQ-2026-2021	Hẻm 82 Trần Văn B, Phú Lãm, Hà Đông, Hà Nội	Phú Lãm	Hà Đông	Hà Nội	14.616186	105.965748	Biệt thự / nhà vườn	136.60	342.20	3 tầng	6.90	19.80	2002	Bê tông cốt thép toàn khối	Tây Nam	Hẻm nhựa, rộng 4m, ô tô tránh nhau được	3.60	Đang ở, không cho thuê
+REQ-2026-2022	108 Phạm Ngọc D, An Nghiệp, Ninh Kiều, Cần Thơ	An Nghiệp	Ninh Kiều	Cần Thơ	10.542201	106.830611	Biệt thự / nhà vườn	173.60	435.60	2 tầng + sân thượng	9.20	18.90	2001	Tường gạch, mái tôn	Đông	Hẻm nhựa, rộng 4m, ô tô tránh nhau được	\N	Đang cho thuê một phần
+REQ-2026-2023	218 Đỗ Trọng K, Ô Chợ Dừa, Đống Đa, Hà Nội	Ô Chợ Dừa	Đống Đa	Hà Nội	19.542475	106.568674	Căn hộ chung cư	52.60	78.30	2 tầng + sân thượng	7.50	7.00	2023	Bê tông cốt thép toàn khối	Đông	Hẻm bê tông, rộng 3.5m, ô tô vào được	\N	Đang cho thuê nguyên căn
+REQ-2026-2024	Hẻm 54 Võ Thành I, Yên Nghĩa, Hà Đông, Hà Nội	Yên Nghĩa	Hà Đông	Hà Nội	11.437209	108.077114	Đất nền	181.00	\N	\N	11.80	15.30	\N	\N	Tây	Mặt tiền đường nhựa, rộng 8m	3.30	Đang ở, không cho thuê
+REQ-2026-2025	187 Nguyễn Huệ, Xuân Khánh, Ninh Kiều, Cần Thơ	Xuân Khánh	Ninh Kiều	Cần Thơ	10.553858	106.123578	Căn hộ chung cư	160.10	324.60	5 tầng	11.70	13.70	2011	Bê tông cốt thép toàn khối	Tây Nam	Hẻm bê tông, rộng 3.5m, ô tô vào được	\N	Đang ở, không cho thuê
+REQ-2026-2026	Hẻm 79 Phan Đình Phùng, Phường 14, Quận 10, TP.HCM	Phường 14	Quận 10	TP.HCM	14.978540	107.225105	Biệt thự / nhà vườn	190.70	441.00	5 tầng	6.20	30.80	2014	Kết cấu khung thép tiền chế	Tây Nam	Hẻm bê tông, rộng 3.5m, ô tô vào được	3.50	Đang cho thuê một phần
+REQ-2026-2027	249 Lý Tự L, Yên Nghĩa, Hà Đông, Hà Nội	Yên Nghĩa	Hà Đông	Hà Nội	12.906636	105.950601	Nhà phố (nhà trong hẻm)	67.00	161.00	2 tầng + sân thượng	5.50	12.20	2012	Bê tông cốt thép, tường gạch	Đông Bắc	Mặt tiền đường nhựa, rộng 8m	\N	Đang cho thuê nguyên căn
+REQ-2026-2028	233 Cách Mạng Tháng 8, Kim Liên, Đống Đa, Hà Nội	Kim Liên	Đống Đa	Hà Nội	19.901304	106.389801	Nhà phố mặt tiền	146.40	216.50	3 tầng	8.60	17.00	2001	Tường gạch, mái tôn	Đông Nam	Mặt tiền đường nhựa, rộng 12m, có vỉa hè	\N	Đang cho thuê nguyên căn
+REQ-2026-2029	244 Đỗ Trọng K, Đa Kao, Quận 1, TP.HCM	Đa Kao	Quận 1	TP.HCM	12.225834	107.906857	Đất nền	118.50	\N	\N	4.00	29.60	\N	\N	Tây Nam	Hẻm bê tông, rộng 3.5m, ô tô vào được	\N	Đang sửa chữa, cải tạo
+REQ-2026-2030	106 Nguyễn Thị F, Bến Thành, Quận 1, TP.HCM	Bến Thành	Quận 1	TP.HCM	13.473038	108.175248	Biệt thự / nhà vườn	84.50	213.00	4 tầng + sân thượng	5.10	16.60	2023	Bê tông cốt thép, tường gạch	Đông Nam	Hẻm bê tông, rộng 3.5m, ô tô vào được	\N	Đang cho thuê một phần
+REQ-2026-2031	Hẻm 62 Nguyễn Huệ, Nam Dương, Hải Châu, Đà Nẵng	Nam Dương	Hải Châu	Đà Nẵng	10.927424	108.108451	Nhà phố mặt tiền	32.40	71.00	3 tầng	8.60	3.80	2019	Tường gạch, mái tôn	Bắc	Hẻm bê tông, rộng 3.5m, ô tô vào được	4.20	Bỏ trống, chưa sử dụng
+REQ-2026-2032	Hẻm 50 Trần Văn B, Phường 5, Gò Vấp, TP.HCM	Phường 5	Gò Vấp	TP.HCM	14.534242	105.936009	Đất nền	195.20	\N	\N	5.80	33.70	\N	\N	Đông	Hẻm bê tông, rộng 2.5m, xe máy vào được	3.60	Đang cho thuê nguyên căn
+REQ-2026-2033	Hẻm 6 Lê Văn C, Bến Nghé, Quận 1, TP.HCM	Bến Nghé	Quận 1	TP.HCM	20.939890	106.057704	Nhà phố mặt tiền	87.80	201.90	5 tầng	5.20	16.90	2009	Bê tông cốt thép, tường gạch	Bắc	Mặt tiền đường nhựa, rộng 8m	3.20	Đang cho thuê một phần
+REQ-2026-2034	169 Đặng Văn G, Tân Phong, Quận 7, TP.HCM	Tân Phong	Quận 7	TP.HCM	15.788112	106.196536	Đất nền	39.70	\N	\N	4.70	8.40	\N	\N	Nam	Mặt tiền đường nhựa, rộng 12m, có vỉa hè	\N	Đang sửa chữa, cải tạo
+REQ-2026-2035	Hẻm 23 Nguyễn Trãi, Ô Chợ Dừa, Đống Đa, Hà Nội	Ô Chợ Dừa	Đống Đa	Hà Nội	16.010666	107.600994	Nhà phố (nhà trong hẻm)	72.80	154.90	4 tầng + sân thượng	4.90	14.90	2002	Bê tông cốt thép toàn khối	Nam	Hẻm bê tông, rộng 2.5m, xe máy vào được	3.10	Đang sửa chữa, cải tạo
+REQ-2026-2036	178 Đỗ Trọng K, Phường 2, Tân Bình, TP.HCM	Phường 2	Tân Bình	TP.HCM	12.032211	107.634853	Đất nền	215.30	\N	\N	4.00	53.80	\N	\N	Đông Nam	Mặt tiền đường nhựa, rộng 12m, có vỉa hè	\N	Đang sửa chữa, cải tạo
+REQ-2026-2037	211 Phan Đình Phùng, Vĩnh Lộc A, Bình Chánh, TP.HCM	Vĩnh Lộc A	Bình Chánh	TP.HCM	20.246278	105.760754	Nhà phố mặt tiền	153.40	177.20	2 tầng + sân thượng	8.20	18.70	1999	Tường gạch, mái tôn	Đông Bắc	Mặt tiền đường nhựa, rộng 8m	\N	Đang ở, không cho thuê
+REQ-2026-2038	24 Cách Mạng Tháng 8, Phường 6, Quận 3, TP.HCM	Phường 6	Quận 3	TP.HCM	11.080767	108.250366	Căn hộ chung cư	210.50	299.80	4 tầng + sân thượng	9.90	21.30	2007	Kết cấu khung thép tiền chế	Bắc	Hẻm bê tông, rộng 2.5m, xe máy vào được	\N	Bỏ trống, chưa sử dụng
+REQ-2026-2039	177 Trần Văn B, Bến Thành, Quận 1, TP.HCM	Bến Thành	Quận 1	TP.HCM	13.503334	105.896359	Căn hộ chung cư	36.90	69.40	5 tầng	6.20	6.00	2019	Tường gạch, mái tôn	Bắc	Hẻm bê tông, rộng 3.5m, ô tô vào được	\N	Đang ở, không cho thuê
+REQ-2026-2040	Hẻm 27 Đặng Văn G, Bồ Đề, Long Biên, Hà Nội	Bồ Đề	Long Biên	Hà Nội	14.665372	107.796200	Nhà phố mặt tiền	101.80	253.10	3 tầng	7.10	14.30	2024	Tường gạch, mái tôn	Bắc	Hẻm bê tông, rộng 3.5m, ô tô vào được	3.30	Đang ở, không cho thuê
+REQ-2026-2041	35 Trường Sa, Phường 12, Quận 10, TP.HCM	Phường 12	Quận 10	TP.HCM	15.408940	108.100042	Nhà phố (nhà trong hẻm)	76.60	137.90	4 tầng + sân thượng	7.00	10.90	2000	Bê tông cốt thép toàn khối	Nam	Mặt tiền đường nhựa, rộng 8m	\N	Đang ở, không cho thuê
+REQ-2026-2042	Hẻm 22 Nguyễn Huệ, Phường 15, Quận 10, TP.HCM	Phường 15	Quận 10	TP.HCM	10.079464	108.093183	Nhà phố mặt tiền	141.90	227.50	5 tầng	3.70	38.40	2001	Tường gạch, mái tôn	Tây Nam	Mặt tiền đường nhựa, rộng 8m	4.10	Đang cho thuê nguyên căn
+REQ-2026-2043	Hẻm 83 Đặng Văn G, Ngọc Thuỵ, Long Biên, Hà Nội	Ngọc Thuỵ	Long Biên	Hà Nội	17.017991	107.212279	Nhà phố mặt tiền	54.20	118.10	2 tầng	10.10	5.40	2018	Kết cấu khung thép tiền chế	Tây	Mặt tiền đường nhựa, rộng 8m	4.60	Bỏ trống, chưa sử dụng
+REQ-2026-2044	95 Trần Văn B, Bình Hiên, Hải Châu, Đà Nẵng	Bình Hiên	Hải Châu	Đà Nẵng	19.079169	108.018463	Biệt thự / nhà vườn	135.70	306.70	3 tầng	7.80	17.40	2002	Tường gạch, mái tôn	Tây	Hẻm bê tông, rộng 3.5m, ô tô vào được	\N	Bỏ trống, chưa sử dụng
+REQ-2026-2045	Hẻm 58 Nguyễn Trãi, Tân Phong, Quận 7, TP.HCM	Tân Phong	Quận 7	TP.HCM	13.184095	106.873640	Căn hộ chung cư	167.80	410.50	2 tầng + sân thượng	10.50	16.00	2021	Tường gạch, mái tôn	Tây Bắc	Mặt tiền đường nhựa, rộng 12m, có vỉa hè	4.20	Đang cho thuê nguyên căn
+REQ-2026-2046	19 Nguyễn Huệ, Trường Thọ, Thủ Đức, TP.HCM	Trường Thọ	Thủ Đức	TP.HCM	14.483358	107.631946	Biệt thự / nhà vườn	64.80	98.70	2 tầng + sân thượng	7.60	8.50	2022	Bê tông cốt thép, tường gạch	Tây Bắc	Hẻm bê tông, rộng 2.5m, xe máy vào được	\N	Đang sửa chữa, cải tạo
+REQ-2026-2047	Hẻm 46 Trần Văn B, Cửa Nam, Hoàn Kiếm, Hà Nội	Cửa Nam	Hoàn Kiếm	Hà Nội	17.645408	108.237198	Nhà phố (nhà trong hẻm)	115.70	255.00	5 tầng	6.60	17.50	2019	Kết cấu khung thép tiền chế	Tây	Hẻm nhựa, rộng 4m, ô tô tránh nhau được	4.90	Đang cho thuê một phần
+REQ-2026-2048	Hẻm 54 Điện Biên Phủ, Bến Thành, Quận 1, TP.HCM	Bến Thành	Quận 1	TP.HCM	13.705219	105.688355	Biệt thự / nhà vườn	121.80	260.20	4 tầng + sân thượng	3.90	31.20	2004	Bê tông cốt thép toàn khối	Tây Nam	Hẻm bê tông, rộng 3.5m, ô tô vào được	3.00	Đang ở, không cho thuê
+REQ-2026-2049	Hẻm 55 Điện Biên Phủ, Hiệp Bình Chánh, Thủ Đức, TP.HCM	Hiệp Bình Chánh	Thủ Đức	TP.HCM	16.025005	106.414951	Căn hộ chung cư	186.00	270.30	5 tầng	9.60	19.40	2004	Bê tông cốt thép, tường gạch	Đông	Hẻm bê tông, rộng 3.5m, ô tô vào được	3.90	Đang cho thuê nguyên căn
+REQ-2026-2050	Hẻm 9 Bùi Quang H, Phường 13, Bình Thạnh, TP.HCM	Phường 13	Bình Thạnh	TP.HCM	16.278666	106.665973	Căn hộ chung cư	117.70	150.00	1 tầng	7.70	15.30	2013	Kết cấu khung thép tiền chế	Tây Bắc	Hẻm bê tông, rộng 2.5m, xe máy vào được	4.70	Đang ở, không cho thuê
+REQ-2026-2051	221 Đặng Văn G, Đa Kao, Quận 1, TP.HCM	Đa Kao	Quận 1	TP.HCM	19.172224	105.642582	Đất nền	152.80	\N	\N	8.10	18.90	\N	\N	Đông	Hẻm bê tông, rộng 2.5m, xe máy vào được	\N	Bỏ trống, chưa sử dụng
+REQ-2026-2052	199 Hoàng Minh E, Bến Thành, Quận 1, TP.HCM	Bến Thành	Quận 1	TP.HCM	11.615480	106.631027	Nhà phố (nhà trong hẻm)	105.10	237.40	5 tầng	8.50	12.40	2011	Kết cấu khung thép tiền chế	Tây Bắc	Hẻm nhựa, rộng 4m, ô tô tránh nhau được	\N	Bỏ trống, chưa sử dụng
+REQ-2026-2053	Hẻm 22 Trường Sa, Yên Nghĩa, Hà Đông, Hà Nội	Yên Nghĩa	Hà Đông	Hà Nội	16.152881	106.038795	Đất nền	56.60	\N	\N	4.10	13.80	\N	\N	Đông	Mặt tiền đường nhựa, rộng 12m, có vỉa hè	3.60	Bỏ trống, chưa sử dụng
+REQ-2026-2054	Hẻm 53 Phạm Ngọc D, Bình Hiên, Hải Châu, Đà Nẵng	Bình Hiên	Hải Châu	Đà Nẵng	19.949583	107.479510	Đất nền	175.40	\N	\N	5.50	31.90	\N	\N	Bắc	Hẻm bê tông, rộng 2.5m, xe máy vào được	2.60	Bỏ trống, chưa sử dụng
+REQ-2026-2055	Hẻm 42 Trường Sa, Xuân Hà, Thanh Khê, Đà Nẵng	Xuân Hà	Thanh Khê	Đà Nẵng	11.785080	106.772046	Nhà phố (nhà trong hẻm)	154.30	203.20	1 tầng	6.80	22.70	2005	Bê tông cốt thép toàn khối	Bắc	Hẻm bê tông, rộng 2.5m, xe máy vào được	3.90	Đang cho thuê nguyên căn
+REQ-2026-2056	203 Lê Văn C, Xuân Khánh, Ninh Kiều, Cần Thơ	Xuân Khánh	Ninh Kiều	Cần Thơ	18.372766	105.917987	Nhà phố (nhà trong hẻm)	97.20	186.50	3 tầng	7.60	12.80	2008	Kết cấu khung thép tiền chế	Bắc	Hẻm bê tông, rộng 3.5m, ô tô vào được	\N	Bỏ trống, chưa sử dụng
+REQ-2026-2057	Hẻm 32 Lê Văn C, Cửa Nam, Hoàn Kiếm, Hà Nội	Cửa Nam	Hoàn Kiếm	Hà Nội	14.363418	105.530065	Đất nền	134.10	\N	\N	10.70	12.50	\N	\N	Tây	Hẻm bê tông, rộng 3.5m, ô tô vào được	3.00	Bỏ trống, chưa sử dụng
+REQ-2026-2058	Hẻm 53 Bùi Quang H, Trường Thọ, Thủ Đức, TP.HCM	Trường Thọ	Thủ Đức	TP.HCM	12.738664	106.298988	Nhà phố mặt tiền	29.20	70.20	3 tầng	4.60	6.30	2000	Kết cấu khung thép tiền chế	Đông Nam	Mặt tiền đường nhựa, rộng 8m	2.20	Đang cho thuê một phần
+REQ-2026-2059	Hẻm 54 Lê Văn C, Bến Nghé, Quận 1, TP.HCM	Bến Nghé	Quận 1	TP.HCM	10.070623	105.971516	Biệt thự / nhà vườn	43.40	107.00	3 tầng	9.30	4.70	2011	Bê tông cốt thép, tường gạch	Tây	Hẻm bê tông, rộng 2.5m, xe máy vào được	4.30	Bỏ trống, chưa sử dụng
+REQ-E2E-0001	123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM	\N	\N	\N	\N	\N	Nha pho	62.00	110.00	2 tang	4.00	15.00	2015	\N	\N	\N	\N	Da hoan thien, dang o
+REQ-E2E-0002	123 Le Loi, Phuong Ben Thanh, Quan 1, TP HCM	\N	\N	\N	\N	\N	Nha pho	62.00	110.00	2 tang	4.00	15.00	2015	\N	\N	\N	\N	Da hoan thien, dang o
+\.
+
+
+--
+-- Data for Name: risk_assessment_result; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.risk_assessment_result (case_id, risk_score, risk_label, ltv_proposed_pct, risk_inference_text, computed_at) FROM stdin;
+REQ-2026-2002	18	thap	75	Điểm rủi ro tổng 18/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 75% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-12 06:13:00+00
+REQ-2026-2004	41	cao	55	Điểm rủi ro tổng 41/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 55% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-17 07:42:00+00
+REQ-2026-2005	25	trung_binh	65	Điểm rủi ro tổng 25/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-19 13:28:00+00
+REQ-2026-2006	40	trung_binh	65	Điểm rủi ro tổng 40/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-30 04:30:00+00
+REQ-2026-2008	32	trung_binh	65	Điểm rủi ro tổng 32/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-08 13:22:00+00
+REQ-2026-2009	36	trung_binh	65	Điểm rủi ro tổng 36/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-04-08 02:52:00+00
+REQ-2026-2011	32	trung_binh	65	Điểm rủi ro tổng 32/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-26 13:06:00+00
+REQ-2026-2012	25	trung_binh	65	Điểm rủi ro tổng 25/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-17 20:43:00+00
+REQ-2026-2014	38	trung_binh	65	Điểm rủi ro tổng 38/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-05 18:16:00+00
+REQ-2026-2015	43	cao	55	Điểm rủi ro tổng 43/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 55% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-09 01:12:00+00
+REQ-2026-2016	37	trung_binh	65	Điểm rủi ro tổng 37/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-07-18 01:37:00+00
+REQ-2026-2017	33	trung_binh	65	Điểm rủi ro tổng 33/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-03-27 05:18:00+00
+REQ-2026-2018	51	cao	55	Điểm rủi ro tổng 51/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 55% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-03-21 00:00:00+00
+REQ-2026-2019	27	trung_binh	65	Điểm rủi ro tổng 27/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-28 17:57:00+00
+REQ-2026-2020	45	cao	55	Điểm rủi ro tổng 45/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 55% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-07-13 04:38:00+00
+REQ-2026-2021	32	trung_binh	65	Điểm rủi ro tổng 32/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-05 11:55:00+00
+REQ-2026-2022	25	trung_binh	65	Điểm rủi ro tổng 25/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-07 07:46:00+00
+REQ-2026-2023	33	trung_binh	65	Điểm rủi ro tổng 33/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-08 06:25:00+00
+REQ-2026-2025	40	trung_binh	65	Điểm rủi ro tổng 40/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-04-24 11:52:00+00
+REQ-2026-2027	39	trung_binh	65	Điểm rủi ro tổng 39/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-04-03 03:48:00+00
+REQ-2026-2028	32	trung_binh	65	Điểm rủi ro tổng 32/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-24 13:40:00+00
+REQ-2026-2029	33	trung_binh	65	Điểm rủi ro tổng 33/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-18 06:22:00+00
+REQ-2026-2030	38	trung_binh	65	Điểm rủi ro tổng 38/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-14 02:35:00+00
+REQ-2026-2033	27	trung_binh	65	Điểm rủi ro tổng 27/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-19 12:46:00+00
+REQ-2026-2034	33	trung_binh	65	Điểm rủi ro tổng 33/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-07 11:42:00+00
+REQ-2026-2036	30	trung_binh	65	Điểm rủi ro tổng 30/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-29 14:58:00+00
+REQ-2026-2039	39	trung_binh	65	Điểm rủi ro tổng 39/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-04-14 02:24:00+00
+REQ-2026-2040	47	cao	55	Điểm rủi ro tổng 47/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 55% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-26 06:55:00+00
+REQ-2026-2044	48	cao	55	Điểm rủi ro tổng 48/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 55% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-06 03:42:00+00
+REQ-2026-2045	35	trung_binh	65	Điểm rủi ro tổng 35/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-03-25 22:20:00+00
+REQ-2026-2047	29	trung_binh	65	Điểm rủi ro tổng 29/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-04-01 20:47:00+00
+REQ-2026-2048	36	trung_binh	65	Điểm rủi ro tổng 36/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-04 19:53:00+00
+REQ-2026-2049	30	trung_binh	65	Điểm rủi ro tổng 30/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-03-30 05:32:00+00
+REQ-2026-2050	30	trung_binh	65	Điểm rủi ro tổng 30/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-07-12 20:46:00+00
+REQ-2026-2051	41	cao	55	Điểm rủi ro tổng 41/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 55% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-23 14:56:00+00
+REQ-2026-2052	26	trung_binh	65	Điểm rủi ro tổng 26/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-07-10 23:20:00+00
+REQ-2026-2053	28	trung_binh	65	Điểm rủi ro tổng 28/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-04-16 01:08:00+00
+REQ-2026-2054	25	trung_binh	65	Điểm rủi ro tổng 25/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-04-20 11:02:00+00
+REQ-2026-2055	24	trung_binh	65	Điểm rủi ro tổng 24/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 65% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-05-14 17:34:00+00
+REQ-2026-2056	41	cao	55	Điểm rủi ro tổng 41/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 55% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-22 14:26:00+00
+REQ-2026-2057	44	cao	55	Điểm rủi ro tổng 44/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 55% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-01 09:11:00+00
+REQ-2026-2059	42	cao	55	Điểm rủi ro tổng 42/100 là trung bình có trọng số của 5 nhóm rủi ro cấu thành; LTV đề xuất 55% được tra theo khung chính sách LTV ứng với dải điểm này.	2026-06-26 21:31:00+00
+\.
+
+
+--
+-- Data for Name: risk_flag; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.risk_flag (id, case_id, severity, title, description, confidence_pct, verified_status, linked_risk_group, display_order) FROM stdin;
+d0ca46ab-a8a6-4b5f-9dbc-67a3ef72be95	REQ-2026-2002	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	65	da_xac_thuc	\N	0
+0b01524d-94d1-4101-ad36-5c0730c9f258	REQ-2026-2004	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	95	da_xac_thuc	\N	0
+24faf04f-9346-4808-ab52-c72fda175cf7	REQ-2026-2004	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	29	chua_xac_thuc	\N	1
+62e59817-7421-4996-9672-e55c429bb80a	REQ-2026-2005	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	38	chua_xac_thuc	\N	0
+3dfc7b76-d07f-4e21-a141-327bda7c2cb1	REQ-2026-2005	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	86	da_xac_thuc	\N	1
+68953314-a56a-46e0-b340-e2d8272aefc6	REQ-2026-2006	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	95	da_xac_thuc	\N	0
+d734150f-fcb8-4d9b-a83b-e55fdf376f8f	REQ-2026-2006	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	45	chua_xac_thuc	\N	1
+60301223-0f48-41d6-8809-d3f04260bc95	REQ-2026-2008	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	28	chua_xac_thuc	\N	0
+7c5b0f28-5507-4506-8db0-83d69132f4d8	REQ-2026-2009	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	56	da_xac_thuc	\N	0
+33b7d388-a113-4510-b99b-7a6e338994c2	REQ-2026-2011	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	65	da_xac_thuc	\N	0
+434f942d-6d03-43fa-9059-6299102effe1	REQ-2026-2011	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	95	da_xac_thuc	\N	1
+960406b1-ac8b-4258-ac47-eb95bd905c74	REQ-2026-2012	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	66	da_xac_thuc	\N	0
+7d47c1b3-9b04-4fa0-93b8-2dff2252b104	REQ-2026-2012	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	77	da_xac_thuc	\N	1
+b654b16f-f6be-4b69-acd8-dfcee6837ac5	REQ-2026-2012	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	33	chua_xac_thuc	\N	2
+9e32494e-88cf-4768-90c5-00be6b4f3b41	REQ-2026-2014	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	56	da_xac_thuc	\N	0
+9e6f755e-a110-4674-818c-88736cc8df50	REQ-2026-2014	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	35	chua_xac_thuc	\N	1
+693eae1d-5bd2-41a7-ac06-9876cc0e632c	REQ-2026-2014	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	64	da_xac_thuc	\N	2
+7a16ab23-221d-48e2-b430-643f1da3113d	REQ-2026-2015	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	97	da_xac_thuc	\N	0
+8a5afc12-4974-40e3-91ad-b74bd364bf30	REQ-2026-2015	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	67	da_xac_thuc	\N	1
+4c59b626-b480-4d78-aa85-af2b0454675c	REQ-2026-2016	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	35	chua_xac_thuc	\N	0
+9baef0f7-eb18-475e-b21a-97d2be5523b8	REQ-2026-2016	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	74	da_xac_thuc	\N	1
+11c8acb2-15a3-4513-b7fb-e30576d1db83	REQ-2026-2016	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	56	da_xac_thuc	\N	2
+e4a34cca-6a1b-49f2-9ce7-e0595b812b92	REQ-2026-2017	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	73	da_xac_thuc	\N	0
+ea0d5537-2719-4e0e-ad43-fb4b67590581	REQ-2026-2017	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	70	da_xac_thuc	\N	1
+b94f4e81-bdd1-4450-8acb-41f0c3dd4163	REQ-2026-2017	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	89	da_xac_thuc	\N	2
+2d4ea2ab-66b8-4ea4-a07d-ecafec90d5ad	REQ-2026-2018	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	94	da_xac_thuc	\N	0
+8e48cdb5-9e38-4715-8969-bea06602b922	REQ-2026-2019	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	33	chua_xac_thuc	\N	0
+1645452f-c342-4390-8758-5922e4187e94	REQ-2026-2019	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	60	da_xac_thuc	\N	1
+7c1dd4a4-dff0-432b-b1e1-d844dfcd6757	REQ-2026-2019	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	67	da_xac_thuc	\N	2
+a8145239-fa9e-46dd-a8a4-d25c95917433	REQ-2026-2020	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	96	da_xac_thuc	\N	0
+ccbdc65d-f02e-46b7-ae59-5bcc53fd50f2	REQ-2026-2021	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	74	da_xac_thuc	\N	0
+10edf708-43bc-45b9-ba77-4ae13efa3932	REQ-2026-2021	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	50	da_xac_thuc	\N	1
+76e48dba-e647-4268-855e-fcab7abd0ca8	REQ-2026-2021	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	74	da_xac_thuc	\N	2
+f8eb8a76-86b3-45a4-8b1e-27d8a7f7d886	REQ-2026-2022	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	76	da_xac_thuc	\N	0
+bef5a120-59b2-466d-b09e-68cb4e9f2fd6	REQ-2026-2022	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	32	chua_xac_thuc	\N	1
+f21bda93-19a4-4d2f-8428-b240901cd160	REQ-2026-2022	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	85	da_xac_thuc	\N	2
+e67fa561-ba88-44be-b683-8ff4e70fb0fa	REQ-2026-2023	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	71	da_xac_thuc	\N	0
+07c96570-4d2d-4fc6-9a54-78bcba2e802b	REQ-2026-2025	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	42	chua_xac_thuc	\N	0
+14290eab-f3ba-47b6-99bd-8bb418448794	REQ-2026-2025	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	70	da_xac_thuc	\N	1
+fbff1138-61c8-4a3c-990b-cb81fc875a66	REQ-2026-2025	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	70	da_xac_thuc	\N	2
+3e5c7ca6-96f3-40d6-9875-21abc2d3d7c1	REQ-2026-2027	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	55	da_xac_thuc	\N	0
+3f3c4dd7-a4f5-4d55-b680-996cd2cd2f6e	REQ-2026-2027	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	65	da_xac_thuc	\N	1
+f6a4e6a4-0074-4f89-9b4d-570ecb96d52a	REQ-2026-2028	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	51	da_xac_thuc	\N	0
+8100a6dc-b211-4703-aead-80e577adb9e6	REQ-2026-2029	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	39	chua_xac_thuc	\N	0
+13642e88-a46a-49cf-9690-65921797e64a	REQ-2026-2029	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	62	da_xac_thuc	\N	1
+c5c81227-505a-4088-83d6-2ec66cab701c	REQ-2026-2030	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	64	da_xac_thuc	\N	0
+ae35deca-c09c-4cae-98a9-e0351bbdaf06	REQ-2026-2030	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	80	da_xac_thuc	\N	1
+43df690f-87ad-4ba4-a232-fc52b466895f	REQ-2026-2033	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	67	da_xac_thuc	\N	0
+d14e3b19-d9f1-46d2-971c-9e19cc7d1e94	REQ-2026-2034	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	69	da_xac_thuc	\N	0
+5cede90f-d1ab-4b6d-868d-2d1cd8dab8fe	REQ-2026-2034	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	87	da_xac_thuc	\N	1
+3d101440-8c9b-4b35-974a-48a2bb879d3e	REQ-2026-2036	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	29	chua_xac_thuc	\N	0
+2e31ba31-f139-49d1-b8c5-b3d7068afaa0	REQ-2026-2036	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	88	da_xac_thuc	\N	1
+ca454c11-31d7-4c1b-929e-0d82f45d322c	REQ-2026-2039	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	61	da_xac_thuc	\N	0
+1af3facc-ee2b-4ca6-986f-3f283a9b1b61	REQ-2026-2040	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	41	chua_xac_thuc	\N	0
+510eba58-ebe0-49b0-8873-57a9581a9807	REQ-2026-2040	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	60	da_xac_thuc	\N	1
+39bae2e4-d813-49bb-abf1-62cf7c5a4fba	REQ-2026-2044	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	71	da_xac_thuc	\N	0
+65485560-b34a-42d6-a86a-9492025f8f1c	REQ-2026-2044	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	91	da_xac_thuc	\N	1
+857426d5-12ef-471a-869b-775059612517	REQ-2026-2045	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	53	da_xac_thuc	\N	0
+b47d0b0f-90b2-450f-8df8-963477112887	REQ-2026-2045	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	89	da_xac_thuc	\N	1
+92c1f018-b6d4-4f94-a3fd-d1362570fb64	REQ-2026-2045	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	26	chua_xac_thuc	\N	2
+c0c1272a-d607-4625-b655-64485809e9e1	REQ-2026-2047	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	73	da_xac_thuc	\N	0
+298a6c6f-3e48-4fb1-97dc-bca75e681a1d	REQ-2026-2048	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	98	da_xac_thuc	\N	0
+e504ba9a-1c5a-49b4-a2d7-e8400720517e	REQ-2026-2048	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	51	da_xac_thuc	\N	1
+f1988857-a387-4abe-8cc8-3f7347e3e710	REQ-2026-2049	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	63	da_xac_thuc	\N	0
+e9dfd61e-c8a4-4c90-874c-1e8626b63b17	REQ-2026-2050	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	85	da_xac_thuc	\N	0
+2b8d9cb0-db0e-4619-90b0-31a1d5020892	REQ-2026-2050	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	55	da_xac_thuc	\N	1
+70cc45d2-43fc-4b87-9f8d-90024d54ac7b	REQ-2026-2050	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	72	da_xac_thuc	\N	2
+a5f72cde-2dcd-4697-a77e-a6e6bd5e6b24	REQ-2026-2051	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	41	chua_xac_thuc	\N	0
+943b46a9-1d3f-4f99-9231-9a4fdc23359e	REQ-2026-2051	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	63	da_xac_thuc	\N	1
+234bc9d5-bcf7-4acb-bd3e-862fdafe97dd	REQ-2026-2052	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	64	da_xac_thuc	\N	0
+709f756b-0101-4dea-bcb9-caa6d3d55170	REQ-2026-2052	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	88	da_xac_thuc	\N	1
+f7e4d050-46ae-4152-a936-e666fe7d8f7d	REQ-2026-2052	trung_binh	Danh tiếng / tâm linh	Tin đồn dân cư chưa xác thực — cần xác minh thực địa.	30	chua_xac_thuc	\N	2
+c0bda9c2-6e10-4e0a-bd78-4feddd2f31ab	REQ-2026-2053	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	95	da_xac_thuc	\N	0
+11295d70-961a-44cf-abf0-e6cc80ba4316	REQ-2026-2053	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	55	da_xac_thuc	\N	1
+1b9ace1c-f766-4656-9760-5de9bdf66fb5	REQ-2026-2054	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	77	da_xac_thuc	\N	0
+1b6d75d5-14f1-4736-b883-058abc763152	REQ-2026-2054	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	54	da_xac_thuc	\N	1
+f45a71f2-0d1f-4b1d-a4d0-d15f5c342134	REQ-2026-2054	trung_binh	Thanh khoản	Thời gian bán trung bình khu vực cao hơn mặt bằng chung.	59	da_xac_thuc	\N	2
+a9bb9f7e-4550-4ad3-8344-da52f906b35d	REQ-2026-2055	thap	Pháp lý	Sổ hồng hợp lệ, không tranh chấp ghi nhận.	98	da_xac_thuc	\N	0
+70695f09-7343-4cc5-96d8-c1954e6732cb	REQ-2026-2055	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	76	da_xac_thuc	\N	1
+20540940-108b-4915-aa8e-53295916db58	REQ-2026-2056	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	80	da_xac_thuc	\N	0
+829c2649-28bb-49ba-a869-2f08e14d1fe9	REQ-2026-2057	cao	Biến động giá	Chỉ số giá khu vực tăng nhanh trong 12 tháng gần nhất.	63	da_xac_thuc	\N	0
+1254fcf1-3f88-4fbe-b0ac-2af4a5487e8e	REQ-2026-2059	thap	Môi trường	Khu vực từng ghi nhận ngập nhẹ — khuyến nghị mua bảo hiểm tài sản.	72	da_xac_thuc	\N	0
+\.
+
+
+--
+-- Data for Name: risk_group; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.risk_group (id, case_id, group_key, label, weight_pct, score, raw_findings, inference_text, source_label, tool_name) FROM stdin;
+c03b4de5-a00e-474c-bb51-7eb461b1d468	REQ-2026-2002	legal	Pháp lý	32	10	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 10/100."]	Nhóm pháp lý ở mức thấp, đóng góp 3.2 điểm vào tổng điểm rủi ro (trọng số 32%).	legal_status_lookup	legal_status_lookup
+c3885e88-8ac4-49d3-ae0a-464e73b31f81	REQ-2026-2002	liquidity	Thanh khoản	24	16	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 16/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 3.8 điểm vào tổng điểm rủi ro (trọng số 24%).	liquidity_stat_lookup	liquidity_stat_lookup
+ffdff290-e94e-4777-873b-1d1d6d0a9755	REQ-2026-2002	price_volatility	Biến động giá	21	28	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 28/100."]	Nhóm biến động giá ở mức thấp, đóng góp 5.9 điểm vào tổng điểm rủi ro (trọng số 21%).	market_price_lookup	market_price_lookup
+db3db77d-6f18-4c94-9235-2511643e7839	REQ-2026-2002	physical_environment	Vật lý/môi trường	14	20	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 20/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 2.8 điểm vào tổng điểm rủi ro (trọng số 14%).	environmental_risk_lookup	environmental_risk_lookup
+c06b66e9-baa3-4f75-a598-93f76976cbf0	REQ-2026-2002	reputation	Danh tiếng/tâm linh	9	24	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 24/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.2 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+35dad032-70bc-4e27-9440-055131355012	REQ-2026-2004	legal	Pháp lý	30	24	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 24/100."]	Nhóm pháp lý ở mức thấp, đóng góp 7.2 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+21dd1b3e-0c77-4c60-91c8-1b68afd61060	REQ-2026-2004	liquidity	Thanh khoản	27	17	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 17/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 4.6 điểm vào tổng điểm rủi ro (trọng số 27%).	liquidity_stat_lookup	liquidity_stat_lookup
+5869d9ed-608c-4ec4-a2dc-c489cabaec36	REQ-2026-2004	price_volatility	Biến động giá	20	70	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 70/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 14.0 điểm vào tổng điểm rủi ro (trọng số 20%).	market_price_lookup	market_price_lookup
+480e5a75-43ad-45e4-8b8d-ad113851f28a	REQ-2026-2004	physical_environment	Vật lý/môi trường	13	63	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 63/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 8.2 điểm vào tổng điểm rủi ro (trọng số 13%).	environmental_risk_lookup	environmental_risk_lookup
+f0c5c2ab-8e40-4394-b316-8f80eac59efd	REQ-2026-2004	reputation	Danh tiếng/tâm linh	10	74	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 74/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 7.4 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+2c7abe5e-6264-41ae-b0dd-317e101e0049	REQ-2026-2005	legal	Pháp lý	30	20	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 20/100."]	Nhóm pháp lý ở mức thấp, đóng góp 6.0 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+91fa69b3-fef4-4f8d-be49-f4efc1e83781	REQ-2026-2005	liquidity	Thanh khoản	24	34	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 34/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 8.2 điểm vào tổng điểm rủi ro (trọng số 24%).	liquidity_stat_lookup	liquidity_stat_lookup
+71909d2f-f7b1-4bc6-9701-42cbe53d225e	REQ-2026-2005	price_volatility	Biến động giá	21	27	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 27/100."]	Nhóm biến động giá ở mức thấp, đóng góp 5.7 điểm vào tổng điểm rủi ro (trọng số 21%).	market_price_lookup	market_price_lookup
+d91beb40-53fd-4734-b8fc-39f015ef6069	REQ-2026-2005	physical_environment	Vật lý/môi trường	15	12	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 12/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 1.8 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+1ba719ac-737b-4a5d-b522-b95efdeaa5e7	REQ-2026-2005	reputation	Danh tiếng/tâm linh	10	31	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 31/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 3.1 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+8679c2d9-8030-4364-8eaf-3efad58a5f2a	REQ-2026-2006	legal	Pháp lý	29	72	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 72/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 20.9 điểm vào tổng điểm rủi ro (trọng số 29%).	legal_status_lookup	legal_status_lookup
+bef9bc03-a9c2-4cc1-9a85-15e78fbe2e0b	REQ-2026-2006	liquidity	Thanh khoản	29	31	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 31/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 9.0 điểm vào tổng điểm rủi ro (trọng số 29%).	liquidity_stat_lookup	liquidity_stat_lookup
+d7ce5dcd-6552-4e29-b33e-206e4242db2a	REQ-2026-2006	price_volatility	Biến động giá	17	30	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 30/100."]	Nhóm biến động giá ở mức thấp, đóng góp 5.1 điểm vào tổng điểm rủi ro (trọng số 17%).	market_price_lookup	market_price_lookup
+2878eb96-d8f4-45f4-b31b-ebfe1c46f5ea	REQ-2026-2006	physical_environment	Vật lý/môi trường	15	22	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 22/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 3.3 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+a2d6a34d-2a08-430d-b1b8-713b3dcb1df2	REQ-2026-2006	reputation	Danh tiếng/tâm linh	10	13	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 13/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.3 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+3e811c86-ccbc-47a5-b139-fd8945e93b53	REQ-2026-2008	legal	Pháp lý	30	47	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 47/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 14.1 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+4df2ac14-a199-4e38-8a6f-6b4f7e6d9ec2	REQ-2026-2008	liquidity	Thanh khoản	22	13	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 13/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 2.9 điểm vào tổng điểm rủi ro (trọng số 22%).	liquidity_stat_lookup	liquidity_stat_lookup
+284618a0-b62b-4919-a842-5f3fa1b082ab	REQ-2026-2008	price_volatility	Biến động giá	23	16	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 16/100."]	Nhóm biến động giá ở mức thấp, đóng góp 3.7 điểm vào tổng điểm rủi ro (trọng số 23%).	market_price_lookup	market_price_lookup
+19be85eb-d6ce-4900-b7ba-329feceb928e	REQ-2026-2008	physical_environment	Vật lý/môi trường	16	56	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 56/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 9.0 điểm vào tổng điểm rủi ro (trọng số 16%).	environmental_risk_lookup	environmental_risk_lookup
+4ad81c27-0034-4d68-96ea-873708655cd0	REQ-2026-2008	reputation	Danh tiếng/tâm linh	9	30	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 30/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.7 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+a9d826c1-d86d-40f1-8878-c06347fe2938	REQ-2026-2009	legal	Pháp lý	30	53	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 53/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 15.9 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+f9e7062a-1381-4af9-a268-981c6c399d0e	REQ-2026-2009	liquidity	Thanh khoản	22	26	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 26/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 5.7 điểm vào tổng điểm rủi ro (trọng số 22%).	liquidity_stat_lookup	liquidity_stat_lookup
+fe73bf16-75e1-47a5-95da-89372a6f4dfb	REQ-2026-2009	price_volatility	Biến động giá	22	23	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 23/100."]	Nhóm biến động giá ở mức thấp, đóng góp 5.1 điểm vào tổng điểm rủi ro (trọng số 22%).	market_price_lookup	market_price_lookup
+1a6a6d8f-60ef-43d0-8633-3db0aab377d6	REQ-2026-2009	physical_environment	Vật lý/môi trường	17	17	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 17/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 2.9 điểm vào tổng điểm rủi ro (trọng số 17%).	environmental_risk_lookup	environmental_risk_lookup
+03cfdd25-3140-4264-bc0a-8039a5179c52	REQ-2026-2009	reputation	Danh tiếng/tâm linh	9	73	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 73/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 6.6 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+f19a6799-3c21-4d65-9f30-11bc384a8df2	REQ-2026-2011	legal	Pháp lý	27	28	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 28/100."]	Nhóm pháp lý ở mức thấp, đóng góp 7.6 điểm vào tổng điểm rủi ro (trọng số 27%).	legal_status_lookup	legal_status_lookup
+b9d47ae6-7550-4f06-9e00-b31f3f4a3bc8	REQ-2026-2011	liquidity	Thanh khoản	28	10	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 10/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 2.8 điểm vào tổng điểm rủi ro (trọng số 28%).	liquidity_stat_lookup	liquidity_stat_lookup
+ac12adae-60be-4f27-98f4-007b7bc73330	REQ-2026-2011	price_volatility	Biến động giá	18	30	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 30/100."]	Nhóm biến động giá ở mức thấp, đóng góp 5.4 điểm vào tổng điểm rủi ro (trọng số 18%).	market_price_lookup	market_price_lookup
+449a938d-548f-4768-bc51-adfc19b897f5	REQ-2026-2011	physical_environment	Vật lý/môi trường	16	53	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 53/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 8.5 điểm vào tổng điểm rủi ro (trọng số 16%).	environmental_risk_lookup	environmental_risk_lookup
+f7ea399c-54b4-4f4d-af18-8e1fc4f90948	REQ-2026-2011	reputation	Danh tiếng/tâm linh	11	69	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 69/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 7.6 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+e2497d95-d992-4894-9a97-f9fd38f3de28	REQ-2026-2012	legal	Pháp lý	29	25	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 25/100."]	Nhóm pháp lý ở mức thấp, đóng góp 7.2 điểm vào tổng điểm rủi ro (trọng số 29%).	legal_status_lookup	legal_status_lookup
+0e8c2c9d-d664-4130-b5e1-1fa373e13c81	REQ-2026-2012	liquidity	Thanh khoản	25	17	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 17/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 4.2 điểm vào tổng điểm rủi ro (trọng số 25%).	liquidity_stat_lookup	liquidity_stat_lookup
+e7352734-8d66-4fea-93f1-ce35dff0b637	REQ-2026-2012	price_volatility	Biến động giá	21	19	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 19/100."]	Nhóm biến động giá ở mức thấp, đóng góp 4.0 điểm vào tổng điểm rủi ro (trọng số 21%).	market_price_lookup	market_price_lookup
+03c9d07f-2e17-4330-97e9-f4560c048486	REQ-2026-2012	physical_environment	Vật lý/môi trường	15	19	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 19/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 2.9 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+f588b08f-e0f9-48c2-b327-898d35dd10ec	REQ-2026-2012	reputation	Danh tiếng/tâm linh	10	67	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 67/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 6.7 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+86e58209-e961-4713-9f65-be3a5751e909	REQ-2026-2014	legal	Pháp lý	30	46	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 46/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 13.8 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+1ab14942-25a0-4be9-b4a9-375b8a6d7890	REQ-2026-2014	liquidity	Thanh khoản	23	31	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 31/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 7.1 điểm vào tổng điểm rủi ro (trọng số 23%).	liquidity_stat_lookup	liquidity_stat_lookup
+ef1c5500-5f8b-42d6-980e-46e17ba31ff4	REQ-2026-2014	price_volatility	Biến động giá	21	11	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 11/100."]	Nhóm biến động giá ở mức thấp, đóng góp 2.3 điểm vào tổng điểm rủi ro (trọng số 21%).	market_price_lookup	market_price_lookup
+d8e9eb92-7227-43f0-acc0-3b2bbf8d4f47	REQ-2026-2023	liquidity	Thanh khoản	24	17	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 17/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 4.1 điểm vào tổng điểm rủi ro (trọng số 24%).	liquidity_stat_lookup	liquidity_stat_lookup
+05bd5bf9-7d18-4cbd-a1a9-4cf61dce421d	REQ-2026-2014	physical_environment	Vật lý/môi trường	15	51	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 51/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 7.7 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+4b204240-f2dd-425c-83f3-4dcc291ea1ff	REQ-2026-2014	reputation	Danh tiếng/tâm linh	11	63	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 63/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 6.9 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+ede128df-42c6-4193-992b-55f11a33c11d	REQ-2026-2015	legal	Pháp lý	30	35	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 35/100."]	Nhóm pháp lý ở mức thấp, đóng góp 10.5 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+7e61e5e0-7583-40d2-9acf-a6e02a9f4e9e	REQ-2026-2015	liquidity	Thanh khoản	25	60	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 60/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 15.0 điểm vào tổng điểm rủi ro (trọng số 25%).	liquidity_stat_lookup	liquidity_stat_lookup
+8ffb8fbb-34fd-4fd2-ac87-c75fa4de8682	REQ-2026-2015	price_volatility	Biến động giá	20	27	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 27/100."]	Nhóm biến động giá ở mức thấp, đóng góp 5.4 điểm vào tổng điểm rủi ro (trọng số 20%).	market_price_lookup	market_price_lookup
+1e1a2d15-a466-4872-b750-8c2e9c3afa8f	REQ-2026-2015	physical_environment	Vật lý/môi trường	16	58	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 58/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 9.3 điểm vào tổng điểm rủi ro (trọng số 16%).	environmental_risk_lookup	environmental_risk_lookup
+5ff01e99-65a5-44c6-861e-7dbbcfb1e271	REQ-2026-2015	reputation	Danh tiếng/tâm linh	9	28	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 28/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.5 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+86f98194-e922-4ff6-8154-bd76df01be24	REQ-2026-2016	legal	Pháp lý	30	63	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 63/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 18.9 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+94207963-1040-4b4c-a38f-92103e47516b	REQ-2026-2016	liquidity	Thanh khoản	25	49	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 49/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 12.2 điểm vào tổng điểm rủi ro (trọng số 25%).	liquidity_stat_lookup	liquidity_stat_lookup
+f6b385c4-7a87-41df-b6b0-de745a2b888e	REQ-2026-2016	price_volatility	Biến động giá	20	10	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 10/100."]	Nhóm biến động giá ở mức thấp, đóng góp 2.0 điểm vào tổng điểm rủi ro (trọng số 20%).	market_price_lookup	market_price_lookup
+3940e056-7404-42b7-b7dc-c6939b90417e	REQ-2026-2016	physical_environment	Vật lý/môi trường	15	19	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 19/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 2.9 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+06bdab84-466d-4414-a82d-24d4fdb25268	REQ-2026-2016	reputation	Danh tiếng/tâm linh	10	12	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 12/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.2 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+fbc0ace1-3a2e-43d7-b90c-cfc885855eb0	REQ-2026-2017	legal	Pháp lý	32	18	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 18/100."]	Nhóm pháp lý ở mức thấp, đóng góp 5.8 điểm vào tổng điểm rủi ro (trọng số 32%).	legal_status_lookup	legal_status_lookup
+c5d881dd-b58e-45e2-b7e8-d8f2f3ad8961	REQ-2026-2017	liquidity	Thanh khoản	26	49	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 49/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 12.7 điểm vào tổng điểm rủi ro (trọng số 26%).	liquidity_stat_lookup	liquidity_stat_lookup
+ee0057de-2b7f-4d36-a4d5-95ced55fbd14	REQ-2026-2017	price_volatility	Biến động giá	17	49	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 49/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 8.3 điểm vào tổng điểm rủi ro (trọng số 17%).	market_price_lookup	market_price_lookup
+03749844-3f40-4bf3-b749-d12a5fc8a39f	REQ-2026-2017	physical_environment	Vật lý/môi trường	16	32	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 32/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 5.1 điểm vào tổng điểm rủi ro (trọng số 16%).	environmental_risk_lookup	environmental_risk_lookup
+56809cb0-da66-4ea5-ab3a-5b229ff934b3	REQ-2026-2017	reputation	Danh tiếng/tâm linh	9	17	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 17/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.5 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+e91f775f-fbcc-4693-a9ac-984adbc49d20	REQ-2026-2018	legal	Pháp lý	27	74	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 74/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 20.0 điểm vào tổng điểm rủi ro (trọng số 27%).	legal_status_lookup	legal_status_lookup
+2188a8de-dc2a-4fed-a3b8-cfcdda8c7e13	REQ-2026-2018	liquidity	Thanh khoản	25	22	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 22/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 5.5 điểm vào tổng điểm rủi ro (trọng số 25%).	liquidity_stat_lookup	liquidity_stat_lookup
+f2617ec2-95cf-4eb8-8ef9-f1f458e57e9e	REQ-2026-2018	price_volatility	Biến động giá	21	63	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 63/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 13.2 điểm vào tổng điểm rủi ro (trọng số 21%).	market_price_lookup	market_price_lookup
+e3f2d699-1f4a-4e77-aac2-1b76850f78d3	REQ-2026-2018	physical_environment	Vật lý/môi trường	15	27	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 27/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 4.0 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+391ac123-193f-4a8b-af7f-3f2d4b4a5eeb	REQ-2026-2018	reputation	Danh tiếng/tâm linh	12	69	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 69/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 8.3 điểm vào tổng điểm rủi ro (trọng số 12%).	stigma_reputation_lookup	stigma_reputation_lookup
+b652d195-86c1-45df-81f7-f0d06c9a51f6	REQ-2026-2019	legal	Pháp lý	26	33	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 33/100."]	Nhóm pháp lý ở mức thấp, đóng góp 8.6 điểm vào tổng điểm rủi ro (trọng số 26%).	legal_status_lookup	legal_status_lookup
+872ac879-0ad3-4621-abff-a95435f5769c	REQ-2026-2019	liquidity	Thanh khoản	27	13	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 13/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 3.5 điểm vào tổng điểm rủi ro (trọng số 27%).	liquidity_stat_lookup	liquidity_stat_lookup
+5eed4105-c0c8-4997-b99a-03ef92598159	REQ-2026-2019	price_volatility	Biến động giá	22	30	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 30/100."]	Nhóm biến động giá ở mức thấp, đóng góp 6.6 điểm vào tổng điểm rủi ro (trọng số 22%).	market_price_lookup	market_price_lookup
+2c0c0c1e-efb3-4223-b30a-61ea8316cf76	REQ-2026-2019	physical_environment	Vật lý/môi trường	15	47	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 47/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 7.0 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+ed26e965-c8cf-4528-bd4e-82e27c472950	REQ-2026-2019	reputation	Danh tiếng/tâm linh	10	11	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 11/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.1 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+1bc0c75e-2de1-43de-81ac-5a3413eb9191	REQ-2026-2020	legal	Pháp lý	29	29	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 29/100."]	Nhóm pháp lý ở mức thấp, đóng góp 8.4 điểm vào tổng điểm rủi ro (trọng số 29%).	legal_status_lookup	legal_status_lookup
+7c548848-f53f-4042-91fa-7b924c3cceab	REQ-2026-2020	liquidity	Thanh khoản	26	52	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 52/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 13.5 điểm vào tổng điểm rủi ro (trọng số 26%).	liquidity_stat_lookup	liquidity_stat_lookup
+43efa6c3-e88c-44ec-905f-89bc4b70fbff	REQ-2026-2020	price_volatility	Biến động giá	20	71	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 71/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 14.2 điểm vào tổng điểm rủi ro (trọng số 20%).	market_price_lookup	market_price_lookup
+76925ba0-c390-417f-a7d6-2389875e3edd	REQ-2026-2020	physical_environment	Vật lý/môi trường	14	19	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 19/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 2.7 điểm vào tổng điểm rủi ro (trọng số 14%).	environmental_risk_lookup	environmental_risk_lookup
+d41267ea-be77-4625-816a-b6bf7acb4550	REQ-2026-2020	reputation	Danh tiếng/tâm linh	11	54	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 54/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 5.9 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+a24de419-caa2-4aa6-9432-6a7705fc7988	REQ-2026-2021	legal	Pháp lý	32	30	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 30/100."]	Nhóm pháp lý ở mức thấp, đóng góp 9.6 điểm vào tổng điểm rủi ro (trọng số 32%).	legal_status_lookup	legal_status_lookup
+f476bdf0-6537-46fe-9014-bb0643c671d5	REQ-2026-2021	liquidity	Thanh khoản	26	29	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 29/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 7.5 điểm vào tổng điểm rủi ro (trọng số 26%).	liquidity_stat_lookup	liquidity_stat_lookup
+f23bad8b-ee3c-4210-866f-7f97bf1d2f16	REQ-2026-2021	price_volatility	Biến động giá	17	33	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 33/100."]	Nhóm biến động giá ở mức thấp, đóng góp 5.6 điểm vào tổng điểm rủi ro (trọng số 17%).	market_price_lookup	market_price_lookup
+15f716eb-8469-4f0c-ad8a-e502aec9e011	REQ-2026-2021	physical_environment	Vật lý/môi trường	14	47	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 47/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 6.6 điểm vào tổng điểm rủi ro (trọng số 14%).	environmental_risk_lookup	environmental_risk_lookup
+e21e7683-be3a-450c-a1c3-c62511f97038	REQ-2026-2021	reputation	Danh tiếng/tâm linh	11	27	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 27/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 3.0 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+57a8afc4-8b60-44a3-b9c2-56f620558296	REQ-2026-2022	legal	Pháp lý	24	19	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 19/100."]	Nhóm pháp lý ở mức thấp, đóng góp 4.6 điểm vào tổng điểm rủi ro (trọng số 24%).	legal_status_lookup	legal_status_lookup
+e73c8e10-8891-45ab-b07f-372bf30222b1	REQ-2026-2022	liquidity	Thanh khoản	28	13	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 13/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 3.6 điểm vào tổng điểm rủi ro (trọng số 28%).	liquidity_stat_lookup	liquidity_stat_lookup
+5f9f7c08-67c2-4935-8ab5-d9c2eba3c105	REQ-2026-2022	price_volatility	Biến động giá	22	20	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 20/100."]	Nhóm biến động giá ở mức thấp, đóng góp 4.4 điểm vào tổng điểm rủi ro (trọng số 22%).	market_price_lookup	market_price_lookup
+5958f994-df73-4cb6-8a5b-818b658b5be1	REQ-2026-2022	physical_environment	Vật lý/môi trường	16	65	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 65/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 10.4 điểm vào tổng điểm rủi ro (trọng số 16%).	environmental_risk_lookup	environmental_risk_lookup
+6385c150-ab30-425a-92f1-1afd845b6aa6	REQ-2026-2022	reputation	Danh tiếng/tâm linh	10	18	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 18/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.8 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+8fb4a87c-0ed5-4b1b-9241-f8026e59dfd8	REQ-2026-2023	legal	Pháp lý	30	73	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 73/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 21.9 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+32682793-1db0-471b-8095-734ba9a7eb56	REQ-2026-2023	price_volatility	Biến động giá	22	19	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 19/100."]	Nhóm biến động giá ở mức thấp, đóng góp 4.2 điểm vào tổng điểm rủi ro (trọng số 22%).	market_price_lookup	market_price_lookup
+c7ce5c9d-8f75-4bd9-a3bb-73875d5cdd36	REQ-2026-2023	physical_environment	Vật lý/môi trường	16	11	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 11/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 1.8 điểm vào tổng điểm rủi ro (trọng số 16%).	environmental_risk_lookup	environmental_risk_lookup
+d27b0bd6-c263-47e9-8394-226f2a93349d	REQ-2026-2023	reputation	Danh tiếng/tâm linh	8	15	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 15/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.2 điểm vào tổng điểm rủi ro (trọng số 8%).	stigma_reputation_lookup	stigma_reputation_lookup
+b80dad22-53b8-437e-ac8a-e3f5499dbd90	REQ-2026-2025	legal	Pháp lý	26	20	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 20/100."]	Nhóm pháp lý ở mức thấp, đóng góp 5.2 điểm vào tổng điểm rủi ro (trọng số 26%).	legal_status_lookup	legal_status_lookup
+461a0ca4-1c6c-4858-ba58-6168df04d0fd	REQ-2026-2025	liquidity	Thanh khoản	26	74	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 74/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 19.2 điểm vào tổng điểm rủi ro (trọng số 26%).	liquidity_stat_lookup	liquidity_stat_lookup
+cc3637d4-c1e3-434d-9334-f124101cedc2	REQ-2026-2025	price_volatility	Biến động giá	22	16	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 16/100."]	Nhóm biến động giá ở mức thấp, đóng góp 3.5 điểm vào tổng điểm rủi ro (trọng số 22%).	market_price_lookup	market_price_lookup
+a755ab11-31f7-4d0a-ab7b-1b89f22b7478	REQ-2026-2025	physical_environment	Vật lý/môi trường	15	29	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 29/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 4.3 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+b52bf348-6be8-4ba1-b40d-5b2531f345c3	REQ-2026-2025	reputation	Danh tiếng/tâm linh	11	66	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 66/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 7.3 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+de89dea8-93f6-40a0-83a4-dded6f3348d6	REQ-2026-2027	legal	Pháp lý	30	32	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 32/100."]	Nhóm pháp lý ở mức thấp, đóng góp 9.6 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+0213f979-bc91-470b-9af7-cc14eaed5100	REQ-2026-2027	liquidity	Thanh khoản	24	56	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 56/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 13.4 điểm vào tổng điểm rủi ro (trọng số 24%).	liquidity_stat_lookup	liquidity_stat_lookup
+6898728e-ce78-4241-8e37-f63de95c5fc8	REQ-2026-2027	price_volatility	Biến động giá	20	48	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 48/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 9.6 điểm vào tổng điểm rủi ro (trọng số 20%).	market_price_lookup	market_price_lookup
+0f4176cb-238f-4d8e-aa53-d1dcca411ed1	REQ-2026-2027	physical_environment	Vật lý/môi trường	15	31	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 31/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 4.7 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+6399114b-15d4-4848-a114-ad2e01231aeb	REQ-2026-2027	reputation	Danh tiếng/tâm linh	11	12	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 12/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.3 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+802ff6d2-fe92-4834-8818-4bfed8dc2d57	REQ-2026-2028	legal	Pháp lý	32	60	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 60/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 19.2 điểm vào tổng điểm rủi ro (trọng số 32%).	legal_status_lookup	legal_status_lookup
+7709da91-af9c-4bbc-a980-eaba951167e9	REQ-2026-2028	liquidity	Thanh khoản	26	15	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 15/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 3.9 điểm vào tổng điểm rủi ro (trọng số 26%).	liquidity_stat_lookup	liquidity_stat_lookup
+592d150a-6e8b-408b-8b3d-4b43562b87a9	REQ-2026-2028	price_volatility	Biến động giá	19	23	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 23/100."]	Nhóm biến động giá ở mức thấp, đóng góp 4.4 điểm vào tổng điểm rủi ro (trọng số 19%).	market_price_lookup	market_price_lookup
+795fd28f-a3fc-42d9-8738-ba944cc65340	REQ-2026-2028	physical_environment	Vật lý/môi trường	14	11	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 11/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 1.5 điểm vào tổng điểm rủi ro (trọng số 14%).	environmental_risk_lookup	environmental_risk_lookup
+10138c4c-7c6c-4f40-95e6-54bf1b53539e	REQ-2026-2028	reputation	Danh tiếng/tâm linh	9	28	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 28/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.5 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+9fc834a2-51e8-4e43-a829-b4aa8d9bdce9	REQ-2026-2029	legal	Pháp lý	29	32	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 32/100."]	Nhóm pháp lý ở mức thấp, đóng góp 9.3 điểm vào tổng điểm rủi ro (trọng số 29%).	legal_status_lookup	legal_status_lookup
+f55a097c-f041-4f22-bade-58db996d0474	REQ-2026-2029	liquidity	Thanh khoản	25	12	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 12/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 3.0 điểm vào tổng điểm rủi ro (trọng số 25%).	liquidity_stat_lookup	liquidity_stat_lookup
+95936e5c-72f8-44d1-be95-0ba13a37419c	REQ-2026-2029	price_volatility	Biến động giá	22	33	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 33/100."]	Nhóm biến động giá ở mức thấp, đóng góp 7.3 điểm vào tổng điểm rủi ro (trọng số 22%).	market_price_lookup	market_price_lookup
+52cf97db-d6f6-4dc5-94eb-f7b5749f516f	REQ-2026-2029	physical_environment	Vật lý/môi trường	15	74	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 74/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 11.1 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+6b9de073-52dc-4b10-afe5-576d9f4b1fab	REQ-2026-2029	reputation	Danh tiếng/tâm linh	9	21	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 21/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.9 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+2483f9a3-e494-44ec-9751-399394ed9182	REQ-2026-2030	legal	Pháp lý	26	15	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 15/100."]	Nhóm pháp lý ở mức thấp, đóng góp 3.9 điểm vào tổng điểm rủi ro (trọng số 26%).	legal_status_lookup	legal_status_lookup
+4da3821f-db54-4d38-82d0-09b7329d0fe0	REQ-2026-2030	liquidity	Thanh khoản	27	54	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 54/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 14.6 điểm vào tổng điểm rủi ro (trọng số 27%).	liquidity_stat_lookup	liquidity_stat_lookup
+cd808fac-f731-44b8-8264-7db0048fd75e	REQ-2026-2030	price_volatility	Biến động giá	23	31	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 31/100."]	Nhóm biến động giá ở mức thấp, đóng góp 7.1 điểm vào tổng điểm rủi ro (trọng số 23%).	market_price_lookup	market_price_lookup
+1569b198-698f-47ac-a22e-9eb27f3114a8	REQ-2026-2030	physical_environment	Vật lý/môi trường	14	34	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 34/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 4.8 điểm vào tổng điểm rủi ro (trọng số 14%).	environmental_risk_lookup	environmental_risk_lookup
+5d6927c1-fe16-4596-abfd-54f93188e7ae	REQ-2026-2030	reputation	Danh tiếng/tâm linh	10	73	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 73/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 7.3 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+db646fef-3e64-4c2f-ac09-60799b36de4c	REQ-2026-2033	legal	Pháp lý	32	16	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 16/100."]	Nhóm pháp lý ở mức thấp, đóng góp 5.1 điểm vào tổng điểm rủi ro (trọng số 32%).	legal_status_lookup	legal_status_lookup
+0042ed61-bd58-45d6-9139-012100f4d362	REQ-2026-2033	liquidity	Thanh khoản	22	28	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 28/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 6.2 điểm vào tổng điểm rủi ro (trọng số 22%).	liquidity_stat_lookup	liquidity_stat_lookup
+0003d3e2-cbb4-40a2-ae88-b49e6efd3434	REQ-2026-2033	price_volatility	Biến động giá	23	22	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 22/100."]	Nhóm biến động giá ở mức thấp, đóng góp 5.1 điểm vào tổng điểm rủi ro (trọng số 23%).	market_price_lookup	market_price_lookup
+1e48b59e-dfa8-40d3-8c92-fde79cba0502	REQ-2026-2033	physical_environment	Vật lý/môi trường	14	61	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 61/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 8.5 điểm vào tổng điểm rủi ro (trọng số 14%).	environmental_risk_lookup	environmental_risk_lookup
+9aa02fe2-75b2-49d1-a4cb-eda3081ddafc	REQ-2026-2033	reputation	Danh tiếng/tâm linh	9	28	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 28/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.5 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+c1a69bac-7678-49d1-a651-84ce705fabd0	REQ-2026-2034	legal	Pháp lý	31	34	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 34/100."]	Nhóm pháp lý ở mức thấp, đóng góp 10.5 điểm vào tổng điểm rủi ro (trọng số 31%).	legal_status_lookup	legal_status_lookup
+3f7df1f0-cd7f-4b94-aa98-611603748a36	REQ-2026-2034	liquidity	Thanh khoản	23	31	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 31/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 7.1 điểm vào tổng điểm rủi ro (trọng số 23%).	liquidity_stat_lookup	liquidity_stat_lookup
+e78aaf22-78be-4f1a-a3c4-e88b75b307de	REQ-2026-2034	price_volatility	Biến động giá	21	47	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 47/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 9.9 điểm vào tổng điểm rủi ro (trọng số 21%).	market_price_lookup	market_price_lookup
+b3d421f1-bd4c-4096-9228-b9799e2b6417	REQ-2026-2034	physical_environment	Vật lý/môi trường	16	23	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 23/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 3.7 điểm vào tổng điểm rủi ro (trọng số 16%).	environmental_risk_lookup	environmental_risk_lookup
+75c45b62-e0b6-4bc5-9e95-808b908992a2	REQ-2026-2034	reputation	Danh tiếng/tâm linh	9	21	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 21/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.9 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+03e087d2-8884-468f-b8e5-a584a13be14d	REQ-2026-2036	legal	Pháp lý	28	49	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 49/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 13.7 điểm vào tổng điểm rủi ro (trọng số 28%).	legal_status_lookup	legal_status_lookup
+613f720c-3625-46a4-93ad-f42705976b6a	REQ-2026-2036	liquidity	Thanh khoản	24	14	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 14/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 3.4 điểm vào tổng điểm rủi ro (trọng số 24%).	liquidity_stat_lookup	liquidity_stat_lookup
+62c560e7-588c-4123-83e5-b4badbc88a56	REQ-2026-2036	price_volatility	Biến động giá	21	32	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 32/100."]	Nhóm biến động giá ở mức thấp, đóng góp 6.7 điểm vào tổng điểm rủi ro (trọng số 21%).	market_price_lookup	market_price_lookup
+1919ae58-dc8f-4ab6-8849-b949380c1b7b	REQ-2026-2036	physical_environment	Vật lý/môi trường	17	19	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 19/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 3.2 điểm vào tổng điểm rủi ro (trọng số 17%).	environmental_risk_lookup	environmental_risk_lookup
+1e115abe-9ab3-4a8b-97f8-53b6ca8c36d7	REQ-2026-2036	reputation	Danh tiếng/tâm linh	10	34	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 34/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 3.4 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+0bd43668-5b51-4a81-894d-1b85bd9dca0f	REQ-2026-2039	legal	Pháp lý	28	23	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 23/100."]	Nhóm pháp lý ở mức thấp, đóng góp 6.4 điểm vào tổng điểm rủi ro (trọng số 28%).	legal_status_lookup	legal_status_lookup
+aed66be6-e1d1-4839-ba53-380deebc4687	REQ-2026-2039	liquidity	Thanh khoản	27	74	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 74/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 20.0 điểm vào tổng điểm rủi ro (trọng số 27%).	liquidity_stat_lookup	liquidity_stat_lookup
+77b2316c-9684-44a3-832b-b47d8e81db18	REQ-2026-2039	price_volatility	Biến động giá	19	12	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 12/100."]	Nhóm biến động giá ở mức thấp, đóng góp 2.3 điểm vào tổng điểm rủi ro (trọng số 19%).	market_price_lookup	market_price_lookup
+0941f070-d2c0-4450-b46c-fcc8dec96a20	REQ-2026-2039	physical_environment	Vật lý/môi trường	15	29	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 29/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 4.3 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+8882deaa-5103-429a-8d41-2320d8b0d19a	REQ-2026-2039	reputation	Danh tiếng/tâm linh	11	57	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 57/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 6.3 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+930abc84-7279-4591-8e08-85b1e4bc2b07	REQ-2026-2040	legal	Pháp lý	30	64	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 64/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 19.2 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+4c7d5857-c0dc-45a7-af73-a5709441b658	REQ-2026-2040	liquidity	Thanh khoản	28	72	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 72/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 20.2 điểm vào tổng điểm rủi ro (trọng số 28%).	liquidity_stat_lookup	liquidity_stat_lookup
+0ab007dd-9ae1-4f41-bfce-358c89e23cc1	REQ-2026-2040	price_volatility	Biến động giá	17	18	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 18/100."]	Nhóm biến động giá ở mức thấp, đóng góp 3.1 điểm vào tổng điểm rủi ro (trọng số 17%).	market_price_lookup	market_price_lookup
+befac849-e1ad-4a73-afd0-7096c818a7fa	REQ-2026-2040	physical_environment	Vật lý/môi trường	15	13	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 13/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 1.9 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+eb84aff6-2491-467c-a335-d61b4ed1197a	REQ-2026-2040	reputation	Danh tiếng/tâm linh	10	28	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 28/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.8 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+b4cb53d8-443f-494c-adec-eb87aa091f14	REQ-2026-2044	legal	Pháp lý	29	51	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 51/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 14.8 điểm vào tổng điểm rủi ro (trọng số 29%).	legal_status_lookup	legal_status_lookup
+e534271d-f4d9-4a1e-9301-5abdc078a5ff	REQ-2026-2044	liquidity	Thanh khoản	26	27	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 27/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 7.0 điểm vào tổng điểm rủi ro (trọng số 26%).	liquidity_stat_lookup	liquidity_stat_lookup
+c190fdf9-c405-4670-89c2-3ea09e8efdc2	REQ-2026-2044	price_volatility	Biến động giá	19	66	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 66/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 12.5 điểm vào tổng điểm rủi ro (trọng số 19%).	market_price_lookup	market_price_lookup
+457c4732-985e-4d7a-9ebb-8e5b5321ca0c	REQ-2026-2044	physical_environment	Vật lý/môi trường	15	47	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 47/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 7.0 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+c50b2bbb-396b-4986-a9c8-48744b298de7	REQ-2026-2044	reputation	Danh tiếng/tâm linh	11	57	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 57/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 6.3 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+ca983902-0163-488c-a5ca-c1c474e2c548	REQ-2026-2045	legal	Pháp lý	31	34	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 34/100."]	Nhóm pháp lý ở mức thấp, đóng góp 10.5 điểm vào tổng điểm rủi ro (trọng số 31%).	legal_status_lookup	legal_status_lookup
+7948226c-7282-4fb6-b81d-692b75e28c9a	REQ-2026-2045	liquidity	Thanh khoản	26	47	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 47/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 12.2 điểm vào tổng điểm rủi ro (trọng số 26%).	liquidity_stat_lookup	liquidity_stat_lookup
+57110d2e-7d23-427f-8c6c-6fef7cdbf5d5	REQ-2026-2045	price_volatility	Biến động giá	19	25	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 25/100."]	Nhóm biến động giá ở mức thấp, đóng góp 4.8 điểm vào tổng điểm rủi ro (trọng số 19%).	market_price_lookup	market_price_lookup
+f011c4aa-f6f1-4490-ba38-006eae6afd39	REQ-2026-2045	physical_environment	Vật lý/môi trường	13	46	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 46/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 6.0 điểm vào tổng điểm rủi ro (trọng số 13%).	environmental_risk_lookup	environmental_risk_lookup
+71257518-d629-4cbb-a79e-66c75353175f	REQ-2026-2045	reputation	Danh tiếng/tâm linh	11	11	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 11/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.2 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+3e6ce430-5183-4f57-96bc-2b376c4c74f6	REQ-2026-2047	legal	Pháp lý	28	20	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 20/100."]	Nhóm pháp lý ở mức thấp, đóng góp 5.6 điểm vào tổng điểm rủi ro (trọng số 28%).	legal_status_lookup	legal_status_lookup
+04d33206-887d-47e6-808f-ad9579cbd625	REQ-2026-2047	liquidity	Thanh khoản	26	27	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 27/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 7.0 điểm vào tổng điểm rủi ro (trọng số 26%).	liquidity_stat_lookup	liquidity_stat_lookup
+648e1b8a-73d0-4de2-871a-8c371485807e	REQ-2026-2047	price_volatility	Biến động giá	20	24	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 24/100."]	Nhóm biến động giá ở mức thấp, đóng góp 4.8 điểm vào tổng điểm rủi ro (trọng số 20%).	market_price_lookup	market_price_lookup
+f91a3fad-7790-446e-ba2b-e6617b0fb740	REQ-2026-2047	physical_environment	Vật lý/môi trường	17	58	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 58/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 9.9 điểm vào tổng điểm rủi ro (trọng số 17%).	environmental_risk_lookup	environmental_risk_lookup
+ba946e0f-22d0-46e1-ab54-d23e180c7661	REQ-2026-2047	reputation	Danh tiếng/tâm linh	9	23	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 23/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.1 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+f5052e84-85e8-4b58-8958-ba8f7a02e68b	REQ-2026-2048	legal	Pháp lý	28	23	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 23/100."]	Nhóm pháp lý ở mức thấp, đóng góp 6.4 điểm vào tổng điểm rủi ro (trọng số 28%).	legal_status_lookup	legal_status_lookup
+25e92dac-f8b0-4f5b-b696-5e952f159a30	REQ-2026-2048	liquidity	Thanh khoản	26	17	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 17/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 4.4 điểm vào tổng điểm rủi ro (trọng số 26%).	liquidity_stat_lookup	liquidity_stat_lookup
+645d8e21-7e69-407e-9397-16bb70928d09	REQ-2026-2048	price_volatility	Biến động giá	20	73	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 73/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 14.6 điểm vào tổng điểm rủi ro (trọng số 20%).	market_price_lookup	market_price_lookup
+541de3eb-988e-4b55-96e8-1908600cc9ac	REQ-2026-2048	physical_environment	Vật lý/môi trường	15	49	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 49/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 7.3 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+52b7ec44-fb4a-4ad3-bd66-5d0ff7263f68	REQ-2026-2048	reputation	Danh tiếng/tâm linh	11	32	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 32/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 3.5 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+5a511ba1-99dc-45a4-99d9-471722f3966b	REQ-2026-2049	legal	Pháp lý	28	20	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 20/100."]	Nhóm pháp lý ở mức thấp, đóng góp 5.6 điểm vào tổng điểm rủi ro (trọng số 28%).	legal_status_lookup	legal_status_lookup
+24d03730-edc3-4cf1-9a6c-e753b20e9852	REQ-2026-2049	liquidity	Thanh khoản	30	49	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 49/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 14.7 điểm vào tổng điểm rủi ro (trọng số 30%).	liquidity_stat_lookup	liquidity_stat_lookup
+a7508f8a-7b99-4194-95f0-60a4a39012fd	REQ-2026-2049	price_volatility	Biến động giá	18	32	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 32/100."]	Nhóm biến động giá ở mức thấp, đóng góp 5.8 điểm vào tổng điểm rủi ro (trọng số 18%).	market_price_lookup	market_price_lookup
+cb507a35-0942-443a-a740-f6e45cd6f966	REQ-2026-2049	physical_environment	Vật lý/môi trường	14	14	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 14/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 2.0 điểm vào tổng điểm rủi ro (trọng số 14%).	environmental_risk_lookup	environmental_risk_lookup
+ca407189-9d01-4534-ba5a-e05ef31415db	REQ-2026-2049	reputation	Danh tiếng/tâm linh	10	20	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 20/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.0 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+11de2ed0-eb8c-4aa6-874a-85cb1c5f5c98	REQ-2026-2050	legal	Pháp lý	30	31	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 31/100."]	Nhóm pháp lý ở mức thấp, đóng góp 9.3 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+0c4c9c9e-8c82-4a04-b404-67080eafd189	REQ-2026-2050	liquidity	Thanh khoản	22	35	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 35/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 7.7 điểm vào tổng điểm rủi ro (trọng số 22%).	liquidity_stat_lookup	liquidity_stat_lookup
+e62f5d2d-d7c3-4a8e-b949-2c31c6c3767f	REQ-2026-2050	price_volatility	Biến động giá	23	35	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 35/100."]	Nhóm biến động giá ở mức thấp, đóng góp 8.1 điểm vào tổng điểm rủi ro (trọng số 23%).	market_price_lookup	market_price_lookup
+72b53b9a-0db1-49e4-81be-da5c459092f4	REQ-2026-2050	physical_environment	Vật lý/môi trường	14	15	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 15/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 2.1 điểm vào tổng điểm rủi ro (trọng số 14%).	environmental_risk_lookup	environmental_risk_lookup
+2d0b2c7e-42ec-469d-8227-de40c13e4e45	REQ-2026-2050	reputation	Danh tiếng/tâm linh	11	29	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 29/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 3.2 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+01777aea-ab3a-41ae-801f-cbd5700292f3	REQ-2026-2051	legal	Pháp lý	29	52	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 52/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 15.1 điểm vào tổng điểm rủi ro (trọng số 29%).	legal_status_lookup	legal_status_lookup
+38197742-7cbb-4e72-b190-9bcc289740fc	REQ-2026-2051	liquidity	Thanh khoản	23	60	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 60/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 13.8 điểm vào tổng điểm rủi ro (trọng số 23%).	liquidity_stat_lookup	liquidity_stat_lookup
+dcc9aff1-025d-40b0-8374-465608ea8123	REQ-2026-2051	price_volatility	Biến động giá	23	26	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 26/100."]	Nhóm biến động giá ở mức thấp, đóng góp 6.0 điểm vào tổng điểm rủi ro (trọng số 23%).	market_price_lookup	market_price_lookup
+b21d0b59-d2c9-435f-b77f-f92f989a7fae	REQ-2026-2051	physical_environment	Vật lý/môi trường	15	18	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 18/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 2.7 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+536d0b3e-571c-40bd-8fa0-cd42ab879b5a	REQ-2026-2056	liquidity	Thanh khoản	27	31	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 31/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 8.4 điểm vào tổng điểm rủi ro (trọng số 27%).	liquidity_stat_lookup	liquidity_stat_lookup
+b1fd50a4-1425-46c5-a5be-8da5e6b09cd2	REQ-2026-2051	reputation	Danh tiếng/tâm linh	10	34	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 34/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 3.4 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+2a700eb4-e3db-4ba0-aa3c-3a3515ca4983	REQ-2026-2052	legal	Pháp lý	33	14	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 14/100."]	Nhóm pháp lý ở mức thấp, đóng góp 4.6 điểm vào tổng điểm rủi ro (trọng số 33%).	legal_status_lookup	legal_status_lookup
+65155cf0-b32e-446e-8eb9-fd5a913d1261	REQ-2026-2052	liquidity	Thanh khoản	25	19	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 19/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 4.8 điểm vào tổng điểm rủi ro (trọng số 25%).	liquidity_stat_lookup	liquidity_stat_lookup
+869e3fdb-c7a8-4378-9ebc-2a8413c63da4	REQ-2026-2052	price_volatility	Biến động giá	19	54	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 54/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 10.3 điểm vào tổng điểm rủi ro (trọng số 19%).	market_price_lookup	market_price_lookup
+9f4afe00-febf-4ef4-875b-d89352ffbb74	REQ-2026-2052	physical_environment	Vật lý/môi trường	13	10	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 10/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 1.3 điểm vào tổng điểm rủi ro (trọng số 13%).	environmental_risk_lookup	environmental_risk_lookup
+960b3d67-55ff-426b-8718-6b66d34bed37	REQ-2026-2052	reputation	Danh tiếng/tâm linh	10	49	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 49/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 4.9 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+c3145c98-fce3-4b5e-a17a-38f16bea0c78	REQ-2026-2053	legal	Pháp lý	32	20	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 20/100."]	Nhóm pháp lý ở mức thấp, đóng góp 6.4 điểm vào tổng điểm rủi ro (trọng số 32%).	legal_status_lookup	legal_status_lookup
+f2c73878-8f85-454e-8f80-2cbb027a761b	REQ-2026-2053	liquidity	Thanh khoản	24	24	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 24/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 5.8 điểm vào tổng điểm rủi ro (trọng số 24%).	liquidity_stat_lookup	liquidity_stat_lookup
+85bc2f56-c096-4438-94b8-10199fac13c7	REQ-2026-2053	price_volatility	Biến động giá	18	55	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 55/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 9.9 điểm vào tổng điểm rủi ro (trọng số 18%).	market_price_lookup	market_price_lookup
+88f9a1f6-a28e-4c88-9666-2379b595424f	REQ-2026-2053	physical_environment	Vật lý/môi trường	16	32	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 32/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 5.1 điểm vào tổng điểm rủi ro (trọng số 16%).	environmental_risk_lookup	environmental_risk_lookup
+2a570176-9164-46e2-97ef-902d578e7dc8	REQ-2026-2053	reputation	Danh tiếng/tâm linh	10	10	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 10/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 1.0 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+38148f35-2de5-4d1b-9f1b-9d41a60a5c3f	REQ-2026-2054	legal	Pháp lý	32	33	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 33/100."]	Nhóm pháp lý ở mức thấp, đóng góp 10.6 điểm vào tổng điểm rủi ro (trọng số 32%).	legal_status_lookup	legal_status_lookup
+c304b2d6-f0af-44a9-8318-62aee7e74af9	REQ-2026-2054	liquidity	Thanh khoản	23	15	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 15/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 3.5 điểm vào tổng điểm rủi ro (trọng số 23%).	liquidity_stat_lookup	liquidity_stat_lookup
+f0eef0f1-35f5-4eb5-9b09-ad98381695b3	REQ-2026-2054	price_volatility	Biến động giá	20	35	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 35/100."]	Nhóm biến động giá ở mức thấp, đóng góp 7.0 điểm vào tổng điểm rủi ro (trọng số 20%).	market_price_lookup	market_price_lookup
+a8d94417-8ec7-443e-8cc2-7d0b3f73babb	REQ-2026-2054	physical_environment	Vật lý/môi trường	16	14	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 14/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 2.2 điểm vào tổng điểm rủi ro (trọng số 16%).	environmental_risk_lookup	environmental_risk_lookup
+ad24c5ad-15e5-4645-bd1b-593b802acd58	REQ-2026-2054	reputation	Danh tiếng/tâm linh	9	23	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 23/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.1 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+5c5069d8-3d00-43ae-8f53-bc9b2916fbd9	REQ-2026-2055	legal	Pháp lý	29	23	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 23/100."]	Nhóm pháp lý ở mức thấp, đóng góp 6.7 điểm vào tổng điểm rủi ro (trọng số 29%).	legal_status_lookup	legal_status_lookup
+3884774c-77f1-438e-8a73-df5f2e99209a	REQ-2026-2055	liquidity	Thanh khoản	26	25	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 25/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 6.5 điểm vào tổng điểm rủi ro (trọng số 26%).	liquidity_stat_lookup	liquidity_stat_lookup
+19996645-38a1-4b8e-8d9f-eb21482fb178	REQ-2026-2055	price_volatility	Biến động giá	20	22	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 22/100."]	Nhóm biến động giá ở mức thấp, đóng góp 4.4 điểm vào tổng điểm rủi ro (trọng số 20%).	market_price_lookup	market_price_lookup
+5717c01c-8c55-4db1-b314-71e869c13493	REQ-2026-2055	physical_environment	Vật lý/môi trường	15	24	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 24/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 3.6 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+5fc7aee9-c415-417b-a2fb-22dce17f4a59	REQ-2026-2055	reputation	Danh tiếng/tâm linh	10	30	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 30/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 3.0 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+cf401823-973c-4712-99b8-201ef1a0e438	REQ-2026-2056	legal	Pháp lý	30	59	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 59/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 17.7 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+ecf4f41a-d23c-4635-ac91-22ab87071eec	REQ-2026-2056	price_volatility	Biến động giá	18	28	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 28/100."]	Nhóm biến động giá ở mức thấp, đóng góp 5.0 điểm vào tổng điểm rủi ro (trọng số 18%).	market_price_lookup	market_price_lookup
+5c11f786-090b-4b66-b7ba-a188f244aabd	REQ-2026-2056	physical_environment	Vật lý/môi trường	14	32	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 32/100."]	Nhóm vật lý/môi trường ở mức thấp, đóng góp 4.5 điểm vào tổng điểm rủi ro (trọng số 14%).	environmental_risk_lookup	environmental_risk_lookup
+adc55ea3-3d60-407a-89f6-691536c548d4	REQ-2026-2056	reputation	Danh tiếng/tâm linh	11	52	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 52/100."]	Nhóm danh tiếng/tâm linh ở mức cần lưu ý, đóng góp 5.7 điểm vào tổng điểm rủi ro (trọng số 11%).	stigma_reputation_lookup	stigma_reputation_lookup
+8d01edcc-b717-4992-9819-43109d80793c	REQ-2026-2057	legal	Pháp lý	29	17	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 17/100."]	Nhóm pháp lý ở mức thấp, đóng góp 4.9 điểm vào tổng điểm rủi ro (trọng số 29%).	legal_status_lookup	legal_status_lookup
+ba9f5c22-09d1-4c30-9231-82263cfaf8b4	REQ-2026-2057	liquidity	Thanh khoản	24	64	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 64/100."]	Nhóm thanh khoản ở mức cần lưu ý, đóng góp 15.4 điểm vào tổng điểm rủi ro (trọng số 24%).	liquidity_stat_lookup	liquidity_stat_lookup
+5dee6f69-19a5-4a13-805e-b3ec84f8be7a	REQ-2026-2057	price_volatility	Biến động giá	22	59	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 59/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 13.0 điểm vào tổng điểm rủi ro (trọng số 22%).	market_price_lookup	market_price_lookup
+eda49f57-daff-4d47-8994-7878defccbea	REQ-2026-2057	physical_environment	Vật lý/môi trường	15	55	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 55/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 8.2 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+3a4dd21f-ce7f-4a45-85a4-4c90778c11d3	REQ-2026-2057	reputation	Danh tiếng/tâm linh	10	20	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 20/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.0 điểm vào tổng điểm rủi ro (trọng số 10%).	stigma_reputation_lookup	stigma_reputation_lookup
+ba96bf9c-6dba-4df9-8bf0-4e3e0c261208	REQ-2026-2059	legal	Pháp lý	30	52	["Dữ liệu từ legal_status_lookup cho nhóm pháp lý, điểm rủi ro 52/100."]	Nhóm pháp lý ở mức cần lưu ý, đóng góp 15.6 điểm vào tổng điểm rủi ro (trọng số 30%).	legal_status_lookup	legal_status_lookup
+9bf12a78-d911-45da-9fb5-771cd974803a	REQ-2026-2059	liquidity	Thanh khoản	28	15	["Dữ liệu từ liquidity_stat_lookup cho nhóm thanh khoản, điểm rủi ro 15/100."]	Nhóm thanh khoản ở mức thấp, đóng góp 4.2 điểm vào tổng điểm rủi ro (trọng số 28%).	liquidity_stat_lookup	liquidity_stat_lookup
+5dd69c3d-90d4-4c85-9c8a-e03f43bc889a	REQ-2026-2059	price_volatility	Biến động giá	18	66	["Dữ liệu từ market_price_lookup cho nhóm biến động giá, điểm rủi ro 66/100."]	Nhóm biến động giá ở mức cần lưu ý, đóng góp 11.9 điểm vào tổng điểm rủi ro (trọng số 18%).	market_price_lookup	market_price_lookup
+4d00832c-444f-4878-a134-0d0f4c112edc	REQ-2026-2059	physical_environment	Vật lý/môi trường	15	48	["Dữ liệu từ environmental_risk_lookup cho nhóm vật lý/môi trường, điểm rủi ro 48/100."]	Nhóm vật lý/môi trường ở mức cần lưu ý, đóng góp 7.2 điểm vào tổng điểm rủi ro (trọng số 15%).	environmental_risk_lookup	environmental_risk_lookup
+08934dd6-c60a-4d57-9dae-7573ae4aa71a	REQ-2026-2059	reputation	Danh tiếng/tâm linh	9	32	["Dữ liệu từ stigma_reputation_lookup cho nhóm danh tiếng/tâm linh, điểm rủi ro 32/100."]	Nhóm danh tiếng/tâm linh ở mức thấp, đóng góp 2.9 điểm vào tổng điểm rủi ro (trọng số 9%).	stigma_reputation_lookup	stigma_reputation_lookup
+\.
+
+
+--
+-- Data for Name: risk_ltv_policy_band; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.risk_ltv_policy_band (id, min_score, max_score, max_ltv_pct, label) FROM stdin;
+1	0	20	75	0–20 điểm → tối đa 75%
+2	21	40	65	21–40 điểm → tối đa 65%
+3	41	60	55	41–60 điểm → tối đa 55%
+4	61	\N	45	>60 điểm → tối đa 45% hoặc cần thẩm định lại
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.users (id, email, api_key_hash, is_active, created_at) FROM stdin;
+d9b148fa-7b62-4ee8-93c2-e8341909b763	admin@shb.local	a2ae6a9ee724b61d83d3cb2ec4a4bfc5d72624008508511935f85a4227a92db6	t	2026-07-18 12:40:20.247619+00
+c9fe61b1-97ac-419e-a2a0-0fce98f30083	pm_test_18780@shb.vn	173f152c36a768b9e89dd354eb8dabc023c2815c18dc38be39f428c2881a7418	t	2026-07-18 12:42:35.268078+00
+19aaa767-99bd-4880-9a63-dbd97472e6b3	pm_27680@shb.vn	e13985bbace1c61a4cfae7906eaa567091011f5c58f0f3e4701ed089cd05eff5	t	2026-07-18 12:47:54.764283+00
+74e6708b-735a-4528-8b6b-eeca8cfbb582	pm_test@shb.vn	475208f6edbf24d7e86f75243369d5e0458cd30d18d5a2c258bf9966e026f0df	t	2026-07-18 12:54:09.023408+00
+f1facdcf-72a9-450a-be79-8211f26ebdc6	lookup_4279@shb.vn	ec8982467643ecd0b2483f3f3d6d01b8935dc582177f963bf8f3b5526c257f5f	t	2026-07-18 13:50:41.01128+00
+70a873f2-604e-4ad9-b5d6-3468b005c200	lk_18212@shb.vn	32dc86e710c3c802b57e5c3eb9409f5345e735ac7fae4f8e4a67037fd916549d	t	2026-07-18 13:50:56.970655+00
+f00e368f-21d4-4c78-8c6d-bd2017678450	lkpm_27437@shb.vn	73a5624c1000e148e006589b1bf96c19bc91fb63c9489ef10b2e51e12e03acf9	t	2026-07-18 14:03:01.943153+00
+d12db3f2-de4f-43cb-90ae-0b323b4401e5	lookup_test@shb.vn	daf34a4a648af5730510c4558f9d58a592523b60edbf1b3159b10aa637525ac1	t	2026-07-18 14:05:59.783299+00
+183ae2bb-345b-417e-bd08-aceebac356c7	up_10131@shb.vn	9ef9bef44a3984c09c9b57f96bc58fd213b05d9cabc0778e9a0c94b0963b4f5c	t	2026-07-18 14:17:26.743843+00
+544274e7-9f8b-4d9a-881a-fc6576dc1d74	sse_27897@shb.vn	2a11e38af956beeace9cc5418492acbb74aabaebebf19d5e16dde7d7082cd140	t	2026-07-18 14:42:25.926047+00
+2a8da0a4-0d61-4565-8d42-a896e7a800af	sse1_8310@shb.vn	a34367421bb092664dc6bf69cf23b741b4659ed7ff7c262e99cb9407bd4558e7	t	2026-07-18 14:42:50.401349+00
+5de42882-ff94-4283-99da-7ee3ab63cd08	val_14560@shb.vn	cc1e1ae556a837447dc389814bf5bde02afd7b676512d7c620d0d7b04217f9fc	t	2026-07-18 15:58:21.765966+00
+c965221f-e881-4a5f-9eb5-ef37034f0fd9	val2_23271@shb.vn	69ab52f8b6ed59117affefbbcc57f97bbc9969f6ae26b631b8773504b2f838fc	t	2026-07-18 15:58:56.609664+00
+ded4ba7d-7121-40b5-8e51-2a7741c9fc7e	vpm_16060@shb.vn	04aaef4e8a517c5d53bb2b32c0e46562ead719af42c04a773c9cf0549081fde8	t	2026-07-18 16:06:17.790829+00
+91d4963d-455f-4c4c-a65b-7b8676b5697f	default@local		t	2026-07-18 19:50:21.7643+00
+\.
+
+
+--
+-- Data for Name: valuation_confidence_factor; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.valuation_confidence_factor (id, case_id, factor_key, label, weight_pct, score) FROM stdin;
+ec43c099-def9-4fb3-a66b-fea554b201f7	REQ-2026-2000	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	28	64
+41c88593-d5cb-4879-bfba-f3f3b68f5e44	REQ-2026-2000	method_consensus	Đồng thuận giữa 3 phương pháp	26	85
+397557ca-68b4-40e0-a274-64c0ee910741	REQ-2026-2000	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	18	77
+9526dd04-51d0-4aa6-a1a6-27809f9636c9	REQ-2026-2000	market_volatility	Biến động thị trường gần đây	17	83
+65efee6b-4a7c-45d5-9434-041fdc26c708	REQ-2026-2000	comp_similarity	Tương đồng giao dịch so sánh	11	57
+104508e8-9456-447f-bbe7-cca20349f7fd	REQ-2026-2001	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	27	81
+09ef9681-ebcf-476e-bac4-00e25ee026d3	REQ-2026-2001	method_consensus	Đồng thuận giữa 3 phương pháp	23	60
+0878fce7-3f55-451d-9698-3523e1d5fd40	REQ-2026-2001	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	23	82
+abdc3ef0-0199-4ea8-8a10-e8d43fe83f99	REQ-2026-2001	market_volatility	Biến động thị trường gần đây	15	83
+f3d081c8-9dff-4751-a752-2e034c1da5ac	REQ-2026-2001	comp_similarity	Tương đồng giao dịch so sánh	12	47
+6d5774d2-8949-45b7-b8f3-d3b9cbf9a5fd	REQ-2026-2002	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	31	92
+5641673d-6925-4e97-915e-031b16d6e2b2	REQ-2026-2002	method_consensus	Đồng thuận giữa 3 phương pháp	21	92
+6e94d1f9-042e-4346-ab41-590c506cab4f	REQ-2026-2002	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	22	87
+9f403d20-528c-4086-af8a-a65c10060137	REQ-2026-2002	market_volatility	Biến động thị trường gần đây	15	57
+e78b0db1-65ee-4460-948a-e06b2f7e1540	REQ-2026-2002	comp_similarity	Tương đồng giao dịch so sánh	11	68
+f75fff25-dde6-40cc-a331-142806c6913a	REQ-2026-2003	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	31	52
+f0fa50bf-66fc-401e-858c-55517e6ef201	REQ-2026-2003	method_consensus	Đồng thuận giữa 3 phương pháp	26	94
+ee8fd0b5-b56d-4acc-a657-af54a807f704	REQ-2026-2003	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	18	55
+992b9c43-1d48-4dd4-83fa-8f8d36ffe6a8	REQ-2026-2003	market_volatility	Biến động thị trường gần đây	15	64
+fd7738c6-ac53-49c9-809b-29e9d77545c8	REQ-2026-2003	comp_similarity	Tương đồng giao dịch so sánh	10	51
+bed0c01d-e604-42e2-8d8b-cacb7857536d	REQ-2026-2004	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	28	94
+7b48dc99-3e9e-4605-9ff0-d70c8deb306b	REQ-2026-2004	method_consensus	Đồng thuận giữa 3 phương pháp	26	78
+445971a3-b88f-4dfb-ab2f-3a25d5b75fdc	REQ-2026-2004	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	69
+3e949faa-8c1b-46f1-97ca-cb74b59a6928	REQ-2026-2004	market_volatility	Biến động thị trường gần đây	16	73
+f6c2cdd8-6552-48c8-b680-7535fd84a8d2	REQ-2026-2004	comp_similarity	Tương đồng giao dịch so sánh	10	73
+c05227c9-0497-4889-8cc2-fa53591663d7	REQ-2026-2005	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	28	95
+435919a5-d460-4189-b5fb-bb982ab877ec	REQ-2026-2005	method_consensus	Đồng thuận giữa 3 phương pháp	25	86
+26ec9642-d001-49db-94e3-648284cdd6bd	REQ-2026-2005	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	22	54
+6b8ef6d8-9977-4cda-bcae-5fa4e4dfebfe	REQ-2026-2005	market_volatility	Biến động thị trường gần đây	14	76
+931117a9-cf89-4589-987a-62b87320b424	REQ-2026-2005	comp_similarity	Tương đồng giao dịch so sánh	11	47
+ca89d33a-3493-4dfe-bbb3-0443bd58a394	REQ-2026-2006	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	32	74
+2b4acfb0-86a2-4d35-902a-09222e2b994f	REQ-2026-2006	method_consensus	Đồng thuận giữa 3 phương pháp	25	89
+db009ab9-f8fb-42ec-9063-be9f56457052	REQ-2026-2006	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	22	64
+6b0602d1-1879-4e18-a24a-f3fa70a553f6	REQ-2026-2006	market_volatility	Biến động thị trường gần đây	13	86
+983e05b4-d972-4e40-85fa-85d938b0108b	REQ-2026-2006	comp_similarity	Tương đồng giao dịch so sánh	8	71
+d5e3e012-cc77-4e68-9887-585707df735c	REQ-2026-2008	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	28	92
+c5d2eddf-29b6-468b-abe3-9d665b9147af	REQ-2026-2008	method_consensus	Đồng thuận giữa 3 phương pháp	26	47
+0f5b20fa-d2cc-41e7-8863-5f7a169d2cfd	REQ-2026-2008	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	21	72
+6246e551-6d4a-476a-9958-40951705328c	REQ-2026-2008	market_volatility	Biến động thị trường gần đây	15	46
+832a7e57-adcc-4418-8325-a9ccc7bd7d89	REQ-2026-2008	comp_similarity	Tương đồng giao dịch so sánh	10	74
+192dab96-d5f0-4d98-86a3-17a93e6b9efa	REQ-2026-2009	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	32	60
+dd4ab1ca-f19d-4d54-9852-6ebdc30e7b52	REQ-2026-2009	method_consensus	Đồng thuận giữa 3 phương pháp	24	64
+f609bcd6-86fd-40a5-b136-852d441fd8de	REQ-2026-2009	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	95
+3b4ec86d-6e1a-47f4-93e1-1f4226ed63b9	REQ-2026-2009	market_volatility	Biến động thị trường gần đây	15	75
+1278fc6d-9262-4a56-bc78-a1beb16507cc	REQ-2026-2009	comp_similarity	Tương đồng giao dịch so sánh	9	57
+d66aa4c5-1651-4a3a-92ab-4f6bc2a235e6	REQ-2026-2011	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	27	52
+8b42de72-ae09-4dd3-834a-e524ed230292	REQ-2026-2011	method_consensus	Đồng thuận giữa 3 phương pháp	28	78
+53b0d05a-734d-464d-8027-5cc4f8427bbf	REQ-2026-2011	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	19	54
+7e0f544d-2806-43e5-acd7-441ee86f7ee4	REQ-2026-2011	market_volatility	Biến động thị trường gần đây	17	64
+41883e36-be30-4559-92d5-2dfe6e5c1c44	REQ-2026-2011	comp_similarity	Tương đồng giao dịch so sánh	9	55
+5542a1e0-b419-4d79-a417-28b8399e9be8	REQ-2026-2012	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	28	71
+3cef5ffd-ea1c-4948-9271-3e317c741e61	REQ-2026-2012	method_consensus	Đồng thuận giữa 3 phương pháp	26	54
+f263fef8-b3f3-4828-8a20-ce3b07936425	REQ-2026-2012	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	22	71
+0ea5a200-2a61-4f0a-abfe-d0728a02ec81	REQ-2026-2012	market_volatility	Biến động thị trường gần đây	14	89
+67febf0d-ebf3-4f63-9a55-827af3c487bd	REQ-2026-2012	comp_similarity	Tương đồng giao dịch so sánh	10	58
+b6a1f089-e0f0-4af7-b666-140be4aaf86f	REQ-2026-2013	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	28	90
+05a9c41b-4c8d-48cd-944c-fb865cec01f7	REQ-2026-2013	method_consensus	Đồng thuận giữa 3 phương pháp	27	94
+afa49371-5669-4507-afb3-e3b48067cf09	REQ-2026-2013	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	64
+68df9b58-7192-49f2-99d8-534b0b49f027	REQ-2026-2013	market_volatility	Biến động thị trường gần đây	14	89
+a916c3a9-7b63-4de7-9a11-6d93a8315fb7	REQ-2026-2013	comp_similarity	Tương đồng giao dịch so sánh	11	52
+6f6145af-6b35-467f-a5f9-4710a5f19b0e	REQ-2026-2014	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	27	89
+f903a648-3be9-47d4-8293-4011b9d7e684	REQ-2026-2014	method_consensus	Đồng thuận giữa 3 phương pháp	25	71
+073dfcde-df9d-47a2-804c-746c39f4abc8	REQ-2026-2014	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	22	71
+36a7968e-56e2-4d7c-b52a-f1a04c025ff5	REQ-2026-2014	market_volatility	Biến động thị trường gần đây	15	54
+ea250625-f88c-4139-b91a-ed44a3f99090	REQ-2026-2014	comp_similarity	Tương đồng giao dịch so sánh	11	64
+15fb77f1-ebc1-4ea4-93db-15522ae96e68	REQ-2026-2015	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	29	90
+9d24611e-f400-408e-8170-47c2544605a1	REQ-2026-2015	method_consensus	Đồng thuận giữa 3 phương pháp	29	70
+29ca1100-f0e3-4e95-8d97-be909775594e	REQ-2026-2015	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	18	49
+27d2c4b3-f17e-4f6b-a3ad-36e3e26b1575	REQ-2026-2015	market_volatility	Biến động thị trường gần đây	15	64
+6f0cb365-d470-4bc5-8eb3-c92e76376b6b	REQ-2026-2015	comp_similarity	Tương đồng giao dịch so sánh	9	55
+c14c648f-3912-491a-bb52-71759042c4e6	REQ-2026-2016	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	30	71
+50abb62c-8b9a-4fe8-a76d-f0bf991e100e	REQ-2026-2016	method_consensus	Đồng thuận giữa 3 phương pháp	24	79
+a97dd10d-1ee0-4c98-960a-442f90e1754f	REQ-2026-2016	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	19	47
+ac27a9b7-806f-4a37-9d40-40537cc3113d	REQ-2026-2016	market_volatility	Biến động thị trường gần đây	16	95
+c2382293-8f1e-4911-ab43-bd4f30a4810c	REQ-2026-2016	comp_similarity	Tương đồng giao dịch so sánh	11	68
+ed029a70-3183-4b39-a8c2-cb58c16c3416	REQ-2026-2017	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	31	92
+05c5a388-c2d0-406c-993d-88241e514c5b	REQ-2026-2017	method_consensus	Đồng thuận giữa 3 phương pháp	23	82
+9a517929-fc4d-4c7d-af49-201da67542d7	REQ-2026-2017	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	22	89
+1cfbd18a-ed5a-41e8-9922-32039607ecdc	REQ-2026-2017	market_volatility	Biến động thị trường gần đây	15	67
+3373e07e-9c0e-41a5-9cab-544d6ba295ba	REQ-2026-2017	comp_similarity	Tương đồng giao dịch so sánh	9	90
+d962733f-74f4-4e57-8ef3-c1fb3e691fb0	REQ-2026-2018	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	32	86
+aac3f4cf-63ce-4d97-8168-f00a4d06f8ed	REQ-2026-2018	method_consensus	Đồng thuận giữa 3 phương pháp	24	50
+949649a2-3264-4922-8d72-b16d699f965c	REQ-2026-2018	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	19	60
+2fbb708c-3e39-4522-8e9f-4e64ec9a8735	REQ-2026-2018	market_volatility	Biến động thị trường gần đây	16	80
+a9442f88-c7ef-4991-8aea-80d1660be169	REQ-2026-2018	comp_similarity	Tương đồng giao dịch so sánh	9	83
+8bbc819e-c208-4f47-8fd6-8254a965f2d3	REQ-2026-2019	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	32	54
+049a5167-ad46-40c5-9801-3a15fb76c4b7	REQ-2026-2019	method_consensus	Đồng thuận giữa 3 phương pháp	25	45
+5b300166-f04e-4c4c-9680-471e37f0ef15	REQ-2026-2019	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	19	71
+84aa7752-8f19-42c5-9f7d-b4c8b7e4faaa	REQ-2026-2019	market_volatility	Biến động thị trường gần đây	14	46
+cdbe10e7-8b82-4298-b54d-68627de7f3cf	REQ-2026-2019	comp_similarity	Tương đồng giao dịch so sánh	10	59
+a467bad2-dd12-49d3-9893-fca22beaaa8e	REQ-2026-2020	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	32	90
+5ef73d85-ebd1-4b36-bc0a-b429442f7c6d	REQ-2026-2020	method_consensus	Đồng thuận giữa 3 phương pháp	22	56
+88fcd352-3651-4ece-b271-c27ac84d3146	REQ-2026-2020	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	23	65
+601e48b1-01c4-4b69-8708-49e457749ec8	REQ-2026-2020	market_volatility	Biến động thị trường gần đây	14	48
+3fabddc9-28b2-4d9d-8aff-58d75aa2727b	REQ-2026-2020	comp_similarity	Tương đồng giao dịch so sánh	9	46
+2fe6f8d4-5f95-4e1c-9cdc-93041260e861	REQ-2026-2021	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	32	71
+3aebaf44-6f9b-413f-9adb-13db9257b8ab	REQ-2026-2021	method_consensus	Đồng thuận giữa 3 phương pháp	24	79
+d1235402-a9ab-414b-b76a-622c8cfb016b	REQ-2026-2021	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	19	88
+30392a24-e8e2-480d-acf2-136d9128280a	REQ-2026-2021	market_volatility	Biến động thị trường gần đây	15	75
+ae37fe64-16f0-448e-9499-aabbe2940333	REQ-2026-2021	comp_similarity	Tương đồng giao dịch so sánh	10	81
+4e9c108c-a918-4d65-a1b3-fcd01837363c	REQ-2026-2022	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	26	86
+7e396069-75e7-4b7c-87cf-431508d3cfc9	REQ-2026-2022	method_consensus	Đồng thuận giữa 3 phương pháp	28	56
+a18c59fa-dd1a-4eca-acb9-89fa46f77826	REQ-2026-2022	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	22	83
+b4ee0a9a-39c9-47b3-a3fd-f0d4578ac097	REQ-2026-2022	market_volatility	Biến động thị trường gần đây	13	45
+96ce4c20-b5e2-47e2-8cc8-7163c774d72b	REQ-2026-2022	comp_similarity	Tương đồng giao dịch so sánh	11	59
+57c5b7e7-f8f5-43d6-a6ec-6a54cafaeda1	REQ-2026-2023	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	32	76
+2c2c3cd0-74ae-4cfa-ac10-fb77b38077c8	REQ-2026-2023	method_consensus	Đồng thuận giữa 3 phương pháp	24	57
+8a99c72c-5c77-474a-ad8d-99bb730fb428	REQ-2026-2023	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	83
+e7446543-0aae-460e-8250-4fd394be64f9	REQ-2026-2023	market_volatility	Biến động thị trường gần đây	14	57
+8a56b5e9-1c59-45c9-b53a-850eb4b37828	REQ-2026-2023	comp_similarity	Tương đồng giao dịch so sánh	10	94
+e39963e6-fdb0-4024-9ef0-85cbe621f36c	REQ-2026-2025	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	25	56
+4d50a03a-2056-4ddc-919a-be34f9d53f46	REQ-2026-2025	method_consensus	Đồng thuận giữa 3 phương pháp	28	89
+fb87d2b1-8722-4b1b-bd49-4cad3741a856	REQ-2026-2025	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	22	82
+fc97ebe2-1551-4f6d-9031-4056f3887c31	REQ-2026-2025	market_volatility	Biến động thị trường gần đây	15	56
+543811ab-3baf-4a0c-8974-4b970c20aa42	REQ-2026-2025	comp_similarity	Tương đồng giao dịch so sánh	10	91
+2095fd33-2985-46ad-b51b-1a2697d267b7	REQ-2026-2027	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	30	94
+bcd00906-4fa0-42c1-a884-3c722b24fc5e	REQ-2026-2027	method_consensus	Đồng thuận giữa 3 phương pháp	22	72
+7b43e641-d25f-4eba-98f9-a0f3aa4b59ea	REQ-2026-2027	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	86
+743b4a4d-68a3-4896-a2db-a0f5a3d14f3a	REQ-2026-2027	market_volatility	Biến động thị trường gần đây	16	49
+caa6f51e-599c-4173-8c4c-0afa8feb21ee	REQ-2026-2027	comp_similarity	Tương đồng giao dịch so sánh	12	92
+d8428fed-3b0b-41f3-b53e-8db63a68defc	REQ-2026-2028	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	31	49
+87da5232-96f2-49e1-bc53-d06e9661540c	REQ-2026-2028	method_consensus	Đồng thuận giữa 3 phương pháp	26	78
+15f1a8b2-6c28-44a5-81e4-98d77fafdb52	REQ-2026-2028	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	19	61
+c2c135ab-378d-44f1-af4f-dade3c8ea15e	REQ-2026-2028	market_volatility	Biến động thị trường gần đây	14	69
+b48fa76d-b2e1-4678-8e35-7399760740f9	REQ-2026-2028	comp_similarity	Tương đồng giao dịch so sánh	10	59
+ea2e214a-2bdb-453c-b612-7a5792b9124d	REQ-2026-2029	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	29	94
+6e8a2c1c-c070-4aa0-aa73-114ee3581f02	REQ-2026-2029	method_consensus	Đồng thuận giữa 3 phương pháp	26	56
+396df739-3b26-47d3-b294-c13a1b1fd283	REQ-2026-2029	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	19	85
+baa831a2-b0f5-496c-8637-cc17d32249bf	REQ-2026-2029	market_volatility	Biến động thị trường gần đây	17	76
+ad603936-1379-4cdd-8d7f-42f945269bd4	REQ-2026-2029	comp_similarity	Tương đồng giao dịch so sánh	9	73
+c33a9435-336f-4a6d-baaa-1a0ad2522423	REQ-2026-2030	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	29	65
+45d5c9d7-f707-467d-aa37-4df18c57a821	REQ-2026-2030	method_consensus	Đồng thuận giữa 3 phương pháp	22	95
+ae7b7d4b-46e9-43d4-ab01-e6c2611e52fc	REQ-2026-2030	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	23	76
+8127492f-5a2c-4c19-8c7c-1f28708f769f	REQ-2026-2030	market_volatility	Biến động thị trường gần đây	16	64
+1d3c4f72-2c63-4f5b-b9a9-e925bd928273	REQ-2026-2030	comp_similarity	Tương đồng giao dịch so sánh	10	61
+563b4133-4a73-4485-9e80-e8d0ffe27544	REQ-2026-2033	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	29	77
+b75203a0-aa50-4ee4-a684-c2e489d550ff	REQ-2026-2033	method_consensus	Đồng thuận giữa 3 phương pháp	27	69
+1bc1ff21-414f-450b-af91-ec3f650415e9	REQ-2026-2033	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	91
+2c3cb55c-7545-483a-9603-c605cc781423	REQ-2026-2033	market_volatility	Biến động thị trường gần đây	14	56
+c47371ac-6346-40d8-96c5-5ab595bd7669	REQ-2026-2033	comp_similarity	Tương đồng giao dịch so sánh	10	46
+ed86b7ca-0a6d-4ca3-8991-4efc8a6d82b2	REQ-2026-2034	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	29	83
+a1e69e05-241c-46a2-9006-a4718757439a	REQ-2026-2034	method_consensus	Đồng thuận giữa 3 phương pháp	23	81
+1687f3a8-e99a-4073-a373-660c0fc713aa	REQ-2026-2034	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	23	77
+a69a9312-bc2b-4424-b210-eb15d73d9a57	REQ-2026-2034	market_volatility	Biến động thị trường gần đây	15	50
+add15d08-7602-4d71-b631-82e7b21c84a7	REQ-2026-2034	comp_similarity	Tương đồng giao dịch so sánh	10	59
+e7bbb38c-4fad-4576-a288-5b7178584d8a	REQ-2026-2036	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	32	90
+d39a4012-8427-4722-9a5e-3958b41caaed	REQ-2026-2036	method_consensus	Đồng thuận giữa 3 phương pháp	25	57
+b4e465c5-eb58-47fe-89e8-e5e973388209	REQ-2026-2036	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	74
+e04dc009-841d-47c0-a101-ca2341e5c5eb	REQ-2026-2036	market_volatility	Biến động thị trường gần đây	13	50
+24cf0308-bce7-4461-97bd-f69294db24f6	REQ-2026-2036	comp_similarity	Tương đồng giao dịch so sánh	10	61
+2bc6556a-e6d2-4a84-b1a4-c2f8fd09304c	REQ-2026-2037	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	27	46
+bc443c86-2eeb-454b-9446-204ea90da2b5	REQ-2026-2037	method_consensus	Đồng thuận giữa 3 phương pháp	26	58
+e4faa1dc-709b-4bb5-ba30-ceb176a3638d	REQ-2026-2037	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	21	81
+99bb9b9b-b4d0-407b-aca1-68481fdc9ba1	REQ-2026-2037	market_volatility	Biến động thị trường gần đây	16	88
+1f3b98d8-a44d-4086-9e3f-f7ed4b1a084b	REQ-2026-2037	comp_similarity	Tương đồng giao dịch so sánh	10	66
+c72a506c-0aee-4c65-ba38-18c92fc948e8	REQ-2026-2039	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	31	70
+0c732d31-e950-4632-b8b0-5f0a87d08cae	REQ-2026-2039	method_consensus	Đồng thuận giữa 3 phương pháp	24	49
+4a875a13-c5a5-408a-ae28-ea2aa95d0476	REQ-2026-2039	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	83
+822671db-b111-47fe-abf3-7878b704ced1	REQ-2026-2039	market_volatility	Biến động thị trường gần đây	16	51
+e3b71a6c-eb60-4edf-ad25-46220a50f74d	REQ-2026-2039	comp_similarity	Tương đồng giao dịch so sánh	9	88
+cc4451c9-f229-44da-a72e-135576cc02e5	REQ-2026-2040	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	27	52
+ac2b0a4d-5983-4e21-a5f0-06798ceec529	REQ-2026-2040	method_consensus	Đồng thuận giữa 3 phương pháp	27	48
+1d3406ab-8cba-44bc-a285-a2cb6230fc5e	REQ-2026-2040	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	19	55
+cd75d611-3443-4db9-bab8-67a9df022167	REQ-2026-2040	market_volatility	Biến động thị trường gần đây	16	74
+fbc4dc3c-c6ad-441f-863d-9729eda92cba	REQ-2026-2040	comp_similarity	Tương đồng giao dịch so sánh	11	70
+12610c95-f442-4c88-9536-c1c16d47f36c	REQ-2026-2041	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	26	45
+162911d9-b903-40ea-9e70-07da75e5b64e	REQ-2026-2041	method_consensus	Đồng thuận giữa 3 phương pháp	28	56
+b74be5c8-480c-4823-b31d-fc2812392f85	REQ-2026-2041	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	21	85
+b384bfc5-d14c-44b4-8a1a-14c4f46d02c1	REQ-2026-2041	market_volatility	Biến động thị trường gần đây	14	48
+b350aed6-4b7b-4bcf-b976-21e302409162	REQ-2026-2041	comp_similarity	Tương đồng giao dịch so sánh	11	64
+f78c30bf-0892-4726-b700-0834d5418fe4	REQ-2026-2044	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	27	63
+bfa3a9cc-7b8f-4a83-87d6-435f9f33608b	REQ-2026-2044	method_consensus	Đồng thuận giữa 3 phương pháp	28	75
+986b6d18-01bb-4acd-ab35-bc0a02fa0eda	REQ-2026-2044	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	63
+a9f0b3d0-c23d-4fe8-bcf4-569b4aa3f567	REQ-2026-2044	market_volatility	Biến động thị trường gần đây	15	93
+46da8ec6-269b-469f-b924-804caa07a4f5	REQ-2026-2044	comp_similarity	Tương đồng giao dịch so sánh	10	81
+3cb8b099-9ea0-412a-9501-6404a89c2a69	REQ-2026-2045	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	30	93
+a0fa9b92-b166-4ded-b1d2-cf1bca423e49	REQ-2026-2045	method_consensus	Đồng thuận giữa 3 phương pháp	26	52
+feb5286b-3caa-412f-991a-4a0c192bcd49	REQ-2026-2045	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	19	71
+c169413d-2b5d-42e6-a502-483fabf8269b	REQ-2026-2045	market_volatility	Biến động thị trường gần đây	15	74
+292ef962-26ee-461b-8a5b-42d09d25a0c3	REQ-2026-2045	comp_similarity	Tương đồng giao dịch so sánh	10	49
+32e14fe5-a468-4160-ad76-37fa77f6ec1f	REQ-2026-2047	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	29	88
+9713e9f1-4a4d-4355-ae20-ad6646b0b5cd	REQ-2026-2047	method_consensus	Đồng thuận giữa 3 phương pháp	24	67
+cc632ac9-5825-4ec6-a4c6-b36f3faf7453	REQ-2026-2047	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	94
+922615fb-2d3a-4edc-b23a-ff77c67d6aff	REQ-2026-2047	market_volatility	Biến động thị trường gần đây	17	63
+f2e69324-343c-4d54-9553-f870e6c19f88	REQ-2026-2047	comp_similarity	Tương đồng giao dịch so sánh	10	65
+6c9d673e-64e9-4231-91c7-24758bb33a4d	REQ-2026-2048	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	28	82
+3390eeda-9671-4d27-9919-333f8e8b4721	REQ-2026-2048	method_consensus	Đồng thuận giữa 3 phương pháp	26	94
+1b4d03cd-8e83-4b8d-8f67-0dd3255d9204	REQ-2026-2048	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	21	78
+60df45f8-02a6-47ba-badf-04e2c8bd97a0	REQ-2026-2048	market_volatility	Biến động thị trường gần đây	14	61
+55856e2f-3916-4fb1-bc41-105b7e0b0633	REQ-2026-2048	comp_similarity	Tương đồng giao dịch so sánh	11	76
+b4f9c085-3e85-4464-aca4-a5ecfed04f88	REQ-2026-2049	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	30	49
+5f9bf2b4-27fc-40a0-a55c-d20231cc4b88	REQ-2026-2049	method_consensus	Đồng thuận giữa 3 phương pháp	24	51
+606a156f-b452-4e1b-a317-80503b7646da	REQ-2026-2049	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	80
+f38c7f21-c93a-4be4-a3cc-cae02adbc5cd	REQ-2026-2049	market_volatility	Biến động thị trường gần đây	15	48
+16516823-d3c0-4a18-8317-451ec630e415	REQ-2026-2049	comp_similarity	Tương đồng giao dịch so sánh	11	48
+d48d8e7b-e586-4e30-8336-9495784bc8a1	REQ-2026-2050	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	27	63
+73bf4604-15bc-4eaa-bbf9-e2b0707d7022	REQ-2026-2050	method_consensus	Đồng thuận giữa 3 phương pháp	23	81
+7a4a67d2-8ac3-4066-8834-8802f048df4b	REQ-2026-2050	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	23	48
+161f13b7-50f8-4def-b8c7-8e59ff0d2dac	REQ-2026-2050	market_volatility	Biến động thị trường gần đây	17	80
+8937343d-1b0f-47cb-9b8d-8de2a912f0d7	REQ-2026-2050	comp_similarity	Tương đồng giao dịch so sánh	10	49
+8c72b8ba-1f6b-451f-8634-e26032e1265f	REQ-2026-2051	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	25	51
+7e17c805-fe3d-4941-9ced-ab0de5095588	REQ-2026-2051	method_consensus	Đồng thuận giữa 3 phương pháp	27	95
+5ced2e5a-4e4c-433f-a997-9734e5f5fbc5	REQ-2026-2051	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	21	84
+6caaa535-944d-4962-b17c-f3e23970b07c	REQ-2026-2051	market_volatility	Biến động thị trường gần đây	17	84
+0356bd04-866c-41f3-95b6-8f1dfb51b234	REQ-2026-2051	comp_similarity	Tương đồng giao dịch so sánh	10	95
+3c52a5e0-1aaf-419e-8963-a9342358308e	REQ-2026-2052	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	31	72
+4b25e680-b9f5-4e95-89dc-67bc7e2adab3	REQ-2026-2052	method_consensus	Đồng thuận giữa 3 phương pháp	25	73
+a0e7c0c3-0947-48ca-bda2-ce326d253ea9	REQ-2026-2052	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	89
+229c53d6-1ae4-4fd0-8f63-20a052b34ecf	REQ-2026-2052	market_volatility	Biến động thị trường gần đây	14	76
+27e783e1-b3e1-4bb9-943c-a447beb53b95	REQ-2026-2052	comp_similarity	Tương đồng giao dịch so sánh	10	91
+cd59e2f4-edbe-4e6f-8023-b41790521257	REQ-2026-2053	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	26	69
+ee0fb7b1-cf4c-4ade-8ba1-9dea8d2d343a	REQ-2026-2053	method_consensus	Đồng thuận giữa 3 phương pháp	28	67
+55d3254a-a2cd-4c8b-bb20-0f4035c2d491	REQ-2026-2053	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	85
+cd385697-d1b0-4ee6-916b-823288743897	REQ-2026-2053	market_volatility	Biến động thị trường gần đây	15	58
+03c4a38e-2bfc-45a1-8c10-02329ceab6c8	REQ-2026-2053	comp_similarity	Tương đồng giao dịch so sánh	11	82
+938c9b3a-2e39-47f1-b94d-944abbc571f0	REQ-2026-2054	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	32	93
+fd228d95-d613-45ea-b2dd-515c842935c4	REQ-2026-2054	method_consensus	Đồng thuận giữa 3 phương pháp	26	71
+5fcfa207-e600-4aed-8120-2c505507409e	REQ-2026-2054	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	19	59
+0b2feee4-67ba-4fe1-aa54-e7295849920d	REQ-2026-2054	market_volatility	Biến động thị trường gần đây	14	83
+07feeab8-3de6-4e52-a1c8-64a33ba2fa00	REQ-2026-2054	comp_similarity	Tương đồng giao dịch so sánh	9	95
+d968dbbe-25b4-48bf-a431-587046d27109	REQ-2026-2055	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	29	85
+0ca9c083-053c-4c14-acf8-97266d3b44ed	REQ-2026-2055	method_consensus	Đồng thuận giữa 3 phương pháp	24	95
+b9b753b2-1898-42f7-b950-6733e4a8aec4	REQ-2026-2055	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	22	82
+0688fb7e-791f-4035-8a29-ef37a62bb04f	REQ-2026-2055	market_volatility	Biến động thị trường gần đây	15	86
+ad76eac3-2db5-42fa-a71c-dff291ef1ce8	REQ-2026-2055	comp_similarity	Tương đồng giao dịch so sánh	10	47
+4085fcd5-7558-4b0b-b292-281eccd756f3	REQ-2026-2056	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	28	74
+67bd4308-dd96-443c-aadc-4b178a13c537	REQ-2026-2056	method_consensus	Đồng thuận giữa 3 phương pháp	27	62
+61c84956-5d1d-4a85-a269-cece642c1348	REQ-2026-2056	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	57
+d02c0c02-e92a-4701-817d-2df183a1de38	REQ-2026-2056	market_volatility	Biến động thị trường gần đây	14	45
+d340890c-93cc-4911-a417-a48c7e22dc89	REQ-2026-2056	comp_similarity	Tương đồng giao dịch so sánh	11	54
+e77d81a4-630d-43a8-a397-98106c260023	REQ-2026-2057	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	29	93
+fd38c487-9741-4b03-8849-146458d7793d	REQ-2026-2057	method_consensus	Đồng thuận giữa 3 phương pháp	28	89
+6053c8d2-d3ca-4874-a9ae-0683204ab66a	REQ-2026-2057	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	21	65
+2f628041-2e7f-4892-be1f-98c6973e4f8f	REQ-2026-2057	market_volatility	Biến động thị trường gần đây	13	87
+520b0396-7e30-4ce0-b05d-bc386b082c0d	REQ-2026-2057	comp_similarity	Tương đồng giao dịch so sánh	9	75
+51449700-5ca6-42fa-9150-b83dbd342fca	REQ-2026-2059	comp_quantity_quality	Giao dịch so sánh (SL & chất lượng)	32	84
+04f776c9-b253-4850-80cd-be13547a7751	REQ-2026-2059	method_consensus	Đồng thuận giữa 3 phương pháp	23	95
+77655946-e546-4e53-b20f-4251770bea31	REQ-2026-2059	legal_planning_completeness	Pháp lý & quy hoạch đầy đủ	20	50
+48cde0bf-51f9-4dfe-9972-77ddd6e3ccb6	REQ-2026-2059	market_volatility	Biến động thị trường gần đây	15	67
+e61fe93f-11a8-4e46-9259-2ae83c31fbb9	REQ-2026-2059	comp_similarity	Tương đồng giao dịch so sánh	10	72
+\.
+
+
+--
+-- Data for Name: valuation_method; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.valuation_method (id, case_id, method_key, estimated_value_vnd, weight_pct, contribution_value_vnd, method_confidence_pct, inputs, inference_text, source_label) FROM stdin;
+09a54248-7729-4768-8bca-c0299b6b8486	REQ-2026-2000	sales_comparison	30295000000	54	16359300000	60	["7 giao dịch so sánh trong bán kính 0.6km, gần nhất 6 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+af251632-9a95-4c0c-b8a8-fb04180ce727	REQ-2026-2000	hedonic_ml	29565000000	25	7391250000	88	["Huấn luyện trên ~2459 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.82 · Sai số trung bình (MAE): 3.8%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+ea93557f-0c66-4051-b446-e9864a290a9d	REQ-2026-2000	cost_approach	27975000000	21	5874750000	78	["Đơn giá xây dựng: 9.3 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+78dc2aeb-8653-478b-a52b-072435269ef0	REQ-2026-2001	sales_comparison	39525000000	49	19367250000	68	["5 giao dịch so sánh trong bán kính 0.9km, gần nhất 5 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+25bc1edd-d60d-4a63-8526-7452c1b5d835	REQ-2026-2001	hedonic_ml	38065000000	28	10658200000	74	["Huấn luyện trên ~2495 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.92 · Sai số trung bình (MAE): 6.3%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+2418f02b-e739-4f83-ab63-6d378e78c573	REQ-2026-2001	cost_approach	36885000000	23	8483550000	60	["Đơn giá xây dựng: 7.3 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+f33fc8e2-66de-49ff-9293-6b5b84483fad	REQ-2026-2002	sales_comparison	50535000000	46	23246100000	76	["6 giao dịch so sánh trong bán kính 0.8km, gần nhất 7 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+1ab1ca29-ae8c-4aef-a71a-c52472615876	REQ-2026-2002	hedonic_ml	50725000000	35	17753750000	70	["Huấn luyện trên ~2848 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.88 · Sai số trung bình (MAE): 4.9%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+defe6dde-6904-45d6-8c85-66314684aa40	REQ-2026-2002	cost_approach	47055000000	19	8940450000	66	["Đơn giá xây dựng: 7.2 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+49ffe123-2b8a-428b-884b-4ec45e52c0fa	REQ-2026-2003	sales_comparison	3880000000	49	1901200000	82	["7 giao dịch so sánh trong bán kính 1.3km, gần nhất 4 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+8ee8abe4-3ecf-4b90-bdd0-0dbc19ca0ff9	REQ-2026-2003	hedonic_ml	3775000000	31	1170250000	63	["Huấn luyện trên ~2435 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.91 · Sai số trung bình (MAE): 5.1%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+ca58ef42-76dd-4311-91bb-fa05a88b689d	REQ-2026-2003	cost_approach	3465000000	20	693000000	63	["Đơn giá xây dựng: 8.7 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+7f399351-63f4-40d5-be26-8537692a4e75	REQ-2026-2004	sales_comparison	16615000000	53	8805950000	84	["6 giao dịch so sánh trong bán kính 0.7km, gần nhất 4 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+4603fe22-beb7-4ed7-80a6-675eb162e600	REQ-2026-2004	hedonic_ml	16440000000	26	4274400000	68	["Huấn luyện trên ~1532 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.8 · Sai số trung bình (MAE): 3.6%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+6265ecc9-c606-4cab-a0f7-19e4c653a254	REQ-2026-2004	cost_approach	14875000000	21	3123750000	62	["Đơn giá xây dựng: 6.1 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+b9176c0a-e603-4c70-885f-914cbe0bd889	REQ-2026-2005	sales_comparison	9900000000	50	4950000000	60	["7 giao dịch so sánh trong bán kính 1.2km, gần nhất 7 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+a4710622-aa82-4f26-bfc9-d8ee5cac8d5c	REQ-2026-2005	hedonic_ml	10055000000	31	3117050000	87	["Huấn luyện trên ~1832 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.79 · Sai số trung bình (MAE): 5.7%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+c45a7299-070c-4ba2-aa2f-92944ad96f59	REQ-2026-2005	cost_approach	8950000000	19	1700500000	68	["Đơn giá xây dựng: 6.9 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+3de724ae-a71a-44e7-a84d-835c28a4cc42	REQ-2026-2006	sales_comparison	4595000000	54	2481300000	72	["7 giao dịch so sánh trong bán kính 1.0km, gần nhất 9 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+704c32da-18e5-479a-8e68-a4752c2e18a6	REQ-2026-2006	hedonic_ml	4595000000	26	1194700000	73	["Huấn luyện trên ~1832 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.91 · Sai số trung bình (MAE): 5.3%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+bc289d1e-3582-4bb9-98aa-7ad61c786698	REQ-2026-2006	cost_approach	4475000000	20	895000000	86	["Đơn giá xây dựng: 7.5 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+a5113d5c-62c4-4d09-b129-a74e22206704	REQ-2026-2008	sales_comparison	9885000000	56	5535600000	90	["8 giao dịch so sánh trong bán kính 0.8km, gần nhất 10 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+cd4b7050-8c0f-4eca-943f-d3b1169e9e50	REQ-2026-2008	hedonic_ml	9945000000	26	2585700000	74	["Huấn luyện trên ~2682 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.79 · Sai số trung bình (MAE): 6.0%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+b2160c5e-885d-4269-a443-bd9341f1092e	REQ-2026-2008	cost_approach	9190000000	18	1654200000	67	["Đơn giá xây dựng: 7.2 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+3dc78278-1ab2-46a8-b49d-8e531d3edd15	REQ-2026-2009	sales_comparison	3165000000	52	1645800000	90	["6 giao dịch so sánh trong bán kính 0.7km, gần nhất 4 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+e551b6df-b93d-42c5-827e-abf9dce80397	REQ-2026-2009	hedonic_ml	3170000000	29	919300000	85	["Huấn luyện trên ~1766 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.91 · Sai số trung bình (MAE): 3.2%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+f1ae4c36-1dc2-47ad-94d1-843eaa7dc241	REQ-2026-2009	cost_approach	3015000000	19	572850000	75	["Đơn giá xây dựng: 9.0 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+43814a69-1b99-4ee4-b752-723a83912605	REQ-2026-2011	sales_comparison	7345000000	48	3525600000	66	["5 giao dịch so sánh trong bán kính 1.1km, gần nhất 9 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+7e1fefdc-2d56-47b3-9b1d-a75a832b76be	REQ-2026-2011	hedonic_ml	7335000000	31	2273850000	68	["Huấn luyện trên ~1712 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.87 · Sai số trung bình (MAE): 5.2%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+32f18e6c-d884-4336-9391-3b4eb610bdbc	REQ-2026-2011	cost_approach	6715000000	21	1410150000	62	["Đơn giá xây dựng: 7.5 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+badd23f1-03d5-4040-856a-f87e90853b2f	REQ-2026-2012	sales_comparison	58215000000	46	26778900000	66	["6 giao dịch so sánh trong bán kính 1.1km, gần nhất 8 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+fabe4dc5-884d-454c-bd3c-b4d3427a3c3f	REQ-2026-2012	hedonic_ml	56065000000	31	17380150000	76	["Huấn luyện trên ~2743 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.83 · Sai số trung bình (MAE): 3.6%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+d8c98e8c-ab02-4e17-9039-e5e43c98b1be	REQ-2026-2012	cost_approach	55430000000	23	12748900000	89	["Đơn giá xây dựng: 7.6 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+df002c86-49e0-4279-843b-6853acd6b29e	REQ-2026-2013	sales_comparison	55275000000	52	28743000000	73	["5 giao dịch so sánh trong bán kính 1.2km, gần nhất 8 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+8e17975f-3a11-4deb-92b0-5e7b3b9cbbc1	REQ-2026-2025	cost_approach	9655000000	24	2317200000	74	["Đơn giá xây dựng: 8.7 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+b51bf3c3-806d-4924-bef4-1a3d039d9511	REQ-2026-2013	hedonic_ml	54545000000	27	14727150000	84	["Huấn luyện trên ~3401 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.9 · Sai số trung bình (MAE): 5.9%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+4e43276b-e099-4b1a-9f5c-f0b2fab6e1bd	REQ-2026-2013	cost_approach	51860000000	21	10890600000	84	["Đơn giá xây dựng: 6.5 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+209825c3-d7cb-4d8e-93cc-e78974f0aae8	REQ-2026-2014	sales_comparison	31040000000	45	13968000000	89	["6 giao dịch so sánh trong bán kính 0.6km, gần nhất 7 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+347a2e5e-f5d9-4cdf-8367-d59dc5207579	REQ-2026-2014	hedonic_ml	30310000000	33	10002300000	90	["Huấn luyện trên ~2906 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.86 · Sai số trung bình (MAE): 3.5%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+aaf64d79-15f6-43ad-a081-90c8e1fe0721	REQ-2026-2014	cost_approach	29595000000	22	6510900000	67	["Đơn giá xây dựng: 6.5 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+a901eaf6-61f2-4925-bf84-0e4b927d8901	REQ-2026-2015	sales_comparison	74405000000	52	38690600000	82	["8 giao dịch so sánh trong bán kính 1.2km, gần nhất 9 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+ad2ea2d0-3b44-4452-a02d-9fea9faa509a	REQ-2026-2015	hedonic_ml	73960000000	31	22927600000	83	["Huấn luyện trên ~2616 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.79 · Sai số trung bình (MAE): 4.5%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+48dca9bd-a011-4cdf-89d0-61b47727ff07	REQ-2026-2015	cost_approach	70570000000	17	11996900000	86	["Đơn giá xây dựng: 5.8 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+147ca891-ed5f-4521-8f43-a98c3b1d2f49	REQ-2026-2016	sales_comparison	4080000000	53	2162400000	81	["5 giao dịch so sánh trong bán kính 1.1km, gần nhất 6 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+c80cff3f-7ca6-4296-be82-492f5ceaf9a0	REQ-2026-2016	hedonic_ml	3950000000	25	987500000	90	["Huấn luyện trên ~2963 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.8 · Sai số trung bình (MAE): 3.3%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+35943707-5c2d-408e-8996-077e5d77eb50	REQ-2026-2016	cost_approach	3650000000	22	803000000	67	["Đơn giá xây dựng: 7.5 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+233dbc37-e511-48e4-b2b3-a6a87496883e	REQ-2026-2017	sales_comparison	12520000000	54	6760800000	79	["5 giao dịch so sánh trong bán kính 1.0km, gần nhất 6 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+bd617e1e-80af-4f2d-bc27-9bbd42daf9f0	REQ-2026-2017	hedonic_ml	12095000000	25	3023750000	82	["Huấn luyện trên ~2398 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.82 · Sai số trung bình (MAE): 3.9%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+a0d2332e-9725-46d4-90bd-e020fd31ef03	REQ-2026-2017	cost_approach	11390000000	21	2391900000	87	["Đơn giá xây dựng: 7.6 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+348b8128-95ea-4132-9b47-a16f89fd950b	REQ-2026-2018	sales_comparison	5225000000	53	2769250000	66	["4 giao dịch so sánh trong bán kính 1.2km, gần nhất 5 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+fd4e0844-d245-4bc3-948b-84dce112cc0c	REQ-2026-2018	hedonic_ml	5305000000	28	1485400000	80	["Huấn luyện trên ~1423 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.9 · Sai số trung bình (MAE): 5.8%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+03f78efc-f219-4dcf-8303-3b6188c7ab9c	REQ-2026-2018	cost_approach	4710000000	19	894900000	67	["Đơn giá xây dựng: 7.5 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+921292c9-2736-4fb9-98c3-a8e1070a2c56	REQ-2026-2034	cost_approach	4090000000	20	818000000	66	["Đơn giá xây dựng: 7.5 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+d48d0d7a-dee1-4eeb-ac13-ea9077e3a4e1	REQ-2026-2019	sales_comparison	2905000000	52	1510600000	83	["4 giao dịch so sánh trong bán kính 0.8km, gần nhất 4 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+22a2cc05-6926-465b-b548-f08b87a0b353	REQ-2026-2019	hedonic_ml	2855000000	30	856500000	76	["Huấn luyện trên ~2175 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.84 · Sai số trung bình (MAE): 6.4%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+176c0f9c-0c2a-4a31-b71b-25f00d6658e1	REQ-2026-2019	cost_approach	2775000000	18	499500000	64	["Đơn giá xây dựng: 8.3 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+73f0e92b-ad21-440a-8fe0-499e9527226b	REQ-2026-2020	sales_comparison	12130000000	53	6428900000	82	["8 giao dịch so sánh trong bán kính 1.4km, gần nhất 7 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+6b57fd53-156e-4bce-87b4-bb17d9d31635	REQ-2026-2020	hedonic_ml	12285000000	28	3439800000	78	["Huấn luyện trên ~1613 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.83 · Sai số trung bình (MAE): 4.1%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+f604f571-8b93-4b86-a885-57ebf60810de	REQ-2026-2020	cost_approach	11270000000	19	2141300000	65	["Đơn giá xây dựng: 8.4 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+d50e13a1-72e1-4a96-b2cf-930ef8b0ab60	REQ-2026-2021	sales_comparison	9780000000	50	4890000000	78	["5 giao dịch so sánh trong bán kính 1.2km, gần nhất 10 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+ee6a4117-e7c1-4ebd-a796-85a68ac6e41f	REQ-2026-2021	hedonic_ml	9545000000	31	2958950000	64	["Huấn luyện trên ~1692 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.92 · Sai số trung bình (MAE): 4.6%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+641b8455-2097-4340-8326-4233b5e69113	REQ-2026-2021	cost_approach	9260000000	19	1759400000	90	["Đơn giá xây dựng: 9.4 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+657684a2-e7fc-4730-b96c-b82c9ca08fed	REQ-2026-2022	sales_comparison	17240000000	52	8964800000	71	["4 giao dịch so sánh trong bán kính 1.0km, gần nhất 4 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+9775b943-4a9a-4b23-8f84-27c31f2492b6	REQ-2026-2022	hedonic_ml	17140000000	30	5142000000	74	["Huấn luyện trên ~2437 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.88 · Sai số trung bình (MAE): 5.9%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+27e030ce-99ed-44b5-98d3-49afbe049495	REQ-2026-2022	cost_approach	16285000000	18	2931300000	72	["Đơn giá xây dựng: 7.8 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+ba600381-b942-4ad3-87aa-c14ece81e156	REQ-2026-2023	sales_comparison	7320000000	47	3440400000	66	["8 giao dịch so sánh trong bán kính 1.2km, gần nhất 8 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+2809f635-9902-43b8-b38d-7e26f1cc639a	REQ-2026-2023	hedonic_ml	7035000000	30	2110500000	70	["Huấn luyện trên ~2160 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.78 · Sai số trung bình (MAE): 5.4%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+caa49183-c863-4b38-b122-eefdd35e5ffd	REQ-2026-2023	cost_approach	6825000000	23	1569750000	89	["Đơn giá xây dựng: 5.9 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+86edcfb5-df61-4083-8705-be24421c4d16	REQ-2026-2025	sales_comparison	9895000000	46	4551700000	89	["4 giao dịch so sánh trong bán kính 1.2km, gần nhất 4 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+c5c84037-afa4-42dd-8841-22a10a40ec26	REQ-2026-2025	hedonic_ml	9955000000	30	2986500000	68	["Huấn luyện trên ~2829 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.92 · Sai số trung bình (MAE): 6.4%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+fdf0e41e-28af-44b2-8c92-f4c06134d829	REQ-2026-2027	sales_comparison	4725000000	54	2551500000	78	["4 giao dịch so sánh trong bán kính 1.3km, gần nhất 5 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+942f5ca1-029a-415c-8a04-7a86b6fe9801	REQ-2026-2027	hedonic_ml	4805000000	26	1249300000	73	["Huấn luyện trên ~2789 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.85 · Sai số trung bình (MAE): 4.4%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+7dcc70d5-5083-4268-b0e4-02812654b2e3	REQ-2026-2027	cost_approach	4190000000	20	838000000	70	["Đơn giá xây dựng: 5.6 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+d24e0f26-8113-4200-9a22-5c0981b12299	REQ-2026-2028	sales_comparison	26350000000	49	12911500000	74	["7 giao dịch so sánh trong bán kính 0.7km, gần nhất 2 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+5f53e6a3-3da1-4699-9d09-c1903386d656	REQ-2026-2028	hedonic_ml	25360000000	32	8115200000	76	["Huấn luyện trên ~2350 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.81 · Sai số trung bình (MAE): 3.7%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+c898d4c2-d252-4c5c-9d23-5a939bb9daff	REQ-2026-2028	cost_approach	25740000000	19	4890600000	71	["Đơn giá xây dựng: 7.9 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+fd4dc805-7b6a-4267-91b5-bf74f0776beb	REQ-2026-2029	sales_comparison	28035000000	48	13456800000	82	["8 giao dịch so sánh trong bán kính 0.7km, gần nhất 3 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+9fd83d77-7e8c-4038-b0df-4d03fe0f008a	REQ-2026-2029	hedonic_ml	27925000000	31	8656750000	81	["Huấn luyện trên ~1347 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.83 · Sai số trung bình (MAE): 5.3%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+2b8a6e93-c424-467c-9858-901027e75795	REQ-2026-2029	cost_approach	25710000000	21	5399100000	65	["Đơn giá xây dựng: 5.8 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+cb91ae59-b271-42e2-b6f8-2a64c04bbc2e	REQ-2026-2030	sales_comparison	34655000000	52	18020600000	83	["8 giao dịch so sánh trong bán kính 0.8km, gần nhất 6 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+5b0102e9-80eb-49f3-a8e8-60e8e43d2bd4	REQ-2026-2030	hedonic_ml	34420000000	28	9637600000	71	["Huấn luyện trên ~3495 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.86 · Sai số trung bình (MAE): 5.8%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+bf2849eb-e501-40a0-a03e-527322362586	REQ-2026-2030	cost_approach	33265000000	20	6653000000	71	["Đơn giá xây dựng: 5.6 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+a0186cea-d32e-4208-81a5-327b343f1456	REQ-2026-2033	sales_comparison	35875000000	50	17937500000	81	["4 giao dịch so sánh trong bán kính 1.0km, gần nhất 9 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+b2750df0-c9b5-4743-bc27-6a08478a18c7	REQ-2026-2033	hedonic_ml	35135000000	30	10540500000	64	["Huấn luyện trên ~2359 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.83 · Sai số trung bình (MAE): 5.2%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+51af0c43-8bc4-4815-be2f-ba3c9a328635	REQ-2026-2033	cost_approach	33720000000	20	6744000000	63	["Đơn giá xây dựng: 5.9 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+f1605be1-6a5e-4f17-983a-f6acc4817be7	REQ-2026-2034	sales_comparison	4625000000	53	2451250000	68	["8 giao dịch so sánh trong bán kính 0.6km, gần nhất 9 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+8296c398-2c64-4492-89db-07c10714fbf2	REQ-2026-2034	hedonic_ml	4655000000	27	1256850000	73	["Huấn luyện trên ~1734 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.89 · Sai số trung bình (MAE): 4.7%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+81b57ad6-6230-4e19-837a-95a89b713787	REQ-2026-2036	sales_comparison	21295000000	47	10008650000	80	["5 giao dịch so sánh trong bán kính 0.9km, gần nhất 9 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+421e98e9-d6f8-4c4c-92bb-16c31ecb6c2a	REQ-2026-2036	hedonic_ml	21035000000	29	6100150000	82	["Huấn luyện trên ~2773 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.89 · Sai số trung bình (MAE): 6.4%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+0c03730d-4538-4763-8f28-8a0d4bb5cf77	REQ-2026-2036	cost_approach	19805000000	24	4753200000	79	["Đơn giá xây dựng: 9.3 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+c3b5bb3a-dcd1-40ca-ac9c-ea6b138822ca	REQ-2026-2037	sales_comparison	6060000000	53	3211800000	78	["6 giao dịch so sánh trong bán kính 1.1km, gần nhất 3 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+d31fb984-37ab-4d8c-b8fc-a6a65639a5d6	REQ-2026-2037	hedonic_ml	5875000000	28	1645000000	79	["Huấn luyện trên ~1678 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.91 · Sai số trung bình (MAE): 5.6%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+1722c468-108b-4ccc-a2a9-5d0e3801d688	REQ-2026-2037	cost_approach	5875000000	19	1116250000	82	["Đơn giá xây dựng: 8.9 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+3dd0abe8-f4d1-4356-9c23-45ff8d561a41	REQ-2026-2039	sales_comparison	11545000000	51	5887950000	80	["7 giao dịch so sánh trong bán kính 1.3km, gần nhất 3 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+1b8d64b4-1143-491f-aa7d-4c8544b4ed5a	REQ-2026-2039	hedonic_ml	11460000000	29	3323400000	81	["Huấn luyện trên ~1811 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.85 · Sai số trung bình (MAE): 4.0%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+125ff9b6-9633-438e-a923-725fdbb3c8d4	REQ-2026-2039	cost_approach	10250000000	20	2050000000	79	["Đơn giá xây dựng: 7.8 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+e2535cc8-faec-4371-bbfd-27aaddd6afa8	REQ-2026-2040	sales_comparison	8520000000	55	4686000000	68	["8 giao dịch so sánh trong bán kính 0.6km, gần nhất 7 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+549380bf-4027-442d-a2aa-1e7315158fdd	REQ-2026-2040	hedonic_ml	8260000000	28	2312800000	60	["Huấn luyện trên ~2382 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.92 · Sai số trung bình (MAE): 4.6%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+fb11eef2-79f2-4a9b-a4fa-9113b81d0cad	REQ-2026-2040	cost_approach	8155000000	17	1386350000	81	["Đơn giá xây dựng: 6.8 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+a5e44e50-98f6-4606-acc1-30069fb323cc	REQ-2026-2041	sales_comparison	11765000000	50	5882500000	79	["8 giao dịch so sánh trong bán kính 0.7km, gần nhất 4 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+ae42648d-f894-470e-94f9-6d90da5649d1	REQ-2026-2041	hedonic_ml	11910000000	28	3334800000	73	["Huấn luyện trên ~2581 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.9 · Sai số trung bình (MAE): 6.4%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+cbd33720-4427-4a5b-8cc9-142976fe7f94	REQ-2026-2041	cost_approach	10630000000	22	2338600000	81	["Đơn giá xây dựng: 7.1 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+46ca20d9-36cd-433c-b2eb-eb1dadf82590	REQ-2026-2044	sales_comparison	27780000000	50	13890000000	64	["6 giao dịch so sánh trong bán kính 1.2km, gần nhất 2 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+8c2aa1e2-5821-4e27-b0c4-ef7f08251059	REQ-2026-2044	hedonic_ml	27555000000	33	9093150000	69	["Huấn luyện trên ~1301 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.84 · Sai số trung bình (MAE): 5.9%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+1731e7f6-00bd-41dc-b6a8-e1d2cd888aa3	REQ-2026-2044	cost_approach	27030000000	17	4595100000	74	["Đơn giá xây dựng: 6.9 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+7109d9e1-ca2a-40ee-b94e-cddd6920bb4f	REQ-2026-2045	sales_comparison	16530000000	55	9091500000	79	["6 giao dịch so sánh trong bán kính 1.0km, gần nhất 6 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+30643e3d-2c0e-4b9c-97bb-cf1a3251ccc3	REQ-2026-2045	hedonic_ml	16205000000	25	4051250000	65	["Huấn luyện trên ~2447 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.78 · Sai số trung bình (MAE): 5.9%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+285f46b3-3af5-41b3-82a2-e77fb7e00f25	REQ-2026-2045	cost_approach	14800000000	20	2960000000	67	["Đơn giá xây dựng: 6.0 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+fee2dd17-67e3-4db4-893e-161efab5392f	REQ-2026-2047	sales_comparison	37615000000	55	20688250000	80	["5 giao dịch so sánh trong bán kính 0.8km, gần nhất 2 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+8e6acc3e-7549-4cbd-ba10-fc79f9a242d2	REQ-2026-2047	hedonic_ml	37835000000	26	9837100000	73	["Huấn luyện trên ~2613 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.93 · Sai số trung bình (MAE): 4.4%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+3c2d4512-8308-40ba-a590-34cff4fe3542	REQ-2026-2047	cost_approach	35185000000	19	6685150000	61	["Đơn giá xây dựng: 8.1 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+5b4671c7-271b-40e6-90b4-34031bb39e6b	REQ-2026-2048	sales_comparison	49755000000	45	22389750000	83	["6 giao dịch so sánh trong bán kính 0.7km, gần nhất 7 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+5cde3a89-5985-49a7-8cbf-a5d00e27c47e	REQ-2026-2048	hedonic_ml	50615000000	35	17715250000	66	["Huấn luyện trên ~1790 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.8 · Sai số trung bình (MAE): 3.7%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+86a07859-73b5-4ad9-a791-9df3ff689ef5	REQ-2026-2048	cost_approach	48190000000	20	9638000000	68	["Đơn giá xây dựng: 7.3 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+6deb4208-9307-4190-b6f8-c895f3655377	REQ-2026-2049	sales_comparison	9320000000	53	4939600000	83	["6 giao dịch so sánh trong bán kính 1.3km, gần nhất 1 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+4d4dd80e-2bc5-47cc-8117-fdd3d2c96e05	REQ-2026-2049	hedonic_ml	9085000000	25	2271250000	68	["Huấn luyện trên ~3266 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.87 · Sai số trung bình (MAE): 4.1%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+b1e18808-bbf1-4055-bfbf-0ee2931b906b	REQ-2026-2049	cost_approach	8280000000	22	1821600000	72	["Đơn giá xây dựng: 8.2 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+90a7d9f2-fc4d-41fc-b1fa-b2dbd0403175	REQ-2026-2050	sales_comparison	12090000000	50	6045000000	68	["6 giao dịch so sánh trong bán kính 1.1km, gần nhất 9 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+4b2f9650-191a-4cf2-8668-c2382f388764	REQ-2026-2050	hedonic_ml	11965000000	31	3709150000	60	["Huấn luyện trên ~1666 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.89 · Sai số trung bình (MAE): 4.6%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+04fded89-79ca-4e7f-87b6-f94029aa4cb0	REQ-2026-2050	cost_approach	10990000000	19	2088100000	85	["Đơn giá xây dựng: 6.2 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+a36c7ad6-eed5-4958-8238-561d0a573846	REQ-2026-2051	sales_comparison	41315000000	49	20244350000	83	["8 giao dịch so sánh trong bán kính 0.8km, gần nhất 8 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+5cb8d2e0-3bb8-477a-bfdb-92b69dfa023a	REQ-2026-2051	hedonic_ml	41575000000	29	12056750000	84	["Huấn luyện trên ~3272 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.85 · Sai số trung bình (MAE): 6.0%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+5b25b0c9-a5b7-43c3-92ee-81dc0efe0c35	REQ-2026-2051	cost_approach	39885000000	22	8774700000	64	["Đơn giá xây dựng: 8.1 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+3a2dca96-2500-4215-8493-fe444e63f226	REQ-2026-2052	sales_comparison	25415000000	54	13724100000	76	["4 giao dịch so sánh trong bán kính 0.6km, gần nhất 4 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+5bb96a2d-d4e8-4e3c-9e0b-449b5f1448ed	REQ-2026-2052	hedonic_ml	24520000000	29	7110800000	74	["Huấn luyện trên ~3138 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.78 · Sai số trung bình (MAE): 3.5%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+8a01ead4-f28d-4d62-8b9a-38265c6d087e	REQ-2026-2052	cost_approach	23575000000	17	4007750000	77	["Đơn giá xây dựng: 7.0 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+8376a937-6e10-41ef-b719-de5edd8ae19b	REQ-2026-2053	sales_comparison	2700000000	46	1242000000	83	["8 giao dịch so sánh trong bán kính 1.1km, gần nhất 5 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+dab5432f-8d50-46c5-9c62-a7191facb4af	REQ-2026-2053	hedonic_ml	2740000000	33	904200000	88	["Huấn luyện trên ~2969 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.81 · Sai số trung bình (MAE): 4.8%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+f308d4e1-f1d3-4bdf-9889-52c6da1bd35c	REQ-2026-2053	cost_approach	2500000000	21	525000000	85	["Đơn giá xây dựng: 6.8 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+cdd629b6-80b3-40a1-b22c-31c834e89e1a	REQ-2026-2054	sales_comparison	8805000000	50	4402500000	85	["8 giao dịch so sánh trong bán kính 0.5km, gần nhất 9 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+9b078706-4d86-4de3-9669-01382825e7e7	REQ-2026-2054	hedonic_ml	8485000000	30	2545500000	70	["Huấn luyện trên ~1988 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.8 · Sai số trung bình (MAE): 3.0%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+3aa8284b-b6d7-4582-a9cd-769cdfe72f74	REQ-2026-2054	cost_approach	8140000000	20	1628000000	82	["Đơn giá xây dựng: 5.8 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+68802481-eab0-4a91-ad8c-0abcc091cbd3	REQ-2026-2055	sales_comparison	7930000000	50	3965000000	65	["7 giao dịch so sánh trong bán kính 1.4km, gần nhất 6 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+2a09af35-6b49-453b-8a61-9f489f5e0d3f	REQ-2026-2055	hedonic_ml	7800000000	30	2340000000	68	["Huấn luyện trên ~3455 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.79 · Sai số trung bình (MAE): 5.6%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+0631dd6b-1792-46d7-8fb7-e7df7f7de234	REQ-2026-2055	cost_approach	7275000000	20	1455000000	69	["Đơn giá xây dựng: 7.3 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+5d5c301c-9235-4ce7-9cda-79c674a57f97	REQ-2026-2056	sales_comparison	3585000000	48	1720800000	74	["7 giao dịch so sánh trong bán kính 1.1km, gần nhất 2 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+d666296f-0303-4164-9da4-20f5051eff99	REQ-2026-2056	hedonic_ml	3525000000	34	1198500000	69	["Huấn luyện trên ~3069 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.83 · Sai số trung bình (MAE): 5.9%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+e0545ff1-ae62-4ad5-864c-96f9f5f65857	REQ-2026-2056	cost_approach	3470000000	18	624600000	85	["Đơn giá xây dựng: 6.7 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+17179e2e-3e42-4e99-a7ef-1016efb99103	REQ-2026-2057	sales_comparison	41115000000	48	19735200000	82	["8 giao dịch so sánh trong bán kính 1.5km, gần nhất 4 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+28876897-0800-46db-a137-57fef071f601	REQ-2026-2057	hedonic_ml	41420000000	32	13254400000	60	["Huấn luyện trên ~1708 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.83 · Sai số trung bình (MAE): 5.6%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+a04df798-e2b5-4f26-8e46-e8475419eccc	REQ-2026-2057	cost_approach	37215000000	20	7443000000	84	["Đơn giá xây dựng: 6.5 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+0c7648fb-3c72-4618-98cf-be433d9bce22	REQ-2026-2059	sales_comparison	27565000000	48	13231200000	76	["7 giao dịch so sánh trong bán kính 1.4km, gần nhất 9 tháng trước.","Điều chỉnh theo diện tích, hướng nhà, vị trí hẻm/mặt tiền và thời gian giao dịch."]	Bám sát thực tế thị trường nhất vì dùng giao dịch thật, nhưng nhạy với chất lượng & số lượng giao dịch so sánh.	market_price_lookup (Research Agent)
+4c93c049-cac6-4392-b2c2-730e4c47f0ce	REQ-2026-2059	hedonic_ml	26770000000	31	8298700000	61	["Huấn luyện trên ~1723 giao dịch lịch sử toàn khu vực (2022–2026).","R² mô hình: 0.85 · Sai số trung bình (MAE): 3.3%."]	Cân bằng ảnh hưởng đồng thời của nhiều yếu tố mà so sánh trực tiếp khó xử lý cùng lúc.	calculate_valuation — nhánh hedonic-ML (Valuation Agent)
+b66ef42e-c642-4be0-83c0-5fc45c1cd11a	REQ-2026-2059	cost_approach	26495000000	21	5563950000	86	["Đơn giá xây dựng: 8.2 triệu/m² · Khấu hao theo tuổi công trình."]	Cho giá trị thấp nhất/tham chiếu trong 3 phương pháp vì chưa phản ánh đầy đủ yếu tố vị trí/tiềm năng tăng giá.	calculate_valuation — nhánh chi phí xây dựng (Valuation Agent)
+\.
+
+
+--
+-- Data for Name: valuation_price_index_point; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.valuation_price_index_point (id, case_id, period_label, index_value, display_order) FROM stdin;
+0919fa0f-36b0-4585-8fe6-28cf91e46625	REQ-2026-2000	2024-Q1	100.00	0
+9c7662c1-82df-456b-917a-93e93e433166	REQ-2026-2000	2024-Q3	105.10	1
+42924945-d7a7-40d0-9d8f-40388d762266	REQ-2026-2000	2025-Q1	110.60	2
+c33a1294-4879-406b-b66f-16bdd04f56de	REQ-2026-2000	2025-Q3	115.20	3
+070595da-fda7-4702-a60c-e9b68531db06	REQ-2026-2000	2026-Q1	118.10	4
+a0c3cc8f-c079-44bc-82c7-0cbbe7881a12	REQ-2026-2000	2026-Q2	124.20	5
+3220a05c-e38f-48e2-83b8-d09f7b168fad	REQ-2026-2001	2024-Q1	100.00	0
+5cab647a-d2b1-4032-8e0d-6720bb3e50e1	REQ-2026-2001	2024-Q3	105.00	1
+15b84d81-87cf-4973-b5c7-ee73ab0f3611	REQ-2026-2001	2025-Q1	109.50	2
+497d06ae-a802-4eae-b428-2ed6039fc034	REQ-2026-2001	2025-Q3	114.10	3
+17349873-72d3-47fc-b707-2418033b7a40	REQ-2026-2001	2026-Q1	120.30	4
+8820a8ca-5f2b-4915-b5e4-5f5c12ca5745	REQ-2026-2001	2026-Q2	123.70	5
+a2bc8280-eb81-449f-873f-02e446aecf17	REQ-2026-2002	2024-Q1	100.00	0
+3dfe5919-d78e-48d5-b5fc-26293105bea0	REQ-2026-2002	2024-Q3	102.40	1
+d661c314-f0d7-42c9-bac5-0fdf864ab155	REQ-2026-2002	2025-Q1	104.50	2
+e3960b9b-901b-4f97-ad9a-4320b52915e2	REQ-2026-2002	2025-Q3	106.80	3
+0d57f7af-e156-4dfc-8b2e-67631890c918	REQ-2026-2002	2026-Q1	108.10	4
+fd1b598b-83ab-41cd-9e00-802e2cc42eaf	REQ-2026-2002	2026-Q2	111.80	5
+80726d7a-3440-49eb-80b8-518a3a0f945e	REQ-2026-2003	2024-Q1	100.00	0
+6d746a28-f423-4130-beec-6176a75fad94	REQ-2026-2003	2024-Q3	102.10	1
+df68401a-d078-42ca-b1a1-ea14cb3ac0ce	REQ-2026-2003	2025-Q1	104.40	2
+38dff352-f10f-46b7-855a-7b8c427424d4	REQ-2026-2003	2025-Q3	105.90	3
+5d7eb924-91ac-41d4-934e-fab23b93098c	REQ-2026-2003	2026-Q1	108.30	4
+8fbc93b1-c600-439f-a543-2a1aa1045bef	REQ-2026-2003	2026-Q2	109.20	5
+68b56436-3b54-4684-a7f9-fe4a7c57e5db	REQ-2026-2004	2024-Q1	100.00	0
+edf35ea7-e09b-417d-a4d8-d0f519ed4fc5	REQ-2026-2004	2024-Q3	101.40	1
+a239b57d-ce82-469b-80b1-0fde250e849e	REQ-2026-2004	2025-Q1	102.80	2
+73f40838-b7c6-469f-8cfb-49b786aa8132	REQ-2026-2004	2025-Q3	103.80	3
+2c109172-11c7-469c-b0e1-3ca6f67b05c0	REQ-2026-2004	2026-Q1	106.10	4
+9e3d48e7-bd78-4933-9fce-c27acf674eae	REQ-2026-2004	2026-Q2	106.40	5
+2bbde7fb-4cf4-4149-a770-382685578b58	REQ-2026-2005	2024-Q1	100.00	0
+b322fa2e-d2b4-489b-96d1-246040a8d943	REQ-2026-2005	2024-Q3	102.80	1
+10aefc6b-e7de-44ab-ad2e-f6b35ceca37f	REQ-2026-2005	2025-Q1	105.30	2
+2f2ec552-b06b-40e6-a59e-7479d8d81e37	REQ-2026-2005	2025-Q3	109.20	3
+261c0b46-64b9-4ea7-936a-d8eb4d9f2c3c	REQ-2026-2005	2026-Q1	110.60	4
+d583e7a1-b5e3-4ba5-b3dc-55dc18d4f3a7	REQ-2026-2005	2026-Q2	115.60	5
+ee18fd6a-76be-4d90-9437-391722542003	REQ-2026-2006	2024-Q1	100.00	0
+bdc7ad28-0350-4d90-b234-9918915d5efc	REQ-2026-2006	2024-Q3	101.00	1
+ae834c15-5d94-493d-b7f5-a5fc9be64eaf	REQ-2026-2006	2025-Q1	102.50	2
+75aff264-2fb1-4527-b7ba-ae5252582d90	REQ-2026-2006	2025-Q3	103.10	3
+41d85535-befa-4930-932b-6d9c1f78ee71	REQ-2026-2006	2026-Q1	104.20	4
+92a38d0a-3dff-42c0-9adc-1ac4f12c34d6	REQ-2026-2006	2026-Q2	105.60	5
+845e1938-1aee-4adb-b620-d302bf8b2773	REQ-2026-2008	2024-Q1	100.00	0
+b3a7c8b3-ea26-4bfe-a36c-4c21ac108cdf	REQ-2026-2008	2024-Q3	103.40	1
+d78679b4-5f3a-4cb5-a543-62fac43de670	REQ-2026-2008	2025-Q1	106.70	2
+bc0fb629-e2c0-44af-8d02-1bdc2c554ee6	REQ-2026-2008	2025-Q3	110.60	3
+d9eb8e7a-6d7a-4e8a-8588-330b8321c364	REQ-2026-2008	2026-Q1	113.20	4
+19dfc98c-8d4f-4680-bc66-845b1d402dcf	REQ-2026-2008	2026-Q2	116.90	5
+9384510d-68a0-48d4-b3a8-102a94e63686	REQ-2026-2009	2024-Q1	100.00	0
+7d278dcd-61ba-43bd-a89f-678138277129	REQ-2026-2009	2024-Q3	104.70	1
+ef8ff525-d81a-46df-9fb9-6b485da79063	REQ-2026-2009	2025-Q1	108.60	2
+b5bc569a-f9fa-41a3-9a32-16dd597b5dbc	REQ-2026-2009	2025-Q3	112.40	3
+15e44efd-9715-4793-ae64-0e14be5dd77c	REQ-2026-2009	2026-Q1	116.90	4
+75a3d4ff-123a-4eb1-a133-5f562ec5c046	REQ-2026-2009	2026-Q2	121.70	5
+69bf8955-2287-4aa9-aacf-9defda61387f	REQ-2026-2011	2024-Q1	100.00	0
+01e6deba-f32f-4186-a3d1-0ca54008be61	REQ-2026-2011	2024-Q3	103.70	1
+afe847f6-160f-4c16-ab46-cb8e3a66d977	REQ-2026-2011	2025-Q1	108.60	2
+bc691e2f-5226-41dd-acbf-d029fd6766bc	REQ-2026-2011	2025-Q3	111.90	3
+cbcbf9f0-f24f-4324-b165-85a8a07e1d8f	REQ-2026-2011	2026-Q1	115.10	4
+e7f9929d-1365-44aa-970b-0da925bd5e93	REQ-2026-2011	2026-Q2	118.00	5
+1d85495a-fc8e-40be-bcb8-fdb783d64b8b	REQ-2026-2012	2024-Q1	100.00	0
+07f5b365-476a-455f-a94e-5d26fef4f03a	REQ-2026-2012	2024-Q3	105.20	1
+3b9dd673-bef6-4599-bd3a-0ec24cfa2087	REQ-2026-2012	2025-Q1	110.30	2
+fae60336-9f75-4232-bab0-f5873c03a3fc	REQ-2026-2012	2025-Q3	115.00	3
+2c35db2b-3897-4ec0-bad4-f36cf69018d6	REQ-2026-2012	2026-Q1	117.40	4
+1beda991-2ea9-4c3f-b88c-07e2391a19cc	REQ-2026-2012	2026-Q2	122.20	5
+27a64d8c-91e4-41ef-9464-f642ce3e9014	REQ-2026-2013	2024-Q1	100.00	0
+70189fab-c8bd-4f1d-991b-0e1dc8c8b019	REQ-2026-2013	2024-Q3	102.50	1
+d0f46c33-3592-47dd-a6da-c92d627d74a0	REQ-2026-2013	2025-Q1	104.90	2
+30bac83e-2dcd-4d43-8c95-a7ca9ccba3dd	REQ-2026-2013	2025-Q3	107.40	3
+53c66953-c878-414f-ad6b-ebb58e1dc331	REQ-2026-2013	2026-Q1	111.20	4
+211c2e13-4f8a-4ed1-9bcf-2d29a2a2f96c	REQ-2026-2013	2026-Q2	113.60	5
+5ac11608-8e24-468b-8908-c30e080e18cd	REQ-2026-2014	2024-Q1	100.00	0
+c3fd43d3-e2be-4412-b0f0-27072b9e76c9	REQ-2026-2014	2024-Q3	103.50	1
+f4c4c761-9487-47aa-89a0-dcd94a77996d	REQ-2026-2014	2025-Q1	107.60	2
+0ff2a592-385e-41fd-b5ff-e240447d9600	REQ-2026-2014	2025-Q3	110.30	3
+a50a0503-fe97-42d5-a893-bf2e0621027b	REQ-2026-2014	2026-Q1	114.80	4
+88dd0ccd-1ed2-4223-85ad-7638b2d2238e	REQ-2026-2014	2026-Q2	118.90	5
+1a503cd5-c238-4228-a48c-34e93ff1f965	REQ-2026-2015	2024-Q1	100.00	0
+32d61d65-7dbc-420f-b87d-3add2c4665b4	REQ-2026-2015	2024-Q3	103.90	1
+e3ad14de-e3f9-4a65-82bc-845bd4416324	REQ-2026-2015	2025-Q1	108.70	2
+aa73483e-54ac-47a7-bf3e-0c07e64bc505	REQ-2026-2015	2025-Q3	111.70	3
+e6e6121d-3048-4633-b4dc-c23dd65b18e6	REQ-2026-2015	2026-Q1	116.90	4
+d7f49f0f-8ea1-4881-9969-cf8e60da8424	REQ-2026-2015	2026-Q2	118.70	5
+3e8c2ed3-274b-4573-b0b0-1b71a3dfe912	REQ-2026-2016	2024-Q1	100.00	0
+5641cff3-a545-4094-8dc6-cbeedca32454	REQ-2026-2016	2024-Q3	103.20	1
+caedb457-7d5e-46b2-98aa-f73d29049866	REQ-2026-2016	2025-Q1	105.90	2
+70e95750-90b4-4795-94fc-67534a1600cc	REQ-2026-2016	2025-Q3	109.40	3
+787c60fc-2350-4b37-ae71-dfd0d739854f	REQ-2026-2016	2026-Q1	111.10	4
+b6bbb418-106a-4afa-a71a-d1ffb8d00bb0	REQ-2026-2016	2026-Q2	116.80	5
+fbc5c642-e2ad-40b9-97cb-168a6fa9a926	REQ-2026-2017	2024-Q1	100.00	0
+96a00250-d3e4-469b-a85b-aeb5c4ea1901	REQ-2026-2017	2024-Q3	102.70	1
+9553be4e-1dce-4a4f-abf0-dc1c9a1fbdd5	REQ-2026-2017	2025-Q1	105.50	2
+df0b1506-7a7f-4a0c-a21b-5624f800df79	REQ-2026-2017	2025-Q3	108.30	3
+40cd71a7-d245-470c-b29a-05c3a4b7ba7c	REQ-2026-2017	2026-Q1	110.50	4
+86828cd1-0f5c-48d4-9241-5ddbcd2a2baf	REQ-2026-2017	2026-Q2	113.10	5
+853f33ad-ba96-414a-912f-5ebf72d5a2c2	REQ-2026-2018	2024-Q1	100.00	0
+12b2a7f4-097c-443c-b1b8-8628c1fa557d	REQ-2026-2018	2024-Q3	101.40	1
+c11e42c6-dd25-4ead-820b-8cff7e856b1d	REQ-2026-2018	2025-Q1	103.30	2
+11f96975-469e-4787-a422-9863c44644bf	REQ-2026-2018	2025-Q3	105.00	3
+1a0faa93-3714-4776-a9c6-3572e33b050e	REQ-2026-2018	2026-Q1	105.90	4
+c5063664-538c-4153-ac8d-9c2f2b47a0ef	REQ-2026-2018	2026-Q2	108.00	5
+f88636e0-b7c5-4f74-8b00-eb508534c50c	REQ-2026-2019	2024-Q1	100.00	0
+6afdaa2d-4dfa-4c16-8f7b-3934b74366d9	REQ-2026-2019	2024-Q3	105.90	1
+d0358e5f-b365-42a7-9dd2-c0e799ac3668	REQ-2026-2019	2025-Q1	111.90	2
+5a70783c-6f95-40e9-b2c7-45f2ea1e0f63	REQ-2026-2019	2025-Q3	114.80	3
+3159028b-83d3-4089-ad8d-d9f1c7691127	REQ-2026-2019	2026-Q1	122.60	4
+3dca1198-fad0-41af-880b-d35dc832f33a	REQ-2026-2019	2026-Q2	129.30	5
+bed8e7c8-0de4-4d7c-be18-51a7cef416f5	REQ-2026-2020	2024-Q1	100.00	0
+5ae96c07-7c88-4829-a83c-3be9236f96af	REQ-2026-2020	2024-Q3	101.90	1
+e3ee73bb-2c94-489a-a5ed-f369b55dc906	REQ-2026-2020	2025-Q1	103.70	2
+aa7b60c3-2705-4822-bda5-ef4aeeb8eaa6	REQ-2026-2020	2025-Q3	106.00	3
+a7f4c32a-6dc9-41e1-9290-bd2fce3a9ded	REQ-2026-2020	2026-Q1	107.80	4
+b2fb35dc-be71-4119-8264-867263e8d3a9	REQ-2026-2020	2026-Q2	109.10	5
+a4084958-46a3-4c5a-8f3a-655dc9fc6a41	REQ-2026-2021	2024-Q1	100.00	0
+7a652cdc-54e5-483b-968c-6dd224b4b9d7	REQ-2026-2021	2024-Q3	103.40	1
+4d48a726-a6d6-47e1-aefd-4df55d464974	REQ-2026-2021	2025-Q1	107.50	2
+c4873bc0-a103-4990-b7da-116e360c556c	REQ-2026-2021	2025-Q3	109.50	3
+babefcc0-24ea-459b-b3ee-8f931620a9b0	REQ-2026-2021	2026-Q1	114.20	4
+b9f9b6c1-3ced-47e4-9e01-aef79c03559b	REQ-2026-2021	2026-Q2	117.60	5
+072b97b4-392b-4bdf-af2c-06d6cb94144d	REQ-2026-2022	2024-Q1	100.00	0
+ff913a7d-ff42-4218-812e-1f109abb8000	REQ-2026-2022	2024-Q3	102.80	1
+493dfcf0-f8d1-4711-b32c-7d615ab8b193	REQ-2026-2022	2025-Q1	106.30	2
+ffca2a6f-451f-4a8c-9687-16d4aed1bd81	REQ-2026-2022	2025-Q3	108.90	3
+a8eb2b55-9944-4692-9b6c-a2ccdb4b23fd	REQ-2026-2022	2026-Q1	111.30	4
+ee9c1b25-cc78-4af3-adc5-449fd1236724	REQ-2026-2022	2026-Q2	114.00	5
+2656dd8a-8be8-4042-8477-698f9b8b882e	REQ-2026-2023	2024-Q1	100.00	0
+5e41febe-3358-4b22-bf1c-2ca85d130d2e	REQ-2026-2023	2024-Q3	102.70	1
+cc0ce572-317e-4b0d-9d56-6a26a54cbc3e	REQ-2026-2023	2025-Q1	106.10	2
+f01ab406-78e9-459c-b816-b343f98af416	REQ-2026-2023	2025-Q3	108.40	3
+ae9bc134-c282-48c2-b6e3-22de34233879	REQ-2026-2023	2026-Q1	110.60	4
+4320266d-301e-47fe-a8d8-773351fe5b70	REQ-2026-2023	2026-Q2	114.60	5
+1299de3f-a145-4feb-bb28-efbbf47ddf98	REQ-2026-2025	2024-Q1	100.00	0
+8f00e0cc-8065-43f7-8305-c74b8ff84e05	REQ-2026-2025	2024-Q3	103.50	1
+ba457602-653a-48b4-8fa8-e31e268ef2b3	REQ-2026-2025	2025-Q1	107.40	2
+e7ae59e9-e97b-4443-92c5-4d05064a9f87	REQ-2026-2025	2025-Q3	110.30	3
+858fd7d7-68cb-4b07-ac24-310dbda3c3a7	REQ-2026-2025	2026-Q1	113.40	4
+d3f500aa-6ed5-48a4-86c9-e439e572ed60	REQ-2026-2025	2026-Q2	118.80	5
+c4f6cae1-8485-4d12-9aa5-8b8d09c5f781	REQ-2026-2027	2024-Q1	100.00	0
+4dfcf922-9f30-47c5-a8fe-b3e505c281a6	REQ-2026-2027	2024-Q3	104.80	1
+c1fe72c2-aa0f-42d2-bd92-194c3e94e44b	REQ-2026-2027	2025-Q1	109.10	2
+b1a7c051-442c-4a7e-89ec-aabed123b8c0	REQ-2026-2027	2025-Q3	113.60	3
+5134c773-865b-4778-9b83-adfe6bf59148	REQ-2026-2027	2026-Q1	121.10	4
+fbadeb68-eb98-4f45-b46f-8fd4c0697b62	REQ-2026-2027	2026-Q2	125.20	5
+253dbf47-f553-49fa-ab0d-9db612ff50a2	REQ-2026-2028	2024-Q1	100.00	0
+c24f89fe-325b-443e-8d4a-8a38adeea253	REQ-2026-2028	2024-Q3	104.30	1
+74585e95-0809-49eb-9567-63f5d856e7ac	REQ-2026-2028	2025-Q1	109.40	2
+18e3d1e1-f245-421d-9684-c501185c6e8c	REQ-2026-2028	2025-Q3	114.30	3
+93d994c4-aac1-4f3e-a15a-83e18e9332dc	REQ-2026-2028	2026-Q1	115.90	4
+77d75eba-5dd7-44a7-82d9-0867de5edf21	REQ-2026-2028	2026-Q2	123.80	5
+781e1bef-fa43-4fd9-a398-b92467998f09	REQ-2026-2029	2024-Q1	100.00	0
+a9b16b9e-b9c4-4fd1-961d-14a8ec19d078	REQ-2026-2029	2024-Q3	105.70	1
+75fbe9e7-eac6-452f-8894-1bf72324d595	REQ-2026-2029	2025-Q1	110.60	2
+662a5a9a-74c1-4690-a497-61df271277a9	REQ-2026-2029	2025-Q3	114.90	3
+3025d362-13dd-41fc-955c-5435da3daf2e	REQ-2026-2029	2026-Q1	122.30	4
+7b8d8b58-6949-44ea-a181-129107baaf13	REQ-2026-2029	2026-Q2	126.50	5
+2c887bb6-e0dd-4f2c-a584-647028f683a1	REQ-2026-2030	2024-Q1	100.00	0
+2a25a89f-89d2-4d16-8c69-f9d084934134	REQ-2026-2030	2024-Q3	101.00	1
+23fca1bd-c54a-41f0-bc89-f65ab77479ea	REQ-2026-2030	2025-Q1	102.00	2
+f4ca4e7c-1a6d-4e8c-b22c-951de5c31ab6	REQ-2026-2030	2025-Q3	103.00	3
+7b7659a8-e4fa-42ce-ab47-9ffc06da6e5c	REQ-2026-2030	2026-Q1	104.40	4
+ca43af5e-c2ce-48b1-bede-9d3a6071bba5	REQ-2026-2030	2026-Q2	104.80	5
+9ee2666c-b936-4539-a7e6-be43e723f6bc	REQ-2026-2033	2024-Q1	100.00	0
+5b05b964-4265-4f74-8b6f-2b330a9f159f	REQ-2026-2033	2024-Q3	103.30	1
+8007c2cc-7d6d-4c7e-894b-ea590d5ba440	REQ-2026-2033	2025-Q1	106.30	2
+da8fae93-901e-437c-ad8d-2d6757f37488	REQ-2026-2033	2025-Q3	111.30	3
+3ef24651-e48c-4638-8d37-6c02b27044f9	REQ-2026-2033	2026-Q1	114.60	4
+e0046f91-9fa5-44da-8849-3017fddf39df	REQ-2026-2033	2026-Q2	116.10	5
+fda5a7ae-7527-4da1-8105-58254179fa48	REQ-2026-2034	2024-Q1	100.00	0
+47730798-aa03-4c6a-8194-e3a57ec1e19a	REQ-2026-2034	2024-Q3	103.10	1
+ce9ceac0-49e1-4780-9d0d-d489fe8eec9e	REQ-2026-2034	2025-Q1	106.40	2
+138b529f-e332-48c9-8b25-183db33a98b6	REQ-2026-2034	2025-Q3	109.90	3
+283eb71c-9e53-4e9c-b409-1030bf0d28e0	REQ-2026-2034	2026-Q1	113.90	4
+358d0ddd-ac00-4dce-a241-e72cdb5516d8	REQ-2026-2034	2026-Q2	116.80	5
+01a978b4-b42f-47cf-b882-a0b3756e2d9f	REQ-2026-2036	2024-Q1	100.00	0
+37521dde-b999-4715-9ba6-3240a39745bf	REQ-2026-2036	2024-Q3	105.30	1
+58b2dd7a-2a77-429a-b29f-d79e7436fd1c	REQ-2026-2036	2025-Q1	109.60	2
+6f2b51d5-e4ce-4220-b458-a9fec02798a5	REQ-2026-2036	2025-Q3	116.10	3
+9bfbe952-a47c-445d-a297-cc6a27deb498	REQ-2026-2036	2026-Q1	118.80	4
+e5316ff8-f0a9-4b52-85ce-7db13372c558	REQ-2026-2036	2026-Q2	126.70	5
+efe5d6eb-9023-44e5-97f4-4bb54ca32468	REQ-2026-2037	2024-Q1	100.00	0
+bb6bfad2-fc84-4b8b-b5c9-ed274aeec1d9	REQ-2026-2037	2024-Q3	105.00	1
+d76a8742-16d1-40e0-b225-b34bb6177c51	REQ-2026-2037	2025-Q1	109.50	2
+04fe8a6c-70e7-4116-bb37-b2ce838dcb54	REQ-2026-2037	2025-Q3	117.30	3
+ee3af572-92cf-4e80-b949-640b7db3f8f2	REQ-2026-2037	2026-Q1	121.60	4
+028b9f89-29f3-4c20-804f-5cfcd190d545	REQ-2026-2037	2026-Q2	128.10	5
+c7bfa0c8-7cce-42cf-8468-4d83e20530f6	REQ-2026-2039	2024-Q1	100.00	0
+51d1d6d3-510b-4ee0-8a10-af6c8fc0fdef	REQ-2026-2039	2024-Q3	103.30	1
+31812c4b-d640-4c9c-a777-bbff2d6a21b1	REQ-2026-2039	2025-Q1	105.90	2
+1a4cb2e0-9688-45f0-9cf3-0ccff4c5ff28	REQ-2026-2039	2025-Q3	110.30	3
+ddeda654-3ac8-44f8-a2b2-573539325122	REQ-2026-2039	2026-Q1	114.00	4
+93fc13fe-3ffc-435f-988b-bf1616ecea59	REQ-2026-2039	2026-Q2	117.50	5
+f8ffc8a0-a9e7-4e0f-970b-63848813fd4a	REQ-2026-2040	2024-Q1	100.00	0
+2c15d995-e8a5-471a-96ac-0cd9687b8b68	REQ-2026-2040	2024-Q3	104.30	1
+e3796370-0933-4385-983a-ba4a1c13ad4e	REQ-2026-2040	2025-Q1	108.50	2
+d444312b-feb3-41c9-8783-c9ac5985692b	REQ-2026-2040	2025-Q3	111.20	3
+b1ff0092-149c-4b9f-834d-a3ede534cd9a	REQ-2026-2040	2026-Q1	116.30	4
+361afa91-d43e-41ec-8db8-ca997a5c7cae	REQ-2026-2040	2026-Q2	119.30	5
+b31bb9d1-2f1e-4317-b487-c487eeeed817	REQ-2026-2041	2024-Q1	100.00	0
+5a5eb5da-8762-4c40-b348-a3f7ca1397a0	REQ-2026-2041	2024-Q3	103.50	1
+6da41424-9257-4be3-940f-52d0a3d89724	REQ-2026-2041	2025-Q1	105.90	2
+fdab5170-88b8-4dc0-a8f6-a690f4811a8c	REQ-2026-2041	2025-Q3	110.30	3
+2474a7da-3a89-4b43-b132-8b499979c31f	REQ-2026-2041	2026-Q1	112.00	4
+db1eaa00-2545-42cb-980f-98d3ae5dcd3b	REQ-2026-2041	2026-Q2	116.50	5
+41d8c771-e2b4-41db-abfd-7ca487841ec4	REQ-2026-2044	2024-Q1	100.00	0
+e58c39be-d031-4afa-9d08-100bcda262d0	REQ-2026-2044	2024-Q3	105.70	1
+785d14ff-a222-4e01-9560-777f514a5614	REQ-2026-2044	2025-Q1	110.40	2
+7810dfe1-a25c-49fb-a268-01f4b2685d7a	REQ-2026-2044	2025-Q3	116.40	3
+75ead269-ba80-4a74-94cd-2ab7777e545a	REQ-2026-2044	2026-Q1	122.00	4
+13d96deb-7f3e-40e1-8b38-a8a3c31100b0	REQ-2026-2044	2026-Q2	128.40	5
+fa824438-009d-40f8-a500-c2afcf36e353	REQ-2026-2045	2024-Q1	100.00	0
+aca3fc08-ae03-4d0c-bf3b-85a5a1f37b4f	REQ-2026-2045	2024-Q3	104.60	1
+ee2d1730-f532-4327-ac4c-8166f5d6dcce	REQ-2026-2045	2025-Q1	109.90	2
+dd40bd7f-448b-4f3b-83be-0626e13c3854	REQ-2026-2045	2025-Q3	115.90	3
+dfc2c023-bf61-416f-a1ef-b531acc31236	REQ-2026-2045	2026-Q1	119.00	4
+4ff39079-fc11-4fc5-a4ea-b4beb4916919	REQ-2026-2045	2026-Q2	125.30	5
+b7656dfc-c7b5-46ad-a41e-88f604df77e4	REQ-2026-2047	2024-Q1	100.00	0
+2f2ed31e-e625-4224-81b0-bb55db35621f	REQ-2026-2047	2024-Q3	103.30	1
+b3d52e53-f50f-4acb-b83b-9ded12d50b55	REQ-2026-2047	2025-Q1	107.00	2
+6f3a07b4-b6e2-47a4-86cf-a90d2b446521	REQ-2026-2047	2025-Q3	111.40	3
+7e52bc98-2c9f-4155-9e39-35735abcca17	REQ-2026-2047	2026-Q1	114.60	4
+9ca957e0-8e29-4de2-b70e-f2dd3d1d8080	REQ-2026-2047	2026-Q2	118.80	5
+53e01d85-9929-48b8-beb0-0880caa34c85	REQ-2026-2048	2024-Q1	100.00	0
+d08f1712-ccce-4d16-b53f-dbdbd7e178bf	REQ-2026-2048	2024-Q3	105.10	1
+066814fe-095c-44a2-95bf-cb113ef4b54e	REQ-2026-2048	2025-Q1	109.40	2
+b0f53e0d-26fb-4691-9fb7-e26b5a9c2492	REQ-2026-2048	2025-Q3	115.60	3
+ea7cf8f7-bef4-41bc-949c-69c197bc133f	REQ-2026-2048	2026-Q1	120.40	4
+dccd9a8f-afff-4e12-9b0e-2f2d0dd9cdda	REQ-2026-2048	2026-Q2	125.90	5
+41fb863f-35af-40c5-ac5e-b6cdbb83dbe1	REQ-2026-2049	2024-Q1	100.00	0
+2ad11d76-3546-478a-a164-15e9794dc32b	REQ-2026-2049	2024-Q3	105.90	1
+1a9aa8b2-c3bd-4644-b214-ce3a02ec1116	REQ-2026-2049	2025-Q1	112.00	2
+86791d30-312f-4cc9-88da-1de9d3d09557	REQ-2026-2049	2025-Q3	117.90	3
+ec5aad25-c719-418a-a765-1dc0d48f303d	REQ-2026-2049	2026-Q1	124.00	4
+7d7472cf-cb5e-4f9c-bb62-aafe22f5a484	REQ-2026-2049	2026-Q2	127.90	5
+16664423-8b1f-4c71-b9a8-fed0befd3920	REQ-2026-2050	2024-Q1	100.00	0
+96baf36b-1250-4198-9452-64ba521b3b7c	REQ-2026-2050	2024-Q3	103.20	1
+742ad947-3525-409e-b5d6-42e9fc37a238	REQ-2026-2050	2025-Q1	105.90	2
+817b9318-b4e0-4839-891a-07dfda17d546	REQ-2026-2050	2025-Q3	109.90	3
+e9667de5-368e-42dd-b385-c7d035dc33ec	REQ-2026-2050	2026-Q1	113.00	4
+e1cbc94e-256f-476e-bb6e-6c9246282f39	REQ-2026-2050	2026-Q2	115.20	5
+961d94cf-5cfc-4772-942a-5deee58dd746	REQ-2026-2051	2024-Q1	100.00	0
+88a3874b-8e4b-4d45-988a-47ed4f42c058	REQ-2026-2051	2024-Q3	101.50	1
+2983f23e-4e8c-43bf-ba13-11f6c7ec50d6	REQ-2026-2051	2025-Q1	102.80	2
+c41f7dc0-7aa6-4345-b962-5741d2f46ff3	REQ-2026-2051	2025-Q3	104.10	3
+d58e874c-5886-4f44-9813-7973d4e6e548	REQ-2026-2051	2026-Q1	105.60	4
+99b10f52-c700-44d8-bb86-8b53a4bd8b8a	REQ-2026-2051	2026-Q2	107.20	5
+d53d7a24-8ee7-4931-8c16-1814cdb32c93	REQ-2026-2052	2024-Q1	100.00	0
+b41e6b66-e02e-4e5c-af9e-364dda7b740a	REQ-2026-2052	2024-Q3	103.40	1
+134cf214-28d1-45b5-98dd-e28b23202c3d	REQ-2026-2052	2025-Q1	106.80	2
+eecdce7e-1545-4f13-99d8-569f6030b685	REQ-2026-2052	2025-Q3	110.20	3
+fef3e789-b52d-449b-94a5-31c5844e39cb	REQ-2026-2052	2026-Q1	115.00	4
+5b93fbf0-334d-485c-90e9-a886a5e0d931	REQ-2026-2052	2026-Q2	117.10	5
+80c8f71f-cfe7-42f3-afa3-8a314591cee7	REQ-2026-2053	2024-Q1	100.00	0
+00a16792-5eac-4813-aa27-4c15ba6dd718	REQ-2026-2053	2024-Q3	105.50	1
+173710ee-dbbe-46c2-9dee-cf2fb998d09e	REQ-2026-2053	2025-Q1	110.00	2
+6a813153-4e4f-41cf-95cf-7739b55bb391	REQ-2026-2053	2025-Q3	115.10	3
+8263bac2-8d03-4920-98a4-156db999bb6f	REQ-2026-2053	2026-Q1	122.80	4
+d0fe6579-0663-42f7-b978-1d832dfacb1b	REQ-2026-2053	2026-Q2	129.20	5
+b5417531-299c-43f7-aec7-67be10201c2e	REQ-2026-2054	2024-Q1	100.00	0
+311fc52f-290b-4c63-bbdc-bd69ab7a17f9	REQ-2026-2054	2024-Q3	101.40	1
+4629bba8-b722-48e0-93c8-9b292c702104	REQ-2026-2054	2025-Q1	102.80	2
+b9300a59-a020-45e4-a256-78ead22c095c	REQ-2026-2054	2025-Q3	104.00	3
+f13ded9e-9f51-4251-a4d1-e4ff3219a9c8	REQ-2026-2054	2026-Q1	105.00	4
+72a4e488-9691-41d0-9e05-1d626b1ce45a	REQ-2026-2054	2026-Q2	107.10	5
+fdc41afd-c509-4f65-bb69-8022feb8749b	REQ-2026-2055	2024-Q1	100.00	0
+30f591a1-fcae-4c61-a4bd-47e46baf42d6	REQ-2026-2055	2024-Q3	104.20	1
+118365b2-9e3f-46db-8e2b-806f5ededb0c	REQ-2026-2055	2025-Q1	108.10	2
+adf2923e-b43a-4a48-bfd2-c0c6553af898	REQ-2026-2055	2025-Q3	112.10	3
+74bb1d3f-7774-4e29-bc34-ed1368321b44	REQ-2026-2055	2026-Q1	116.90	4
+18411205-47b1-4435-b73e-1180c52975a5	REQ-2026-2055	2026-Q2	120.90	5
+6d47d270-5f25-4bb1-b1d3-e74fda84e155	REQ-2026-2056	2024-Q1	100.00	0
+423838a4-962a-44af-ba52-7208a2ad4d9a	REQ-2026-2056	2024-Q3	104.10	1
+7276f5c9-6779-44fb-979b-15ab7b479e48	REQ-2026-2056	2025-Q1	107.70	2
+1de7e8ed-e711-4dc3-a8ab-fa1039c24a03	REQ-2026-2056	2025-Q3	111.80	3
+ce68ebcc-8632-49fa-aa60-cbfc9b5a68db	REQ-2026-2056	2026-Q1	116.50	4
+be17edd3-469d-4b3b-9a9e-3e2186cab463	REQ-2026-2056	2026-Q2	120.30	5
+e390055a-2d7d-4f03-bced-39eda0a89c5f	REQ-2026-2057	2024-Q1	100.00	0
+03cdc8cc-7003-48f4-a23d-2523c1aa193c	REQ-2026-2057	2024-Q3	104.20	1
+2c8e81ca-7a17-4794-9c71-3ff4bd038261	REQ-2026-2057	2025-Q1	107.70	2
+89a3b9d6-3657-4152-a7ee-9741b2026c50	REQ-2026-2057	2025-Q3	111.70	3
+41dc4e81-f8b2-4417-861e-43ac396ae7d6	REQ-2026-2057	2026-Q1	116.40	4
+84148b34-74f9-48cf-8770-b8fde5013289	REQ-2026-2057	2026-Q2	119.50	5
+f08a9df5-48c2-4c23-9100-93b2cb0f8d6e	REQ-2026-2059	2024-Q1	100.00	0
+42b03fd9-b455-4ca7-af7c-026bc26f462a	REQ-2026-2059	2024-Q3	101.30	1
+0b0bc0ef-9c2c-48d0-bc1d-cdf7ded5ae92	REQ-2026-2059	2025-Q1	102.60	2
+72793a4c-6dbf-4692-bafb-0bd850c3c1a2	REQ-2026-2059	2025-Q3	103.50	3
+ca34487c-032a-4377-ac6e-b4e487136a5a	REQ-2026-2059	2026-Q1	104.60	4
+d155576d-5a37-4151-a1aa-155bac182df6	REQ-2026-2059	2026-Q2	105.70	5
+27e85926-1c47-4231-8dca-8a888e93a86c	REQ-E2E-0002	2024-Q1	100.00	0
+b5f01c13-7790-4b12-ba93-563f90dfd52c	REQ-E2E-0002	2024-Q3	106.00	1
+4bf43a83-8175-4b45-97fd-f833541548f6	REQ-E2E-0002	2025-Q1	111.00	2
+9c780bd4-518b-4bd2-a286-d116cde0dead	REQ-E2E-0002	2025-Q3	115.00	3
+7af94f38-d30e-49a1-9b0d-9cc253bbd549	REQ-E2E-0002	2026-Q1	118.00	4
+6eb902e5-bf1c-4c47-a020-29cc77affe3e	REQ-E2E-0002	2026-Q2	120.00	5
+\.
+
+
+--
+-- Data for Name: valuation_result; Type: TABLE DATA; Schema: public; Owner: shb
+--
+
+COPY public.valuation_result (case_id, proposed_value_vnd, value_range_low_vnd, value_range_high_vnd, price_per_sqm_vnd, confidence_pct, comparable_count, price_index_period, price_index_value, price_index_base, confidence_inference_text, computed_at) FROM stdin;
+REQ-2026-2000	29630000000	27800000000	32230000000	148670346	74	7	2026-Q1	125.10	100.00	Độ tin cậy tổng 74% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-07-14 09:53:00+00
+REQ-2026-2001	38510000000	35520000000	41030000000	183555767	73	5	2026-Q1	124.60	100.00	Độ tin cậy tổng 73% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-03-28 14:56:00+00
+REQ-2026-2002	49940000000	46710000000	53380000000	253373922	83	6	2026-Q2	110.90	100.00	Độ tin cậy tổng 83% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-12 04:34:00+00
+REQ-2026-2003	3760000000	3560000000	4020000000	129209622	65	7	2026-Q1	110.00	100.00	Độ tin cậy tổng 65% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-03-27 07:29:00+00
+REQ-2026-2004	16200000000	15430000000	17620000000	173262032	79	6	2026-Q2	107.00	100.00	Độ tin cậy tổng 79% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-17 07:25:00+00
+REQ-2026-2005	9770000000	9140000000	10580000000	71158048	76	7	2026-Q1	114.40	100.00	Độ tin cậy tổng 76% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-19 12:02:00+00
+REQ-2026-2006	4570000000	4220000000	4810000000	117783505	77	7	2026-Q1	105.60	100.00	Độ tin cậy tổng 77% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-30 02:38:00+00
+REQ-2026-2008	9780000000	9170000000	10230000000	187356322	67	8	2026-Q1	117.20	100.00	Độ tin cậy tổng 67% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-08 12:25:00+00
+REQ-2026-2009	3140000000	2890000000	3320000000	76399027	70	6	2026-Q2	121.60	100.00	Độ tin cậy tổng 70% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-04-08 02:13:00+00
+REQ-2026-2011	7210000000	6890000000	7780000000	83064516	62	5	2026-Q1	119.70	100.00	Độ tin cậy tổng 62% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-26 11:50:00+00
+REQ-2026-2012	56910000000	54120000000	60270000000	355243446	68	6	2026-Q2	123.90	100.00	Độ tin cậy tổng 68% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-17 20:02:00+00
+REQ-2026-2013	54360000000	51260000000	57250000000	316967930	82	5	2026-Q2	113.30	100.00	Độ tin cậy tổng 82% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-21 03:53:00+00
+REQ-2026-2014	30480000000	28260000000	32730000000	162907536	73	6	2026-Q2	117.80	100.00	Độ tin cậy tổng 73% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-05 16:41:00+00
+REQ-2026-2015	73620000000	68560000000	78560000000	451379522	70	8	2026-Q1	120.10	100.00	Độ tin cậy tổng 70% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-09 00:06:00+00
+REQ-2026-2016	3950000000	3700000000	4180000000	81443299	72	5	2026-Q1	115.30	100.00	Độ tin cậy tổng 72% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-07-18 00:36:00+00
+REQ-2026-2017	12180000000	11690000000	12940000000	109729730	85	5	2026-Q2	113.00	100.00	Độ tin cậy tổng 85% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-03-27 03:40:00+00
+REQ-2026-2018	5150000000	4920000000	5390000000	63267813	71	4	2026-Q2	107.80	100.00	Độ tin cậy tổng 71% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-03-20 23:19:00+00
+REQ-2026-2019	2870000000	2670000000	3040000000	66435185	54	4	2026-Q2	127.40	100.00	Độ tin cậy tổng 54% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-28 17:10:00+00
+REQ-2026-2020	12010000000	11090000000	12630000000	139004630	67	8	2026-Q1	110.00	100.00	Độ tin cậy tổng 67% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-07-13 04:07:00+00
+REQ-2026-2021	9610000000	8870000000	10160000000	70351391	78	5	2026-Q1	117.50	100.00	Độ tin cậy tổng 78% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-05 11:00:00+00
+REQ-2026-2022	17040000000	16140000000	17950000000	98156682	69	4	2026-Q2	114.40	100.00	Độ tin cậy tổng 69% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-07 07:08:00+00
+REQ-2026-2023	7120000000	6730000000	7650000000	135361217	72	8	2026-Q2	114.60	100.00	Độ tin cậy tổng 72% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-08 05:23:00+00
+REQ-2026-2025	9860000000	9120000000	10500000000	61586508	74	4	2026-Q1	117.20	100.00	Độ tin cậy tổng 74% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-04-24 10:36:00+00
+REQ-2026-2027	4640000000	4390000000	5010000000	69253731	80	4	2026-Q1	124.90	100.00	Độ tin cậy tổng 80% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-04-03 02:31:00+00
+REQ-2026-2028	25920000000	24500000000	27310000000	177049180	63	7	2026-Q2	122.10	100.00	Độ tin cậy tổng 63% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-24 12:52:00+00
+REQ-2026-2029	27510000000	25980000000	29610000000	232151899	77	8	2026-Q1	126.40	100.00	Độ tin cậy tổng 77% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-18 04:42:00+00
+REQ-2026-2030	34310000000	32580000000	36490000000	406035503	74	8	2026-Q1	105.20	100.00	Độ tin cậy tổng 74% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-14 01:55:00+00
+REQ-2026-2033	35220000000	33610000000	36910000000	401138952	72	4	2026-Q2	117.20	100.00	Độ tin cậy tổng 72% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-19 12:19:00+00
+REQ-2026-2034	4530000000	4270000000	4750000000	114105793	74	8	2026-Q2	116.60	100.00	Độ tin cậy tổng 74% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-07 10:48:00+00
+REQ-2026-2036	20860000000	19340000000	22310000000	96888063	70	5	2026-Q2	125.60	100.00	Độ tin cậy tổng 70% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-29 14:14:00+00
+REQ-2026-2037	5970000000	5600000000	6450000000	38917862	65	6	2026-Q2	126.30	100.00	Độ tin cậy tổng 65% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-04-23 15:34:00+00
+REQ-2026-2039	11260000000	10780000000	12030000000	305149051	66	7	2026-Q2	116.20	100.00	Độ tin cậy tổng 66% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-04-14 00:50:00+00
+REQ-2026-2040	8390000000	7800000000	8910000000	82416503	57	8	2026-Q2	119.70	100.00	Độ tin cậy tổng 57% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-26 05:49:00+00
+REQ-2026-2041	11560000000	10670000000	12450000000	150913838	59	8	2026-Q1	116.20	100.00	Độ tin cậy tổng 59% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-04-27 19:59:00+00
+REQ-2026-2044	27580000000	26220000000	29990000000	203242447	73	6	2026-Q1	126.30	100.00	Độ tin cậy tổng 73% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-06 03:21:00+00
+REQ-2026-2045	16100000000	14950000000	16900000000	95947557	71	6	2026-Q1	125.60	100.00	Độ tin cậy tổng 71% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-03-25 21:22:00+00
+REQ-2026-2047	37210000000	35040000000	39570000000	321607606	78	5	2026-Q1	117.90	100.00	Độ tin cậy tổng 78% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-04-01 19:31:00+00
+REQ-2026-2048	49740000000	46550000000	53820000000	408374384	81	6	2026-Q1	124.40	100.00	Độ tin cậy tổng 81% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-04 18:45:00+00
+REQ-2026-2049	9030000000	8480000000	9780000000	48548387	55	6	2026-Q2	127.40	100.00	Độ tin cậy tổng 55% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-03-30 05:29:00+00
+REQ-2026-2050	11840000000	11100000000	12850000000	100594732	65	6	2026-Q1	116.00	100.00	Độ tin cậy tổng 65% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-07-12 20:02:00+00
+REQ-2026-2051	41080000000	39230000000	43960000000	268848168	80	8	2026-Q1	107.40	100.00	Độ tin cậy tổng 80% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-23 14:22:00+00
+REQ-2026-2052	24840000000	23300000000	26290000000	236346337	78	4	2026-Q2	117.10	100.00	Độ tin cậy tổng 78% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-07-10 22:22:00+00
+REQ-2026-2053	2670000000	2540000000	2820000000	47173145	71	8	2026-Q2	127.40	100.00	Độ tin cậy tổng 71% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-04-15 23:32:00+00
+REQ-2026-2054	8580000000	8000000000	9190000000	48916762	80	8	2026-Q1	106.50	100.00	Độ tin cậy tổng 80% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-04-20 09:59:00+00
+REQ-2026-2055	7760000000	7300000000	8140000000	50291640	83	7	2026-Q1	121.40	100.00	Độ tin cậy tổng 83% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-05-14 16:44:00+00
+REQ-2026-2056	3540000000	3300000000	3830000000	36419753	61	7	2026-Q2	120.30	100.00	Độ tin cậy tổng 61% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-22 12:34:00+00
+REQ-2026-2057	40430000000	37350000000	42700000000	301491424	84	8	2026-Q1	119.50	100.00	Độ tin cậy tổng 84% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-01 07:51:00+00
+REQ-2026-2059	27090000000	24940000000	28660000000	624193548	76	7	2026-Q2	106.10	100.00	Độ tin cậy tổng 76% là trung bình có trọng số của 5 yếu tố cấu thành — xem chi tiết ở valuation_confidence_factor.	2026-06-26 21:12:00+00
+\.
+
+
+--
+-- Name: risk_ltv_policy_band_id_seq; Type: SEQUENCE SET; Schema: public; Owner: shb
+--
+
+SELECT pg_catalog.setval('public.risk_ltv_policy_band_id_seq', 1, false);
+
+
+--
+-- Name: agent_trace_event agent_trace_event_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.agent_trace_event
+    ADD CONSTRAINT agent_trace_event_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.alembic_version
+    ADD CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num);
+
+
+--
+-- Name: appraisal_case appraisal_case_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.appraisal_case
+    ADD CONSTRAINT appraisal_case_pkey PRIMARY KEY (case_id);
+
+
+--
+-- Name: attached_document attached_document_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.attached_document
+    ADD CONSTRAINT attached_document_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: case_borrower case_borrower_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.case_borrower
+    ADD CONSTRAINT case_borrower_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: case_edit_log case_edit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.case_edit_log
+    ADD CONSTRAINT case_edit_log_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: case_step_progress case_step_progress_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.case_step_progress
+    ADD CONSTRAINT case_step_progress_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: chat_message chat_message_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.chat_message
+    ADD CONSTRAINT chat_message_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: dashboard_step_summary dashboard_step_summary_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.dashboard_step_summary
+    ADD CONSTRAINT dashboard_step_summary_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: exported_report exported_report_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.exported_report
+    ADD CONSTRAINT exported_report_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: field_provenance field_provenance_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.field_provenance
+    ADD CONSTRAINT field_provenance_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: files files_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.files
+    ADD CONSTRAINT files_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: jobs jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.jobs
+    ADD CONSTRAINT jobs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: loan_info loan_info_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.loan_info
+    ADD CONSTRAINT loan_info_pkey PRIMARY KEY (case_id);
+
+
+--
+-- Name: lookup_finding lookup_finding_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.lookup_finding
+    ADD CONSTRAINT lookup_finding_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: market_comparable market_comparable_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.market_comparable
+    ADD CONSTRAINT market_comparable_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: plugin_runs plugin_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.plugin_runs
+    ADD CONSTRAINT plugin_runs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: property_legal_info property_legal_info_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.property_legal_info
+    ADD CONSTRAINT property_legal_info_pkey PRIMARY KEY (case_id);
+
+
+--
+-- Name: property_physical_info property_physical_info_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.property_physical_info
+    ADD CONSTRAINT property_physical_info_pkey PRIMARY KEY (case_id);
+
+
+--
+-- Name: risk_assessment_result risk_assessment_result_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.risk_assessment_result
+    ADD CONSTRAINT risk_assessment_result_pkey PRIMARY KEY (case_id);
+
+
+--
+-- Name: risk_flag risk_flag_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.risk_flag
+    ADD CONSTRAINT risk_flag_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: risk_group risk_group_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.risk_group
+    ADD CONSTRAINT risk_group_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: risk_ltv_policy_band risk_ltv_policy_band_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.risk_ltv_policy_band
+    ADD CONSTRAINT risk_ltv_policy_band_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: case_step_progress uq_case_step_progress_case_step; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.case_step_progress
+    ADD CONSTRAINT uq_case_step_progress_case_step UNIQUE (case_id, step_number);
+
+
+--
+-- Name: dashboard_step_summary uq_dashboard_step_summary_case_step; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.dashboard_step_summary
+    ADD CONSTRAINT uq_dashboard_step_summary_case_step UNIQUE (case_id, step_number);
+
+
+--
+-- Name: lookup_finding uq_lookup_finding_case_category; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.lookup_finding
+    ADD CONSTRAINT uq_lookup_finding_case_category UNIQUE (case_id, category);
+
+
+--
+-- Name: risk_group uq_risk_group_case_group; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.risk_group
+    ADD CONSTRAINT uq_risk_group_case_group UNIQUE (case_id, group_key);
+
+
+--
+-- Name: valuation_confidence_factor uq_valuation_conf_factor_case_factor; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.valuation_confidence_factor
+    ADD CONSTRAINT uq_valuation_conf_factor_case_factor UNIQUE (case_id, factor_key);
+
+
+--
+-- Name: valuation_method uq_valuation_method_case_method; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.valuation_method
+    ADD CONSTRAINT uq_valuation_method_case_method UNIQUE (case_id, method_key);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: valuation_confidence_factor valuation_confidence_factor_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.valuation_confidence_factor
+    ADD CONSTRAINT valuation_confidence_factor_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: valuation_method valuation_method_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.valuation_method
+    ADD CONSTRAINT valuation_method_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: valuation_price_index_point valuation_price_index_point_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.valuation_price_index_point
+    ADD CONSTRAINT valuation_price_index_point_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: valuation_result valuation_result_pkey; Type: CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.valuation_result
+    ADD CONSTRAINT valuation_result_pkey PRIMARY KEY (case_id);
+
+
+--
+-- Name: idx_agent_trace_event_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_agent_trace_event_case_id ON public.agent_trace_event USING btree (case_id);
+
+
+--
+-- Name: idx_attached_document_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_attached_document_case_id ON public.attached_document USING btree (case_id);
+
+
+--
+-- Name: idx_case_borrower_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_case_borrower_case_id ON public.case_borrower USING btree (case_id);
+
+
+--
+-- Name: idx_case_edit_log_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_case_edit_log_case_id ON public.case_edit_log USING btree (case_id);
+
+
+--
+-- Name: idx_case_edit_log_case_status; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_case_edit_log_case_status ON public.case_edit_log USING btree (case_id, status);
+
+
+--
+-- Name: idx_case_step_progress_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_case_step_progress_case_id ON public.case_step_progress USING btree (case_id);
+
+
+--
+-- Name: idx_chat_message_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_chat_message_case_id ON public.chat_message USING btree (case_id, created_at);
+
+
+--
+-- Name: idx_exported_report_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_exported_report_case_id ON public.exported_report USING btree (case_id);
+
+
+--
+-- Name: idx_field_provenance_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_field_provenance_case_id ON public.field_provenance USING btree (case_id);
+
+
+--
+-- Name: idx_field_provenance_source_document_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_field_provenance_source_document_id ON public.field_provenance USING btree (source_document_id);
+
+
+--
+-- Name: idx_field_provenance_target; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_field_provenance_target ON public.field_provenance USING btree (case_id, target_table, target_field);
+
+
+--
+-- Name: idx_lookup_finding_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_lookup_finding_case_id ON public.lookup_finding USING btree (case_id);
+
+
+--
+-- Name: idx_market_comparable_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_market_comparable_case_id ON public.market_comparable USING btree (case_id);
+
+
+--
+-- Name: idx_risk_flag_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_risk_flag_case_id ON public.risk_flag USING btree (case_id);
+
+
+--
+-- Name: idx_risk_group_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_risk_group_case_id ON public.risk_group USING btree (case_id);
+
+
+--
+-- Name: idx_valuation_confidence_factor_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_valuation_confidence_factor_case_id ON public.valuation_confidence_factor USING btree (case_id);
+
+
+--
+-- Name: idx_valuation_method_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_valuation_method_case_id ON public.valuation_method USING btree (case_id);
+
+
+--
+-- Name: idx_valuation_price_index_point_case_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX idx_valuation_price_index_point_case_id ON public.valuation_price_index_point USING btree (case_id);
+
+
+--
+-- Name: ix_jobs_celery_task_id; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX ix_jobs_celery_task_id ON public.jobs USING btree (celery_task_id);
+
+
+--
+-- Name: ix_jobs_status_created; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE INDEX ix_jobs_status_created ON public.jobs USING btree (status, created_at);
+
+
+--
+-- Name: ix_users_email; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE UNIQUE INDEX ix_users_email ON public.users USING btree (email);
+
+
+--
+-- Name: ux_field_provenance_selected; Type: INDEX; Schema: public; Owner: shb
+--
+
+CREATE UNIQUE INDEX ux_field_provenance_selected ON public.field_provenance USING btree (case_id, target_table, target_field, COALESCE(target_record_id, '00000000-0000-0000-0000-000000000000'::character varying)) WHERE is_selected;
+
+
+--
+-- Name: agent_trace_event agent_trace_event_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.agent_trace_event
+    ADD CONSTRAINT agent_trace_event_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: attached_document attached_document_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.attached_document
+    ADD CONSTRAINT attached_document_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: case_borrower case_borrower_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.case_borrower
+    ADD CONSTRAINT case_borrower_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: case_edit_log case_edit_log_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.case_edit_log
+    ADD CONSTRAINT case_edit_log_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: case_step_progress case_step_progress_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.case_step_progress
+    ADD CONSTRAINT case_step_progress_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: chat_message chat_message_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.chat_message
+    ADD CONSTRAINT chat_message_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: chat_message chat_message_related_edit_log_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.chat_message
+    ADD CONSTRAINT chat_message_related_edit_log_id_fkey FOREIGN KEY (related_edit_log_id) REFERENCES public.case_edit_log(id) ON DELETE SET NULL;
+
+
+--
+-- Name: dashboard_step_summary dashboard_step_summary_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.dashboard_step_summary
+    ADD CONSTRAINT dashboard_step_summary_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: exported_report exported_report_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.exported_report
+    ADD CONSTRAINT exported_report_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: field_provenance field_provenance_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.field_provenance
+    ADD CONSTRAINT field_provenance_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: field_provenance field_provenance_source_document_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.field_provenance
+    ADD CONSTRAINT field_provenance_source_document_id_fkey FOREIGN KEY (source_document_id) REFERENCES public.attached_document(id) ON DELETE SET NULL;
+
+
+--
+-- Name: files files_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.files
+    ADD CONSTRAINT files_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: jobs jobs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.jobs
+    ADD CONSTRAINT jobs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: loan_info loan_info_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.loan_info
+    ADD CONSTRAINT loan_info_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: lookup_finding lookup_finding_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.lookup_finding
+    ADD CONSTRAINT lookup_finding_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: market_comparable market_comparable_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.market_comparable
+    ADD CONSTRAINT market_comparable_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: property_legal_info property_legal_info_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.property_legal_info
+    ADD CONSTRAINT property_legal_info_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: property_physical_info property_physical_info_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.property_physical_info
+    ADD CONSTRAINT property_physical_info_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: risk_assessment_result risk_assessment_result_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.risk_assessment_result
+    ADD CONSTRAINT risk_assessment_result_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: risk_flag risk_flag_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.risk_flag
+    ADD CONSTRAINT risk_flag_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: risk_flag risk_flag_linked_risk_group_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.risk_flag
+    ADD CONSTRAINT risk_flag_linked_risk_group_fkey FOREIGN KEY (linked_risk_group) REFERENCES public.risk_group(id) ON DELETE SET NULL;
+
+
+--
+-- Name: risk_group risk_group_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.risk_group
+    ADD CONSTRAINT risk_group_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: valuation_confidence_factor valuation_confidence_factor_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.valuation_confidence_factor
+    ADD CONSTRAINT valuation_confidence_factor_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: valuation_method valuation_method_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.valuation_method
+    ADD CONSTRAINT valuation_method_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: valuation_price_index_point valuation_price_index_point_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.valuation_price_index_point
+    ADD CONSTRAINT valuation_price_index_point_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- Name: valuation_result valuation_result_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: shb
+--
+
+ALTER TABLE ONLY public.valuation_result
+    ADD CONSTRAINT valuation_result_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.appraisal_case(case_id) ON DELETE CASCADE;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict gPuxS8DlRjuBvjp8kfR6eQa0cJytVU0uHnv7fU1D1SQgcE10ox24qaflf8OalWk
+

@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Load the PAA demo seed into the ai/ database (Docker Postgres).
+# Load ai/'s self-contained PAA demo seed (scripts/paa_seed.sql) into the
+# ai/ database (Docker Postgres). The seed is a plain pg_dump snapshot — no
+# transform, no dependency on apps/. Regenerate it with scripts/dump_seed.sh.
 #
 # Prerequisites:
-#   - `docker compose up` is running (postgres on localhost:5433).
+#   - `docker compose up` is running.
 #   - The PAA schema exists. Apply it once from the host venv (the container's
 #     baked Alembic may be older than migration 002):
 #       cd ai
@@ -10,25 +12,22 @@
 #         .venv/Scripts/python.exe -c "import sys,os; \
 #           sys.path=[p for p in sys.path if p not in ('', os.getcwd())]; \
 #           from alembic.config import main; sys.argv=['alembic','upgrade','head']; main()"
+#     (migration 002 also seeds the 4 risk_ltv_policy_band rows.)
 #
-# Then run this script from the ai/ directory:  bash scripts/load_seed.sh
+# Then run from ai/ :  bash scripts/load_seed.sh
 set -euo pipefail
 
-SRC="../apps/datasource/paa_seed_data.sql"
-OUT="scripts/paa_seed_data.ai.sql"
-PY=".venv/Scripts/python.exe"
+SEED="scripts/paa_seed.sql"
 
-echo "1/3  Transforming seed (paa. -> public, ARRAY[] -> array_to_json) ..."
-"$PY" scripts/transform_seed.py "$SRC" "$OUT"
-
-echo "2/3  Adding server defaults for UUID id columns (preamble) ..."
-docker compose exec -T postgres psql -U shb -d shb -v ON_ERROR_STOP=1 < scripts/seed_preamble.sql
-
-echo "3/3  Loading seed (atomic BEGIN/COMMIT) ..."
-docker compose exec -T -e PGCLIENTENCODING=UTF8 postgres psql -U shb -d shb -v ON_ERROR_STOP=1 < "$OUT"
+echo "Loading $SEED into Postgres (ON_ERROR_STOP) ..."
+docker compose exec -T -e PGCLIENTENCODING=UTF8 postgres \
+  psql -U shb -d shb -q -v ON_ERROR_STOP=1 < "$SEED"
 
 echo "Done. Verifying counts:"
 docker compose exec -T postgres psql -U shb -d shb -c \
-  "SELECT 'lookup_finding' t, count(*) FROM lookup_finding
+  "SELECT 'appraisal_case' t, count(*) FROM appraisal_case
+   UNION ALL SELECT 'lookup_finding', count(*) FROM lookup_finding
    UNION ALL SELECT 'market_comparable', count(*) FROM market_comparable
-   UNION ALL SELECT 'appraisal_case', count(*) FROM appraisal_case;"
+   UNION ALL SELECT 'valuation_result', count(*) FROM valuation_result
+   UNION ALL SELECT 'risk_assessment_result', count(*) FROM risk_assessment_result
+   UNION ALL SELECT 'dashboard_step_summary', count(*) FROM dashboard_step_summary;"
