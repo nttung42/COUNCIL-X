@@ -10,7 +10,7 @@ export interface WorkflowStep {
 }
 
 export const DEMO_CASE_ID = 'REQ-2026-00458';
-export const APPRAISAL_CASE_ID = 'REQ-2026-0001';
+export const APPRAISAL_CASE_ID = 'REQ-2026-2000';
 
 export const workflowSteps: WorkflowStep[] = [
   { routeId: 'caseIntake', label: 'Tiếp nhận hồ sơ', shortLabel: 'Intake', role: 'RM', icon: 'IN', caseId: DEMO_CASE_ID },
