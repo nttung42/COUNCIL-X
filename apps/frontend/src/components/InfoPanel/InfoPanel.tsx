@@ -1,5 +1,5 @@
 import type { StepNumber } from '../../types';
-import { TAB_NAMES } from '../../mocks/chatScripts';
+import { APPRAISAL_STAGE_LABELS } from '../../mocks/chatScripts';
 import { useCaseStore } from '../../state/caseStore';
 import { Tab1Input } from './Tab1Input';
 import { Tab2Lookup } from './Tab2Lookup';
@@ -28,8 +28,8 @@ export function InfoPanel() {
         ? 'Hồ sơ đã hoàn tất rà soát.'
         : 'Đây là bước cuối — rà soát tổng quan & trace thực thi, có thể xuất báo cáo, rồi bấm Hoàn tất để đóng hồ sơ.'
       : pendingCount
-        ? `Có ${pendingCount} thay đổi đang chờ xác nhận ở tab "${TAB_NAMES[activeTab]}" — bấm Xác nhận để áp dụng (đánh dấu xanh lá) và qua bước tiếp theo.`
-        : `Rà soát thông tin ở tab "${TAB_NAMES[activeTab]}". Sửa qua form hoặc chat nếu cần, rồi bấm Xác nhận để qua bước tiếp theo.`;
+        ? `Có ${pendingCount} thay đổi đang chờ xác nhận ở tab "${APPRAISAL_STAGE_LABELS[activeTab]}" — bấm Xác nhận để áp dụng (đánh dấu xanh lá) và qua bước tiếp theo.`
+        : `Rà soát thông tin ở tab "${APPRAISAL_STAGE_LABELS[activeTab]}". Sửa qua form hoặc chat nếu cần, rồi bấm Xác nhận để qua bước tiếp theo.`;
 
   return (
     <div className="info-pane">
@@ -46,7 +46,7 @@ export function InfoPanel() {
               onClick={() => switchTab(n)}
             >
               <span className="n">{locked ? '🔒' : n}</span>
-              {TAB_NAMES[n]}
+              {APPRAISAL_STAGE_LABELS[n]}
             </button>
           );
         })}

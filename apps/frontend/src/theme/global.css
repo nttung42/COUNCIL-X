@@ -343,3 +343,76 @@ td.strong { color: var(--ink); font-weight: 700; }
 @media (min-width: 901px) {
   .chat-pane, .info-pane { display: flex !important; }
 }
+
+/* ================= Workflow routing shell ================= */
+.page-shell { display: flex; flex-direction: column; min-height: 100vh; width: 100%; }
+.workflow-topnav { height: 58px; flex: none; display: flex; align-items: center; gap: 14px; padding: 8px 14px; background: var(--navy-900); color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.workflow-brand { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; padding: 0; flex: none; }
+.workflow-brand small { display: block; color: var(--navy-300); font-size: 10px; font-weight: 600; margin-top: 1px; text-align: left; }
+.brand-mark { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: var(--orange-600); font-size: 12px; font-weight: 900; }
+.workflow-nav-scroll { flex: 1; min-width: 0; overflow-x: auto; display: flex; gap: 6px; padding-bottom: 2px; }
+.workflow-nav-item { flex: none; display: flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: 10px; color: rgba(255,255,255,0.72); text-decoration: none; font-size: 11.5px; font-weight: 800; border: 1px solid transparent; }
+.workflow-nav-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.workflow-nav-item.active { background: var(--navy-800); color: #fff; border-color: rgba(242,112,28,0.45); }
+.workflow-nav-icon { font-size: 14px; }
+.workflow-nav-text small { display: block; color: var(--navy-300); font-size: 9px; font-weight: 700; margin-top: 1px; }
+.workflow-app-shell { height: calc(100vh - 58px); }
+.appraisal-page > .app-shell { height: calc(100vh - 58px); }
+
+/* ================= Portal ================= */
+.portal-body { min-height: 100vh; width: 100%; overflow-y: auto; background: radial-gradient(circle at top left, var(--orange-050), transparent 28%), var(--page-bg); }
+.portal-topbar { display: flex; align-items: center; gap: 12px; padding: 16px 22px; background: var(--navy-900); color: #fff; }
+.portal-topbar .mark { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--orange-600); font-weight: 900; }
+.ptitle { font-size: 16px; font-weight: 800; }
+.ptitle small { display: block; margin-top: 2px; color: var(--navy-300); font-size: 11px; font-weight: 600; }
+.portal-hero { max-width: 980px; margin: 30px auto 18px; padding: 0 22px; }
+.portal-hero h1 { margin: 0 0 8px; color: var(--navy-800); font-size: 32px; letter-spacing: -0.03em; }
+.portal-hero p { margin: 0; color: var(--text-secondary); line-height: 1.65; font-size: 14px; }
+.portal-wrap { max-width: 1100px; margin: 0 auto; padding: 0 22px 38px; }
+.portal-section-title { margin: 22px 0 10px; color: var(--navy-700); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; }
+.pipeline-strip { display: flex; align-items: center; gap: 8px; overflow-x: auto; padding: 12px; background: #fff; border: 1px solid var(--border); border-radius: 14px; }
+.pipeline-item-wrap { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+.pipeline-strip a { color: var(--navy-700); text-decoration: none; font-size: 12px; font-weight: 800; padding: 7px 10px; border-radius: 999px; background: var(--navy-050); }
+.pipeline-strip a:hover { color: var(--orange-600); background: var(--orange-050); }
+.pipeline-strip .arrow { color: var(--text-muted); font-weight: 800; }
+.case-grid, .role-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.role-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.case-card, .role-card { display: block; background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-decoration: none; color: inherit; }
+.role-card:hover, .case-card:hover { border-color: var(--orange-500); box-shadow: 0 12px 30px rgba(16,27,66,0.08); }
+.role-card.mvp { border-color: rgba(242,112,28,0.55); background: linear-gradient(180deg, #fff, var(--orange-050)); }
+.cc-head, .rc-top, .rc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cc-name, .rc-name { font-weight: 900; color: var(--navy-800); }
+.cc-code, .rc-phase { color: var(--text-muted); font-size: 11px; font-weight: 700; }
+.cc-desc, .rc-desc { margin-top: 10px; color: var(--text-secondary); font-size: 12.5px; line-height: 1.55; }
+.cc-stage, .rc-foot { margin-top: 12px; color: var(--text-secondary); font-size: 12px; font-weight: 700; }
+.cc-stage a, .rc-go { color: var(--orange-600); text-decoration: none; }
+.dot-mark { display:inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.dot-mark.warning { background: var(--warning); }
+.dot-mark.good { background: var(--good); }
+.rc-ic { width: 36px; height: 36px; border-radius: 11px; display:flex; align-items:center; justify-content:center; background: var(--navy-050); font-size: 18px; flex: none; }
+.rc-ai { color: var(--navy-600); }
+
+/* ================= Generic workflow pages ================= */
+.demo-workspace .case-strip-card { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; color: var(--text-secondary); font-size: 12px; }
+.flow-progress { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.flow-step { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 999px; background: var(--navy-050); color: var(--navy-700); font-size: 11.5px; font-weight: 800; border: 1px solid var(--navy-100); }
+.flow-step.done { background: var(--good-tint); color: #0a7f0a; border-color: rgba(12,163,12,0.25); }
+.flow-ic { width: 17px; height: 17px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: currentColor; color: #fff; font-size: 9px; font-weight: 900; }
+.workflow-card-list { display: flex; flex-direction: column; }
+.workflow-card-list .flag-row:first-child { padding-top: 0; }
+.portfolio-tabs { padding: 0 0 10px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.ews-actions { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.ews-actions button { font-size: 11px; padding: 7px 10px; }
+.portfolio-summary { margin-top: 12px; }
+
+@media (max-width: 1000px) {
+  .role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .case-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .workflow-topnav { align-items: flex-start; height: 74px; flex-direction: column; gap: 8px; }
+  .workflow-app-shell, .appraisal-page > .app-shell { height: calc(100vh - 74px); }
+  .role-grid { grid-template-columns: 1fr; }
+  .portal-hero h1 { font-size: 24px; }
+  .ews-actions { width: 100%; }
+}

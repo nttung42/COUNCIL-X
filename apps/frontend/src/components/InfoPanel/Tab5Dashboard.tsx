@@ -1,4 +1,4 @@
-import { TAB_NAMES } from '../../mocks/chatScripts';
+import { APPRAISAL_STAGE_LABELS } from '../../mocks/chatScripts';
 import { useCaseStore } from '../../state/caseStore';
 import { Card, StatTile, Timeline, TimelineItem } from '../common/ui';
 import { SEVERITY_LABEL } from '../../utils/severity';
@@ -49,7 +49,7 @@ export function Tab5Dashboard() {
               {n}
             </span>
             <div>
-              <b>{TAB_NAMES[n as StepNumber]}</b>
+              <b>{APPRAISAL_STAGE_LABELS[n as StepNumber]}</b>
               <p>{stepSummaries[n]}</p>
               <div className="meta">Xem lại →</div>
             </div>

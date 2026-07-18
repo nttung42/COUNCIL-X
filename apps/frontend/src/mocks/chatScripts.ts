@@ -14,7 +14,7 @@ export interface ChatStep {
 
 export type DemoEditKey = 'area' | 'environment' | 'valuation' | 'reputation';
 
-export const TAB_NAMES: Record<StepNumber, string> = {
+export const APPRAISAL_STAGE_LABELS: Record<StepNumber, string> = {
   1: 'Nhập thông tin',
   2: 'Kết quả tra cứu',
   3: 'Định giá',
