@@ -5,7 +5,7 @@ import asyncio
 
 from dotenv import load_dotenv
 
-from src.shb.ai.llm import get_chat_model
+from shb.ai.llm import get_chat_model
 
 # Load environment variables
 load_dotenv()

@@ -6,6 +6,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+from shb.core.config import Settings
 from shb.db.models import Base
 
 config = context.config
@@ -16,13 +17,16 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+def _get_database_url() -> str:
+    """Resolve the migration DB URL from ALEMBIC_DB_URL, else the app's .env-backed Settings."""
+    url = os.getenv("ALEMBIC_DB_URL") or Settings().database_url
+    # Convert async URL to sync if needed
+    return url.replace("postgresql+asyncpg://", "postgresql://")
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-    url = os.getenv("ALEMBIC_DB_URL") or os.getenv("DATABASE_URL")
-    if not url:
-        raise ValueError("DATABASE_URL environment variable not set")
-    # Convert async URL to sync if needed
-    url = url.replace("postgresql+asyncpg://", "postgresql://")
+    url = _get_database_url()
 
     context.configure(
         url=url,
@@ -37,11 +41,7 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-    url = os.getenv("ALEMBIC_DB_URL") or os.getenv("DATABASE_URL")
-    if not url:
-        raise ValueError("DATABASE_URL environment variable not set")
-    # Convert async URL to sync if needed
-    url = url.replace("postgresql+asyncpg://", "postgresql://")
+    url = _get_database_url()
 
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = url

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { CHAT_CHIPS } from '../../mocks/chatScripts';
 import { useCaseStore } from '../../state/caseStore';
+import { getFieldValue } from '../../utils/tab1Field';
 
 export function ChatPane() {
-  const address = useCaseStore((s) => s.caseData.physical.address.value);
+  const address = useCaseStore((s) => getFieldValue(s.caseData.tab1Fields, 'address') || s.caseData.caseId);
   const chatStarted = useCaseStore((s) => s.chatStarted);
   const chatMessages = useCaseStore((s) => s.chatMessages);
   const isTyping = useCaseStore((s) => s.isTyping);
