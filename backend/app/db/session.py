@@ -18,7 +18,15 @@ from app.config import settings
 Base = declarative_base()
 
 # `future=True` để dùng API SQLAlchemy 2.0 style.
-engine = create_engine(settings.database_url, future=True, pool_pre_ping=True)
+# `connect_timeout=3`: khi Postgres chưa chạy (quick-start path không Docker),
+# fail nhanh trong vài giây thay vì để hệ điều hành chờ hết TCP timeout mặc
+# định (có thể >10s trên Windows) — giữ đúng ngân sách <15s của SC-001.
+engine = create_engine(
+    settings.database_url,
+    future=True,
+    pool_pre_ping=True,
+    connect_args={"connect_timeout": 3},
+)
 
 SessionLocal = sessionmaker(
     bind=engine,

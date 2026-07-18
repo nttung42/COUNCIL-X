@@ -16,15 +16,20 @@ uvicorn[standard]>=0.29
 httpx>=0.27
 # SSE StreamingResponse uses starlette's built-in support (no extra lib needed).
 
-# --- Multi-agent orchestration (Google ADK) ---
-# Research Agent uses ParallelAgent (best-effort), OpenAI-compatible model via
-# the LiteLlm adapter. Core pipeline still runs WITHOUT ADK (asyncio.gather
-# fallback).
-google-adk>=1.19
-# litellm: required for ADK's `LiteLlm` wrapper around an OpenAI-compatible
-# model (custom base_url). Without litellm, build_adk_model() returns None
-# and the pipeline still runs via the fallback path.
-litellm>=1.40
+# --- Multi-agent orchestration (Google ADK) --- OPTIONAL, see below ---
+# google-adk / litellm are imported lazily inside functions (try/except), not
+# at module top level, so the whole app (including the mock_planner.py smoke
+# test and every FastAPI endpoint) runs fine WITHOUT them installed: the
+# fallback path (asyncio.gather for the 7 parallel lookups) is used instead.
+# Only needed for: real LLM-backed ADK LlmAgent wiring and the free-form
+# chat/Copilot Q&A endpoint answering through a real model.
+#
+# Commented out by default because `litellm` currently ships no prebuilt wheel
+# for some Python/OS combos (e.g. Python 3.13 on Windows) and falls back to a
+# source build that requires Rust/Cargo. Install manually if/when needed:
+#   pip install google-adk>=1.19 litellm>=1.40
+# google-adk>=1.19
+# litellm>=1.40
 
 # --- Config / validation ---
 pydantic>=2.6
