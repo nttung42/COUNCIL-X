@@ -15,11 +15,11 @@ export interface ChatStep {
 export type DemoEditKey = 'area' | 'environment' | 'valuation' | 'reputation';
 
 export const APPRAISAL_STAGE_LABELS: Record<StepNumber, string> = {
-  1: 'Nhập thông tin',
-  2: 'Kết quả tra cứu',
+  1: 'Dữ liệu tài sản',
+  2: 'Pháp lý & thị trường',
   3: 'Định giá',
-  4: 'Rủi ro',
-  5: 'Dashboard',
+  4: 'Rủi ro & LTV',
+  5: 'Báo cáo & evidence',
 };
 
 export const LOADING_TEXT: Record<StepNumber, string> = {
@@ -45,10 +45,10 @@ export const APPRAISAL_STEP_MSG: Partial<Record<StepNumber, string>> = {
 };
 
 export const DEMO_EDIT_REPLIES: Record<DemoEditKey, string> = {
-  area: 'Đã sửa diện tích đất thành <b>65 m²</b> theo phản hồi của bạn — trường này đang <b>chờ xác nhận</b> ở tab <b>Nhập thông tin</b>, bấm Xác nhận khi bạn đồng ý.',
-  environment: 'Đã cập nhật lại thông tin môi trường khu vực theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Kết quả tra cứu</b>.',
+  area: 'Đã sửa diện tích đất thành <b>65 m²</b> theo phản hồi của bạn — trường này đang <b>chờ xác nhận</b> ở tab <b>Dữ liệu tài sản</b>, bấm Xác nhận khi bạn đồng ý.',
+  environment: 'Đã cập nhật lại thông tin môi trường khu vực theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Pháp lý & thị trường</b>.',
   valuation: 'Đã điều chỉnh lại giá trị đề xuất theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Định giá</b>.',
-  reputation: 'Đã cập nhật nhóm rủi ro danh tiếng/tâm linh và điểm rủi ro tổng theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Rủi ro</b>.',
+  reputation: 'Đã cập nhật nhóm rủi ro danh tiếng/tâm linh và điểm rủi ro tổng theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Rủi ro & LTV</b>.',
 };
 
 const DEMO_EDIT_KEYWORDS: Array<{ key: DemoEditKey; keywords: string[] }> = [
@@ -79,7 +79,7 @@ export const DEMO_FLOWS: Record<ChipFlow, ChatStep[]> = {
     { type: 'user', text: 'Thẩm định tài sản vừa nhập.' },
     {
       type: 'agent',
-      text: 'Rà soát thông tin ở tab <b>Nhập thông tin</b>. Nếu dữ liệu đúng, bấm <b>Xác nhận &amp; Tiếp theo</b> để chuyển sang tra cứu khu vực.',
+      text: 'Rà soát thông tin ở tab <b>Dữ liệu tài sản</b>. Nếu dữ liệu đúng, bấm <b>Xác nhận &amp; Tiếp theo</b> để chuyển sang tra cứu khu vực.',
       delay: 1000,
     },
   ],
@@ -87,7 +87,7 @@ export const DEMO_FLOWS: Record<ChipFlow, ChatStep[]> = {
     { type: 'user', text: 'Giá thị trường khu vực này hiện nay thế nào?' },
     {
       type: 'agent',
-      text: 'Giá trung bình khu vực hiện khoảng <b>85–98 triệu/m²</b>, dựa trên 5 giao dịch so sánh trong bán kính 1.1km, cập nhật gần nhất 02/2026 — xem chi tiết ở tab <b>Kết quả tra cứu</b>.',
+      text: 'Giá trung bình khu vực hiện khoảng <b>85–98 triệu/m²</b>, dựa trên 5 giao dịch so sánh trong bán kính 1.1km, cập nhật gần nhất 02/2026 — xem chi tiết ở tab <b>Pháp lý & thị trường</b>.',
       delay: 1000,
     },
   ],
@@ -95,7 +95,7 @@ export const DEMO_FLOWS: Record<ChipFlow, ChatStep[]> = {
     { type: 'user', text: 'Kiểm tra tính pháp lý của tài sản.' },
     {
       type: 'agent',
-      text: 'Sổ hồng chính chủ, không ghi nhận tranh chấp hay thế chấp tại tổ chức tín dụng khác. Quy hoạch khu vực không có quy hoạch treo — xem chi tiết ở tab <b>Kết quả tra cứu</b>.',
+      text: 'Sổ hồng chính chủ, không ghi nhận tranh chấp hay thế chấp tại tổ chức tín dụng khác. Quy hoạch khu vực không có quy hoạch treo — xem chi tiết ở tab <b>Pháp lý & thị trường</b>.',
       delay: 1000,
     },
   ],
@@ -103,7 +103,7 @@ export const DEMO_FLOWS: Record<ChipFlow, ChatStep[]> = {
     { type: 'user', text: 'Quy trình thẩm định BĐS thế chấp gồm những bước nào?' },
     {
       type: 'agent',
-      text: 'Quy trình gồm 3 bước chính: (1) Tra cứu dữ liệu khu vực &amp; pháp lý, (2) Định giá bằng 3 phương pháp, (3) Chấm điểm rủi ro tài sản &amp; đề xuất LTV — sau đó tổng hợp lại toàn bộ trace xử lý ở tab Dashboard. Ở mỗi bước bạn đều chủ động rà soát và bấm Xác nhận & Tiếp theo.',
+      text: 'Quy trình gồm 3 bước chính: (1) Tra cứu dữ liệu khu vực &amp; pháp lý, (2) Định giá bằng 3 phương pháp, (3) Chấm điểm rủi ro tài sản &amp; đề xuất LTV — sau đó tổng hợp lại toàn bộ trace xử lý ở tab Báo cáo & evidence. Ở mỗi bước bạn đều chủ động rà soát và bấm Xác nhận & Tiếp theo.',
       delay: 1000,
     },
   ],

@@ -2,6 +2,15 @@ import type { ComponentType } from 'react';
 
 export type RouteId =
   | 'casePortal'
+  | 'appraisalList'
+  | 'appraisalDetail'
+  | 'assetDomainHub'
+  | 'realEstateAppraisal'
+  | 'movableAssetsAppraisal'
+  | 'valuablePapersAppraisal'
+  | 'propertyRightsAppraisal'
+  | 'evidenceCenter'
+  | 'reportCenter'
   | 'caseList'
   | 'caseIntake'
   | 'eligibilityScreening'
@@ -26,11 +35,22 @@ export interface AppRoute {
   buildPath: (params?: Record<string, string>) => string;
 }
 
-const CASE_ID = 'REQ-2026-00458';
+const CASE_ID = 'REQ-2026-0001';
+const DEMO_CASE_ID = 'REQ-2026-00458';
 
 export const appRoutes: AppRoute[] = [
-  route('casePortal', '/', 'Cổng hồ sơ', /^\/$/, () => '/'),
-  route('caseList', '/cases', 'Danh sách hồ sơ', /^\/cases\/?$/, () => '/cases'),
+  route('casePortal', '/', 'Tổng quan thẩm định TSBĐ', /^\/$/, () => '/'),
+  route('appraisalList', '/appraisals', 'Hồ sơ thẩm định TSBĐ', /^\/appraisals\/?$/, () => '/appraisals'),
+  route('appraisalDetail', '/appraisals/:caseId', 'Chi tiết hồ sơ thẩm định', /^\/appraisals\/([^/]+)\/?$/, (params) => `/appraisals/${params?.caseId ?? CASE_ID}`),
+  route('assetDomainHub', '/asset-domains', 'Phân hệ tài sản bảo đảm', /^\/asset-domains\/?$/, () => '/asset-domains'),
+  domainRoute('realEstateAppraisal', 'real-estate', 'Bất động sản'),
+  domainRoute('movableAssetsAppraisal', 'movable-assets', 'Động sản'),
+  domainRoute('valuablePapersAppraisal', 'valuable-papers', 'Giấy tờ có giá'),
+  domainRoute('propertyRightsAppraisal', 'property-rights', 'Quyền tài sản'),
+  route('evidenceCenter', '/evidence', 'Evidence Center', /^\/evidence\/?$/, () => '/evidence'),
+  route('reportCenter', '/reports', 'Report Center', /^\/reports\/?$/, () => '/reports'),
+
+  route('caseList', '/cases', 'Legacy cases alias', /^\/cases\/?$/, () => '/cases'),
   caseRoute('caseIntake', 'intake', 'Tiếp nhận & số hoá'),
   caseRoute('eligibilityScreening', 'screening', 'Sàng lọc điều kiện'),
   caseRoute('financialReview', 'financial-review', 'Thẩm định tài chính'),
@@ -54,7 +74,17 @@ function caseRoute(id: RouteId, slug: string, title: string): AppRoute {
     `/cases/:caseId/${slug}`,
     title,
     new RegExp(`^/cases/([^/]+)/${slug}/?$`),
-    (params) => `/cases/${params?.caseId ?? CASE_ID}/${slug}`,
+    (params) => `/cases/${params?.caseId ?? DEMO_CASE_ID}/${slug}`,
+  );
+}
+
+function domainRoute(id: RouteId, slug: string, title: string): AppRoute {
+  return route(
+    id,
+    `/asset-domains/${slug}/:caseId`,
+    title,
+    new RegExp(`^/asset-domains/${slug}/([^/]+)/?$`),
+    (params) => `/asset-domains/${slug}/${params?.caseId ?? CASE_ID}`,
   );
 }
 
