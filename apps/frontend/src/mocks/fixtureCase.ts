@@ -10,7 +10,7 @@ import type {
 // Khi API thật sẵn sàng, thay thế điểm dùng fixtureCase trong src/services/apiClient.ts
 // bằng lời gọi API — phần còn lại của UI không cần đổi vì đã theo type AppraisalCaseFull.
 
-export const CASE_ID = 'REQ-2026-0001';
+export const CASE_ID = 'REQ-2026-2000';
 
 export const caseHistory: AppraisalCaseSummary[] = [
   { caseId: 'REQ-2026-0001', address: 'Hẻm 45 Nguyễn Văn A, Q.C', status: 'dang_xu_ly', updatedAtLabel: 'hôm nay' },
