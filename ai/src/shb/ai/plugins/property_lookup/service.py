@@ -88,8 +88,17 @@ class PropertyLookupService(BaseAIService):
                 "property_lookup requires ctx.db_session_factory to read the database."
             )
 
+        logger.info(f"property_lookup: case_id={input_data.case_id!r}")
         async with factory() as session:
             results = await get_lookup_registry().run_all(input_data.case_id, session)
+
+        logger.info(
+            "property_lookup: case_id=%r results=%s"
+            % (
+                input_data.case_id,
+                [(r.adapter_key, r.status_badge, bool(r.data.get("raw_findings"))) for r in results],
+            )
+        )
 
         warnings: list[str] = []
         if all(

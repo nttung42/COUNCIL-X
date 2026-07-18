@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import re
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -28,6 +29,11 @@ settings = get_settings()
 )
 def execute_job(self, job_id: str, user_id: str, plugin_id: str, input_data: dict[str, Any]):
     """Execute a job asynchronously using Celery."""
+    _masked_db_url = re.sub(r"://([^:]+):[^@]+@", r"://\1:***@", settings.database_url)
+    logger.info(
+        f"Job {job_id} starting: plugin={plugin_id!r} input={input_data!r} "
+        f"db={_masked_db_url!r}"
+    )
     engine = create_async_engine(settings.database_url, echo=False, pool_pre_ping=True)
     AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
