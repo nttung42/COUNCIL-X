@@ -185,12 +185,12 @@ async def test_property_lookup_requires_db_factory():
 
 
 def test_registry_discovers_property_lookup():
-    """The plugin is auto-discovered as a sync, non-file service."""
+    """The plugin is auto-discovered as an async (SSE-streamed), non-file service."""
     registry = AIServiceRegistry()
     registry.discover_and_register()
     service = registry.get("property_lookup")
     assert service is not None
-    assert service.meta.is_async is False
+    assert service.meta.is_async is True
     assert service.meta.accepts_file is False
 
 

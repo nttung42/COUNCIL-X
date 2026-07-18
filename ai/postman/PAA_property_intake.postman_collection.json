@@ -6,15 +6,42 @@
     "description": "Test luồng trích xuất hồ sơ BĐS (property_intake) qua API.\n\nCHẠY THEO THỨ TỰ:\n0. Health (kiểm tra server)\n1. Register → tự lưu {{api_key}}\n2a-2d. Upload 4 file → tự lưu {{file_id_1..4}} (BẤM chọn file thật ở tab Body → form-data → 'file')\n3. Run property_intake → tự lưu {{job_id}}\n4. Get job (poll) → bấm lại nhiều lần tới khi status = completed, đọc result\n\nFile mẫu có sẵn trong repo: ai/samples/01_so_hong.pdf, 02_to_khai_lptb.pdf, 03_bien_ban_ban_giao.pdf, 04_thong_bao_thue_dat.pdf\n\nGhi chú: Mọi request (trừ Register/Health) cần header X-API-Key = {{api_key}} (đã set sẵn). Base mặc định http://localhost:8888 (Docker). Nếu chạy uvicorn thủ công, đổi {{host}} sang http://localhost:8000."
   },
   "variable": [
-    { "key": "host", "value": "http://localhost:8888" },
-    { "key": "base_url", "value": "http://localhost:8888/api/v1" },
-    { "key": "email", "value": "pm_test@shb.vn" },
-    { "key": "api_key", "value": "" },
-    { "key": "file_id_1", "value": "" },
-    { "key": "file_id_2", "value": "" },
-    { "key": "file_id_3", "value": "" },
-    { "key": "file_id_4", "value": "" },
-    { "key": "job_id", "value": "" }
+    {
+      "key": "host",
+      "value": "http://localhost:8888"
+    },
+    {
+      "key": "base_url",
+      "value": "http://localhost:8888/api/v1"
+    },
+    {
+      "key": "email",
+      "value": "pm_test@shb.vn"
+    },
+    {
+      "key": "api_key",
+      "value": ""
+    },
+    {
+      "key": "file_id_1",
+      "value": ""
+    },
+    {
+      "key": "file_id_2",
+      "value": ""
+    },
+    {
+      "key": "file_id_3",
+      "value": ""
+    },
+    {
+      "key": "file_id_4",
+      "value": ""
+    },
+    {
+      "key": "job_id",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -33,7 +60,15 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{host}}/health", "host": ["{{host}}"], "path": ["health"] },
+        "url": {
+          "raw": "{{host}}/health",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
         "description": "Kiểm tra server sống. Không cần API key."
       }
     },
@@ -57,9 +92,26 @@
       ],
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" },
-        "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        },
         "description": "Tạo user, trả về api_key MỘT LẦN. Test script tự lưu vào {{api_key}}.\nNếu email đã tồn tại (409), đổi biến {{email}} sang email khác rồi gửi lại."
       }
     },
@@ -80,9 +132,31 @@
       ],
       "request": {
         "method": "POST",
-        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-        "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }] },
-        "url": { "raw": "{{base_url}}/files", "host": ["{{base_url}}"], "path": ["files"] },
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/files",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files"
+          ]
+        },
         "description": "Body → form-data → key 'file' (kiểu File) → chọn ai/samples/01_so_hong.pdf. Tự lưu {{file_id_1}}."
       }
     },
@@ -103,9 +177,31 @@
       ],
       "request": {
         "method": "POST",
-        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-        "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }] },
-        "url": { "raw": "{{base_url}}/files", "host": ["{{base_url}}"], "path": ["files"] },
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/files",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files"
+          ]
+        },
         "description": "Chọn ai/samples/02_to_khai_lptb.pdf. Tự lưu {{file_id_2}}."
       }
     },
@@ -126,9 +222,31 @@
       ],
       "request": {
         "method": "POST",
-        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-        "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }] },
-        "url": { "raw": "{{base_url}}/files", "host": ["{{base_url}}"], "path": ["files"] },
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/files",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files"
+          ]
+        },
         "description": "Chọn ai/samples/03_bien_ban_ban_giao.pdf. Tự lưu {{file_id_3}}."
       }
     },
@@ -149,9 +267,31 @@
       ],
       "request": {
         "method": "POST",
-        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-        "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }] },
-        "url": { "raw": "{{base_url}}/files", "host": ["{{base_url}}"], "path": ["files"] },
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/files",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files"
+          ]
+        },
         "description": "Chọn ai/samples/04_thong_bao_thue_dat.pdf. Tự lưu {{file_id_4}}.\n(File này ghi diện tích 80 m2 vs sổ hồng 62 m2 → sinh trạng thái mau_thuan để demo.)"
       }
     },
@@ -176,15 +316,56 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "X-API-Key", "value": "{{api_key}}" },
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"input\": {\n    \"file_ids\": [\n      \"{{file_id_1}}\",\n      \"{{file_id_2}}\",\n      \"{{file_id_3}}\",\n      \"{{file_id_4}}\"\n    ],\n    \"case_id\": \"REQ-2026-0001\"\n  }\n}"
         },
-        "url": { "raw": "{{base_url}}/services/property_intake/run", "host": ["{{base_url}}"], "path": ["services", "property_intake", "run"] },
+        "url": {
+          "raw": "{{base_url}}/services/property_intake/run",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "property_intake",
+            "run"
+          ]
+        },
         "description": "Chạy trích xuất (service async) → trả {job_id, status:'pending'}. Tự lưu {{job_id}}.\nCó thể bỏ bớt file_id nếu chỉ test 1 tài liệu."
+      }
+    },
+    {
+      "name": "3b. Stream (SSE) — tiến độ real-time",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{job_id}}/stream?api_key={{api_key}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "jobs",
+            "{{job_id}}",
+            "stream"
+          ],
+          "query": [
+            {
+              "key": "api_key",
+              "value": "{{api_key}}"
+            }
+          ]
+        },
+        "description": "Sau bước 3 (Run) đã lưu {{job_id}}. Postman v10+ hiển thị event stream real-time: snapshot → progress 30→55→70→82→92→100 → done (kèm result). Auth qua ?api_key= (giống EventSource). Không hỗ trợ SSE thì dùng bước 4 (poll) hoặc: curl -N \"{{base_url}}/jobs/{{job_id}}/stream?api_key={{api_key}}\"."
       }
     },
     {
@@ -214,8 +395,22 @@
       ],
       "request": {
         "method": "GET",
-        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-        "url": { "raw": "{{base_url}}/jobs/{{job_id}}", "host": ["{{base_url}}"], "path": ["jobs", "{{job_id}}"] },
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{job_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "jobs",
+            "{{job_id}}"
+          ]
+        },
         "description": "Bấm Send nhiều lần tới khi status = completed (nguồn sự thật là 'status', không phải 'progress'). Khi completed, 'result' = PropertyIntakeOutput (documents / fields / warnings)."
       }
     },
@@ -223,8 +418,21 @@
       "name": "(phụ) List services",
       "request": {
         "method": "GET",
-        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-        "url": { "raw": "{{base_url}}/services", "host": ["{{base_url}}"], "path": ["services"] },
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services"
+          ]
+        },
         "description": "Liệt kê service + input_schema. Kiểm tra property_intake đã đăng ký."
       }
     },
@@ -232,8 +440,22 @@
       "name": "(phụ) Get service property_intake",
       "request": {
         "method": "GET",
-        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-        "url": { "raw": "{{base_url}}/services/property_intake", "host": ["{{base_url}}"], "path": ["services", "property_intake"] },
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/property_intake",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "property_intake"
+          ]
+        },
         "description": "Chi tiết metadata + JSON schema input của property_intake."
       }
     },
@@ -241,12 +463,30 @@
       "name": "(phụ) List jobs",
       "request": {
         "method": "GET",
-        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
         "url": {
           "raw": "{{base_url}}/jobs?limit=10&offset=0",
-          "host": ["{{base_url}}"],
-          "path": ["jobs"],
-          "query": [{ "key": "limit", "value": "10" }, { "key": "offset", "value": "0" }]
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "jobs"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "offset",
+              "value": "0"
+            }
+          ]
         },
         "description": "Danh sách job của user (phân trang)."
       }

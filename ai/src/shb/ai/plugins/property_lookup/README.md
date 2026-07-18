@@ -3,8 +3,9 @@
 Đọc kết quả **7 nguồn tra cứu** + bảng **giao dịch so sánh** của một hồ sơ và trả về
 đúng shape tab **"Kết quả tra cứu" (Màn 2)** của PAA.
 
-- **Service id:** `property_lookup` · **sync** (`is_async=False`) · **không nhận file**
+- **Service id:** `property_lookup` · **async** (`is_async=True`, stream tiến độ qua SSE) · **không nhận file**
 - **Contract JSON:** [../../../../../docs/contracts/property-lookup-contract.md](../../../../../docs/contracts/property-lookup-contract.md)
+- **SSE:** [../../../../../docs/contracts/sse-streaming.md](../../../../../docs/contracts/sse-streaming.md)
 - **Nguồn dữ liệu:** bảng `lookup_finding` + `market_comparable` (models_paa) — dữ liệu demo nạp bằng [../../../../../scripts/load_seed.sh](../../../../../scripts/load_seed.sh), hoặc do một pipeline tra cứu ghi sau này.
 
 ## Khác `property_intake` (Function 1)
@@ -12,19 +13,23 @@
 | | property_intake (F1) | property_lookup (F2) |
 |---|---|---|
 | Vai trò | Trích xuất file → JSON để BE ghi DB | **Đọc** DB theo `case_id` → JSON |
-| Async | `is_async=True` (Celery job, poll) | **`is_async=False`** (trả ngay) |
+| Async | `is_async=True` (Celery job, nặng) | `is_async=True` (đọc nhanh, xong gần như tức thì) |
 | ctx cần | `storage_service` | `db_session_factory` |
 
-## Luồng gọi (đồng bộ)
+Cả hai dùng **chung 1 luồng SSE** để FE code 1 kiểu (đồng nhất).
+
+## Luồng gọi (async + SSE)
 
 ```
 POST /api/v1/services/property_lookup/run
-Header: X-API-Key: <key>
-Body:   { "input": { "case_id": "REQ-2026-2000" } }
-→ 200   { "result": PropertyLookupOutput }        # trả ngay, KHÔNG có job_id
+Body: { "input": { "case_id": "REQ-2026-2000" } }
+→ 200 { "job_id": "...", "status": "pending" }
+
+GET /api/v1/jobs/{job_id}/stream?api_key=<key>   (SSE)
+→ snapshot → status(running) → done { result: PropertyLookupOutput }
 ```
 
-Không cần poll `/jobs` — vì chỉ đọc DB nên chạy trong request.
+Vì đọc DB nhanh, job xong gần như ngay; FE nhận `done` chỉ sau vài trăm ms. Xem [SSE contract](../../../../../docs/contracts/sse-streaming.md).
 
 ## Bên trong
 

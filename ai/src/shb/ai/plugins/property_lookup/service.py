@@ -68,7 +68,10 @@ class PropertyLookupService(BaseAIService):
             "môi trường, thanh khoản, dư luận) và bảng giao dịch so sánh của một hồ sơ."
         ),
         version="0.1.0",
-        is_async=False,
+        # Runs as an async job so it shares the unified SSE progress channel
+        # (POST run -> job_id -> GET /jobs/{id}/stream) with the heavy services.
+        # The read itself is fast; the job completes almost immediately.
+        is_async=True,
         accepts_file=False,
     )
 
