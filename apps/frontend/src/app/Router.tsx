@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CasePortalPage } from '../features/case-portal/CasePortalPage';
+import { DEMO_CASE_ID } from './workflowSteps';
+import { LandingPage } from '../features/landing/LandingPage';
 import { CaseIntakePage } from '../features/case-intake/CaseIntakePage';
 import { EligibilityScreeningPage } from '../features/eligibility-screening/EligibilityScreeningPage';
 import { FinancialReviewPage } from '../features/financial-review/FinancialReviewPage';
@@ -12,8 +13,8 @@ import { PortfolioMonitoringPage } from '../features/portfolio-monitoring/Portfo
 import { matchRoute, type RouteId } from './routes';
 
 const PAGES: Record<RouteId, (params: Record<string, string>) => JSX.Element> = {
-  casePortal: () => <CasePortalPage />,
-  caseList: () => <CasePortalPage />,
+  casePortal: () => <LandingPage />,
+  caseList: () => <CaseIntakePage params={{ caseId: DEMO_CASE_ID }} />,
   caseIntake: (params) => <CaseIntakePage params={params} />,
   eligibilityScreening: (params) => <EligibilityScreeningPage params={params} />,
   financialReview: (params) => <FinancialReviewPage params={params} />,

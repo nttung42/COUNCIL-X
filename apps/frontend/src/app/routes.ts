@@ -29,8 +29,8 @@ export interface AppRoute {
 const CASE_ID = 'REQ-2026-00458';
 
 export const appRoutes: AppRoute[] = [
-  route('casePortal', '/', 'Cổng hồ sơ', /^\/$/, () => '/'),
-  route('caseList', '/cases', 'Danh sách hồ sơ', /^\/cases\/?$/, () => '/cases'),
+  route('casePortal', '/', 'Landing', /^\/$/, () => '/'),
+  route('caseList', '/cases', 'Main page', /^\/cases\/?$/, () => '/cases'),
   caseRoute('caseIntake', 'intake', 'Tiếp nhận & số hoá'),
   caseRoute('eligibilityScreening', 'screening', 'Sàng lọc điều kiện'),
   caseRoute('financialReview', 'financial-review', 'Thẩm định tài chính'),
