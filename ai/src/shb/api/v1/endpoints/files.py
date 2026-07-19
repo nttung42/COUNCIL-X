@@ -2,7 +2,7 @@
 
 import os
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from fastapi.responses import FileResponse as PhysicalFileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -85,9 +85,39 @@ async def _file_response(file_id: str, db: AsyncSession, disposition: str) -> Ph
 @router.get("/{file_id}/preview", summary="Preview a file inline by ID")
 async def preview_file(
     file_id: str,
+    format: str | None = None,
+    page: int = 1,
     db: AsyncSession = Depends(get_db),
-) -> PhysicalFileResponse:
-    """Return file bytes inline so browser preview widgets do not trigger download."""
+):
+    """Return file bytes inline so browser preview widgets do not trigger download.
+
+    With ``?format=png&page=N`` a PDF page is rasterized to PNG server-side.
+    The image IS the page (same aspect, no viewer chrome), so normalized bbox
+    coordinates from property_intake overlay onto it exactly — this is what the
+    frontend document viewer uses to draw "vùng trích xuất".
+    """
+    if format == "png":
+        storage_service = StorageService(db)
+        file_record = await storage_service.get_file(file_id)
+        if not file_record or not os.path.exists(file_record.stored_path):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+        if "pdf" not in (file_record.content_type or "").lower():
+            return await _file_response(file_id, db, "inline")  # images etc. serve as-is
+        try:
+            import fitz  # PyMuPDF
+
+            with open(file_record.stored_path, "rb") as fh:
+                data = fh.read()
+            with fitz.open(stream=data, filetype="pdf") as doc:
+                index = min(max(page, 1), doc.page_count) - 1
+                pix = doc[index].get_pixmap(dpi=150)
+                png = pix.tobytes("png")
+            return Response(content=png, media_type="image/png")
+        except Exception as exc:  # pragma: no cover - corrupt pdf etc.
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Cannot render PDF page: {exc}",
+            )
     return await _file_response(file_id, db, "inline")
 
 

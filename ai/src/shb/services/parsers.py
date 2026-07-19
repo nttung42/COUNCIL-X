@@ -24,6 +24,7 @@ Design notes
 from __future__ import annotations
 
 import tempfile
+import unicodedata
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
@@ -178,6 +179,17 @@ def _page_is_scanned(text: str, scan_char_threshold: int) -> bool:
     return len(text.strip()) < scan_char_threshold
 
 
+def _normalize_text(text: str) -> str:
+    """Normalize extracted text for downstream matching.
+
+    PyMuPDF (and many PDF producers) emit non-breaking spaces (U+00A0) and
+    occasionally decomposed (NFD) Vietnamese diacritics — both silently break
+    keyword classification, LLM grounding snippets, and bbox search. Fold to
+    NFC + regular spaces once, at the parsing boundary.
+    """
+    return unicodedata.normalize("NFC", text).replace("\N{NO-BREAK SPACE}", " ")
+
+
 def parse_pdf(
     data: bytes,
     *,
@@ -204,7 +216,7 @@ def parse_pdf(
         for index in range(doc.page_count):
             page = doc.load_page(index)
             try:
-                text = page.get_text("text")
+                text = _normalize_text(page.get_text("text"))
             except Exception as exc:  # pragma: no cover - defensive
                 raise DocumentParseError(f"Failed to read PDF page {index + 1}: {exc}") from exc
 

@@ -66,7 +66,9 @@ storage/
 scripts/paa_seed_data.ai.sql
 
 # Sample property PDFs — real documents, PII, never commit
-samples/
+samples/*
+# ngoại lệ: bộ hồ sơ demo SINH TỰ ĐỘNG (dữ liệu hư cấu, không PII) — scripts/make_demo_docs.py
+!samples/demo/
 
 # Databases
 *.db
