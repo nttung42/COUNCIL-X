@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 
 class DocType(StrEnum):
@@ -89,6 +89,7 @@ class SoHongExtraction(BaseModel):
     construction_year: ExtractedField | None = None
     structure_material: ExtractedField | None = None
     house_direction: ExtractedField | None = None
+    current_mortgage_status: ExtractedField | None = None  # mục IV "Những thay đổi…"
 
 
 class ToKhaiLPTBExtraction(BaseModel):
@@ -101,6 +102,7 @@ class ToKhaiLPTBExtraction(BaseModel):
 
     owner_full_name: ExtractedField | None = None
     owner_national_id: ExtractedField | None = None
+    owner_phone: ExtractedField | None = None
     address: ExtractedField | None = None
     property_type: ExtractedField | None = None
     certificate_number: ExtractedField | None = None
@@ -120,6 +122,7 @@ class BienBanBanGiaoExtraction(BaseModel):
     """
 
     owner_full_name: ExtractedField | None = None
+    owner_phone: ExtractedField | None = None
     address: ExtractedField | None = None
     property_type: ExtractedField | None = None
     land_area_sqm: ExtractedField | None = None
@@ -197,6 +200,20 @@ class BBox(BaseModel):
     width: float
     height: float
 
+    # FE wire aliases (apps/frontend ApiBBox reads ``w``/``h``) — additive, the
+    # canonical ``width``/``height`` keys stay for the DB contract.
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def w(self) -> float:
+        """Alias of ``width`` for the frontend wire format."""
+        return self.width
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def h(self) -> float:
+        """Alias of ``height`` for the frontend wire format."""
+        return self.height
+
 
 class FieldValue(BaseModel):
     """A reconciled value for a single canonical field, with provenance.
@@ -255,6 +272,19 @@ class DocumentInfo(BaseModel):
     is_scan: bool  # → attached_document.is_scan
     page_count: int
 
+    # FE wire aliases (apps/frontend ApiDocumentInfo reads doc_type/is_scanned).
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def doc_type(self) -> DocType:
+        """Alias of ``detected_doc_type`` for the frontend wire format."""
+        return self.detected_doc_type
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def is_scanned(self) -> bool:
+        """Alias of ``is_scan`` for the frontend wire format."""
+        return self.is_scan
+
 
 class AlternativeValue(BaseModel):
     """A competing value from another document for a ``mau_thuan`` field.
@@ -297,6 +327,20 @@ class FormField(BaseModel):
     verifier_passed: bool | None = None
     validation_flags: list[str] = Field(default_factory=list)
     alternatives: list[AlternativeValue] = Field(default_factory=list)
+
+    # FE wire aliases (apps/frontend ApiFormField reads confidence 0..1 and
+    # source_doc = file_id). Additive — canonical keys stay for the DB contract.
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def confidence(self) -> float:
+        """Confidence as a 0..1 fraction (frontend wire format)."""
+        return round(self.confidence_pct / 100, 4)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def source_doc(self) -> str | None:
+        """Alias of ``source_file_id`` for the frontend wire format."""
+        return self.source_file_id
 
 
 class PropertyIntakeOutput(BaseModel):

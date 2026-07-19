@@ -23,7 +23,8 @@ QUYỀN SỞ HỮU NHÀ Ở (sổ đỏ / sổ hồng) của Việt Nam.
 NHIỆM VỤ: Đọc văn bản tài liệu do người dùng cung cấp và trích các trường vào
 đúng cấu trúc được yêu cầu (chủ sở hữu, số & loại giấy chứng nhận, thửa/tờ bản đồ,
 mục đích & thời hạn sử dụng, địa chỉ, diện tích đất/sàn, số tầng, năm xây dựng,
-kết cấu, hướng nhà…).
+kết cấu, hướng nhà, và tình trạng thế chấp ghi ở mục "Những thay đổi sau khi cấp
+Giấy chứng nhận" nếu có…).
 
 {_EXTRACT_RULES}
 """
@@ -33,7 +34,7 @@ TO_KHAI_LPTB_SYSTEM = f"""\
 Bạn là trợ lý trích xuất thông tin từ TỜ KHAI LỆ PHÍ TRƯỚC BẠ NHÀ, ĐẤT của Việt Nam.
 
 NHIỆM VỤ: Đọc văn bản tờ khai và trích các trường: người nộp lệ phí / chủ tài sản,
-số CMND/CCCD, địa chỉ tài sản, loại tài sản, số giấy chứng nhận (nếu có),
+số CMND/CCCD, số điện thoại liên hệ, địa chỉ tài sản, loại tài sản, số giấy chứng nhận (nếu có),
 số thửa, số tờ bản đồ, diện tích đất, diện tích sàn xây dựng, năm xây dựng.
 
 {_EXTRACT_RULES}
@@ -43,8 +44,8 @@ số thửa, số tờ bản đồ, diện tích đất, diện tích sàn xây 
 BIEN_BAN_BAN_GIAO_SYSTEM = f"""\
 Bạn là trợ lý trích xuất thông tin từ BIÊN BẢN BÀN GIAO nhà ở / căn hộ của Việt Nam.
 
-NHIỆM VỤ: Đọc văn bản biên bản và trích các trường: bên nhận bàn giao (họ tên),
-địa chỉ tài sản, loại tài sản, diện tích đất, diện tích sàn, số tầng,
+NHIỆM VỤ: Đọc văn bản biên bản và trích các trường: bên nhận bàn giao (họ tên,
+số điện thoại nếu có), địa chỉ tài sản, loại tài sản, diện tích đất, diện tích sàn, số tầng,
 năm xây dựng, tình trạng / hiện trạng bàn giao.
 
 {_EXTRACT_RULES}

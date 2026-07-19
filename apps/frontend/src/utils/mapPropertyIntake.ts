@@ -27,6 +27,10 @@ export function mapPropertyIntakeOutput(output: ApiPropertyIntakeOutput, attache
   const docPages: DocPage[] = output.documents.flatMap((doc) => {
     const attached = attachments.get(doc.file_id);
     const pageCount = pageCounts.get(doc.file_id) ?? 1;
+    // PDF: preview từng trang dưới dạng ảnh PNG render server-side (?format=png&page=N).
+    // Ảnh chính là trang giấy (không toolbar/lề của viewer) nên bbox % đè lên khớp
+    // tuyệt đối — iframe PDF không bao giờ căn được toạ độ vùng trích xuất.
+    const isPdf = (attached?.contentType ?? '').toLowerCase().includes('pdf');
     return Array.from({ length: pageCount }, (_, i) => {
       const pageNumber = i + 1;
       return {
@@ -34,8 +38,11 @@ export function mapPropertyIntakeOutput(output: ApiPropertyIntakeOutput, attache
         label: `${docTypeLabel(doc.doc_type)}${pageCount > 1 ? ` · tr.${pageNumber}` : ''}`,
         scan: doc.is_scanned,
         fileName: attached?.fileName ?? doc.file_name,
-        contentType: attached?.contentType,
-        previewUrl: attached?.previewUrl,
+        contentType: isPdf ? 'image/png' : attached?.contentType,
+        previewUrl:
+          attached?.previewUrl && isPdf
+            ? `${attached.previewUrl}?format=png&page=${pageNumber}`
+            : attached?.previewUrl,
         pageNumber,
       };
     });

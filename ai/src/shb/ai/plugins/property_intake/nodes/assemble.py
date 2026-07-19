@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 
 from shb.ai.plugins.property_intake.documents import CANONICAL_FIELDS, tier_status
+from shb.ai.plugins.property_intake.locate import locate_missing_bboxes
 from shb.ai.plugins.property_intake.schema import (
     AlternativeValue,
     FieldStatus,
@@ -75,6 +76,17 @@ async def assemble_node(state: IntakeState) -> dict:
                 alternatives=[_to_alternative(a) for a in fv.alternatives],
             )
         )
+
+    # Vùng trích xuất: locate each grounded value on its source PDF page so the
+    # UI can highlight exactly where it was read from (deterministic, no LLM).
+    try:
+        located = await locate_missing_bboxes(
+            fields, state.get("docs", []), getattr(state.get("ctx"), "storage_service", None)
+        )
+        if located:
+            logger.info("located %d bounding boxes on source documents", located)
+    except Exception:  # pragma: no cover - bbox is best-effort decoration
+        logger.debug("bbox location step failed", exc_info=True)
 
     output = PropertyIntakeOutput(
         case_id=intake_input.case_id,
