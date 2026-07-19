@@ -1,146 +1,234 @@
-# SME Credit Assessment Platform
+# Collateral Appraisal Platform
 
-Nền tảng AI dạng module cho công đoạn thẩm định tín dụng SME của ngân hàng. Mỗi nhóm
-nghiệp vụ là một module độc lập, có thể chạy riêng, tích hợp vào LOS/workflow hiện có,
-hoặc kết hợp với các module khác thành một hệ thống thẩm định hoàn chỉnh. Kiến trúc đầy đủ của toàn nền tảng nằm ở
-[`docs/kien-truc-ai-modular-tham-dinh-tin-dung-sme.md`](docs/kien-truc-ai-modular-tham-dinh-tin-dung-sme.md).
+Nền tảng thẩm định tài sản bảo đảm có AI hỗ trợ, tập trung vào trải nghiệm làm việc của chuyên viên thẩm định: tiếp nhận hồ sơ, đọc tài liệu, tra cứu dữ liệu, định giá, đánh giá rủi ro, kiểm tra evidence và xuất báo cáo.
 
-## Bản đồ toàn nền tảng
+Sản phẩm hiện có MVP cho **thẩm định Bất động sản** và khung mở rộng cho 3 phân hệ tiếp theo: **Động sản**, **Giấy tờ có giá**, **Quyền tài sản / tài sản hình thành trong tương lai**.
 
-```
-SME CREDIT ASSESSMENT PLATFORM
-│
-├── 0. Shared Foundation           Case Context · Orchestrator · Document/Entity
-│                                  Intelligence · Policy & Knowledge · Calculation
-│                                  Engine · Evidence Graph · QA · Human Review · Audit
-│
-├── 1. Business & Industry Assessment    Mô hình kinh doanh, ngành, tập trung khách
-│                                        hàng/nhà cung cấp, mùa vụ, rủi ro người chủ chốt
-├── 2. Legal Assessment                  Tư cách pháp nhân, thẩm quyền ký, giấy phép
-├── 3. Financial Analysis                Chuẩn hoá & phân tích BCTC, tỷ số tài chính
-├── 4. Cash-flow & Repayment Capacity    Dòng tiền thực, DSCR, dự báo, stress test
-├── 5. Collateral Assessment
-│   └── Real Estate Appraisal
-│       (Vehicle / Machinery / Inventory / Receivable Appraisal)
-├── 6. Credit Rating                     Tổng hợp điểm tài chính + phi tài chính + hành vi
-├── 7. Credit Structuring                Hạn mức, kỳ hạn, covenant, phương án thay thế
-└── 8. Cross-module Review & Synthesis   Phát hiện mâu thuẫn, phản biện, tổng hợp cuối
-```
+AI trong hệ thống đóng vai trò trợ lý xử lý và đề xuất. Kết quả quan trọng vẫn cần chuyên viên xác nhận, chỉnh sửa hoặc bổ sung evidence trước khi dùng trong báo cáo.
 
-Mỗi module giải quyết đúng một năng lực, không lấn sang việc của module khác (Financial
-Analysis không tự định giá tài sản, Collateral Assessment không tự chấm credit rating...).
-Site map đầy đủ, kể cả theo từng vai trò người dùng (RM, chuyên viên tín dụng, pháp lý,
-định giá, Risk, Checker), nằm ở §3 và §11 của tài liệu kiến trúc.
+---
 
-## Lộ trình & cách các module liên kết
+## Product hiện có gì
 
-| GĐ | Module | Trạng thái |
+### 1. Bất động sản — MVP đang vận hành
+
+Phân hệ Bất động sản là phần đã được triển khai sâu nhất, gồm frontend workspace và backend AI services cho các bước chính của quy trình thẩm định.
+
+| Năng lực | Trạng thái | Mô tả |
 |---|---|---|
-| **1** | **Thẩm định Bất động sản bảo đảm** (repo này) | ✅ **Released** |
-| 2 | Financial Analysis + Cash-flow Verification | 🔜 Coming soon |
-| 3 | Business & Industry Assessment | 🔜 Coming soon |
-| 4 | Legal Assessment | 🔜 Coming soon |
-| 5 | Credit Rating | 🔜 Coming soon |
-| 6 | Credit Structuring | 🔜 Coming soon |
-| 7 | Cross-module Review & Devil's Advocate | 🔜 Coming soon |
-| 8 | Tích hợp ngân hàng thật (LOS, DMS, Core Banking, IAM, model/policy registry) | 🔜 Coming soon |
+| Nhập thông tin tài sản | Đã có backend AI | Upload tài liệu, chạy `property_intake`, trích xuất field bằng LLM/OCR, trả confidence, nguồn tài liệu, snippet và bbox. |
+| Tra cứu dữ liệu | Đã có backend logic | `property_lookup` đọc dữ liệu tra cứu từ DB, trả đủ 7 nhóm: giá thị trường, quy hoạch, pháp lý, tiện ích, môi trường, thanh khoản, dư luận/tâm linh. |
+| Định giá | Đã có backend engine | `property_valuation` tính giá trị bằng 3 phương pháp: so sánh trực tiếp, hedonic/ML, chi phí; có confidence factors và điều chỉnh AI bị chặn trong ±5%. |
+| Rủi ro & LTV | Đã có backend engine | `property_risk` tính risk score tài sản theo 5 nhóm trọng số và map sang LTV policy band. Không dùng LLM cho phần quyết định tiền. |
+| Dashboard / báo cáo | Lai thật + demo | Frontend tổng hợp dữ liệu đã có; một phần trace/report vẫn dùng mock để demo luồng đầy đủ. |
+| Human review | Frontend flow | Có pending edit, confirm, review action; backend audit/review đầy đủ là bước production hóa tiếp theo. |
 
-Các module không đứng độc lập tuyệt đối — chúng liên kết qua **output contract chuẩn**:
-mỗi module trả về `findings`, `metrics`, `risk flags`, `confidence`, `evidence`,
-`assumptions`, `policy references`, `human review status`, `module version`, `data
-version`, để module sau dùng lại trực tiếp thay vì nhập lại từ đầu. Ví dụ chuỗi tái sử
-dụng theo đúng thiết kế:
+### 2. Nền tảng đa phân hệ tài sản
 
-```
-Dữ liệu doanh thu đã xác minh (Financial Analysis, GĐ2)
-  → Cash-flow Analysis (GĐ2)
-  → Credit Rating (GĐ5)
-  → Credit Structuring (GĐ6)
-  → Approval Summary (GĐ7)
-```
+Frontend đã có navigation và workspace mock cho 4 phân hệ tài sản bảo đảm:
 
-Và ở GĐ2: kết quả định giá tài sản (từ module này) kết hợp với kết quả dòng tiền để ra
-hai giới hạn hạn mức — theo khả năng trả nợ và theo tài sản bảo đảm. Chi tiết cơ chế
-Module Orchestrator, Evidence Graph và Policy Layer dùng chung cho việc kết nối này nằm ở
-§8 tài liệu kiến trúc.
-
-## Module đã released: Thẩm định Bất động sản bảo đảm
-
-### Kiến trúc
-
-```
-Frontend (apps/frontend)
-        │  X-API-Key
-        ▼
-┌─────────────────────────────────────────────────────────┐
-│ FastAPI  /api/v1/{auth,services,jobs,files}              │
-├─────────────────────────────────────────────────────────┤
-│ AIServiceRegistry — tự quét & đăng ký plugin lúc khởi động│
-│   ├─ property_intake  (is_async=True)  ──▶ Celery job     │
-│   └─ property_lookup  (is_async=False) ──▶ chạy trong request│
-├─────────────────────────────────────────────────────────┤
-│ capabilities/  — lớp SQL tái sử dụng (đọc bảng paa.*)     │
-│   lookup/ (7 adapter)  · valuation/  · risk/  · dashboard/│
-├─────────────────────────────────────────────────────────┤
-│ PostgreSQL (schema paa, 23 bảng) · Redis (Celery broker)  │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Trạng thái theo từng thành phần
-
-Thiết kế đầy đủ của module này (§10 tài liệu kiến trúc) là một pipeline 10 agent:
-`Orchestrator → Intake & Extraction → Legal Screening → Research → Comparable Selection →
-Valuation → Risk & Liquidity → Field Inspection → LTV Engine → Report → QA & Evidence`.
-
-| Thành phần | Trong code | Trạng thái |
+| Phân hệ | Trạng thái | Nội dung sản phẩm |
 |---|---|---|
-| Intake & Extraction Agent | Plugin `property_intake` | ✅ Chạy được, có `confidence` + trích dẫn nguồn |
-| Research Agent (một phần) | Plugin `property_lookup` | ✅ Chạy được, đọc 7 nguồn tra cứu đã seed sẵn |
-| Comparable Selection Agent | Bảng `market_comparable` | 🟡 Có dữ liệu, chưa có logic chọn/loại outlier |
-| Legal Screening (hard blocker) | Category `legal_status` | 🟡 Có dữ liệu, chưa có bước dừng cứng |
-| Valuation Agent | `valuation_result`/`capabilities/valuation/` | ⚪ Có mô hình dữ liệu, chưa có plugin |
-| Risk & Liquidity Agent | `risk_assessment_result`/`capabilities/risk/` | ⚪ Có mô hình dữ liệu, chưa có plugin |
-| LTV Calculation Engine | Bảng `risk_ltv_policy_band` (đã seed 4 khung) | ⚪ Có cấu hình, chưa có engine tính |
-| Field Inspection Agent | — | ⚪ Chưa thiết kế |
-| Report Agent | Xuất HTML tĩnh phía frontend | 🟡 Có báo cáo, chưa qua AI/RAG |
-| QA & Evidence Agent | `confidence`/`source_doc`/`status` có sẵn trong output | 🟡 Có evidence ở tầng dữ liệu, chưa có agent kiểm tra chéo |
-| Appraisal Orchestrator | `AIServiceRegistry` | 🟡 Gọi được plugin qua API, chưa điều phối phụ thuộc giữa các bước |
+| Bất động sản | MVP | Nhà đất, căn hộ, đất ở, tài sản gắn liền với đất. |
+| Động sản | Coming soon backend | Xe, máy móc thiết bị, hàng hóa, hàng tồn kho; kiểm tra serial, quyền sở hữu, tình trạng, khấu hao, thanh khoản. |
+| Giấy tờ có giá | Coming soon backend | Trái phiếu, cổ phiếu, chứng chỉ tiền gửi, kỳ phiếu; kiểm tra lưu ký, issuer risk, market liquidity, haircut. |
+| Quyền tài sản | Coming soon backend | Quyền đòi nợ, khoản phải thu, quyền phát sinh từ hợp đồng, tài sản hình thành trong tương lai; đánh giá pháp lý, dòng tiền, recovery scenario, milestone. |
 
-Chi tiết kỹ thuật đầy đủ — tech stack, cách cài đặt, API, hợp đồng JSON từng plugin — nằm
-ở [`ai/README.md`](ai/README.md) (backend) và [`apps/frontend/README.md`](apps/frontend/README.md)
-(giao diện).
+---
 
-## Cấu trúc repo
+## Kiến trúc ngắn gọn
 
-```
-aiinnovation/
-├── README.md
-├── docs/
-│   └── kien-truc-ai-modular-tham-dinh-tin-dung-sme.md   Kiến trúc đầy đủ 8 module + roadmap
-├── ai/                         Backend: FastAPI + plugin property_intake/property_lookup
-│   ├── README.md
-│   ├── docs/                   ARCHITECTURE.md, PRD, hợp đồng JSON của từng plugin
-│   ├── PAA_Schema_PostgreSQL.sql   Mô hình dữ liệu 23 bảng
-│   └── PAA_Mockup_SHB_8.html        Mockup tĩnh — nguồn thiết kế UI gốc
-└── apps/
-    └── frontend/               Giao diện thẩm định viên (React + TypeScript)
-        └── README.md
+```text
+apps/frontend
+  React + TypeScript + Vite
+  ├─ Collateral platform pages
+  ├─ Real-estate MVP workspace
+  ├─ Future-domain workspaces
+  └─ Evidence / Report center
+
+ai
+  FastAPI + Celery + PostgreSQL + Redis
+  ├─ AIServiceRegistry
+  ├─ property_intake
+  ├─ property_lookup
+  ├─ property_valuation
+  ├─ property_risk
+  └─ capabilities/ engines + SQL access
 ```
 
-## Chạy thử nhanh
+Backend dùng mô hình plugin: mỗi năng lực AI/engine là một service độc lập trong `ai/src/shb/ai/plugins/*`. `AIServiceRegistry` tự quét và đăng ký plugin khi app khởi động, nên thêm nghiệp vụ mới không cần sửa router core.
+
+Tác vụ nhanh chạy đồng bộ. Tác vụ dài như OCR, định giá hoặc risk chạy qua Celery job và có thể stream tiến độ bằng SSE.
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, TypeScript, Vite, Zustand, CSS tokens |
+| Backend API | FastAPI, Pydantic v2, SQLAlchemy 2.x |
+| Worker | Celery |
+| Queue / result backend | Redis |
+| Database | PostgreSQL, Alembic |
+| AI/OCR | Gateway tương thích OpenAI qua `LLM_BASE_URL` |
+| Python package manager | uv |
+| Frontend package manager | npm |
+
+---
+
+## Routes chính
+
+| Route | Màn hình |
+|---|---|
+| `/` | Tổng quan nền tảng |
+| `/appraisals` | Danh sách hồ sơ thẩm định |
+| `/appraisals/:caseId` | Chi tiết hồ sơ |
+| `/asset-domains` | Hub phân hệ tài sản |
+| `/asset-domains/real-estate/:caseId` | Workspace Bất động sản MVP |
+| `/asset-domains/movable-assets/:caseId` | Workspace Động sản |
+| `/asset-domains/valuable-papers/:caseId` | Workspace Giấy tờ có giá |
+| `/asset-domains/property-rights/:caseId` | Workspace Quyền tài sản |
+| `/evidence` | Evidence Center |
+| `/reports` | Report Center |
+
+Legacy routes `/cases/...` vẫn được giữ để không vỡ demo cũ.
+
+---
+
+## Backend services
+
+| Service | Type | Endpoint | Status |
+|---|---|---|---|
+| `property_intake` | Async job | `POST /api/v1/services/property_intake/run` | Implemented |
+| `property_lookup` | Sync | `POST /api/v1/services/property_lookup/run` | Implemented |
+| `property_valuation` | Async job + SSE | `POST /api/v1/services/property_valuation/run` | Implemented |
+| `property_risk` | Async job + SSE | `POST /api/v1/services/property_risk/run` | Implemented |
+
+API docs tự sinh tại:
+
+```text
+http://localhost:8888/docs
+```
+
+---
+
+## Chạy local
+
+### Backend
 
 ```bash
-# Backend (cần 2 terminal: API + Celery worker — xem ai/README.md mục 4)
-cd ai && cp .env.example .env   # rồi sửa LLM_API_KEY
-docker compose up               # hoặc chạy native, xem ai/README.md
+cd ai
+cp .env.example .env
+# Sửa .env: LLM_BASE_URL, LLM_API_KEY, SECRET_KEY
+
+docker compose up
+```
+
+Backend chạy tại:
+
+```text
+http://localhost:8888
+```
+
+Chạy native:
+
+```bash
+cd ai
+uv sync
+cp .env.example .env
+alembic upgrade head
+uv run uvicorn shb.main:app --reload
+uv run celery -A shb.core.celery_app worker --loglevel=info
+```
+
+Trên Windows, Celery có thể cần:
+
+```bash
+uv run celery -A shb.core.celery_app worker --loglevel=info --pool=solo
+```
+
+### Frontend
+
+```bash
+cd apps/frontend
+npm install
+npm run dev
+```
+
+Frontend chạy tại:
+
+```text
+http://localhost:5173
+```
+
+Mặc định frontend chạy được bằng mock data. Muốn nối backend thật:
+
+```bash
+# apps/frontend/.env
+VITE_API_BASE_URL=http://localhost:8888
+```
+
+---
+
+## Kiểm tra
+
+```bash
+# Backend
+cd ai
+uv run pytest
 
 # Frontend
 cd apps/frontend
-npm install && npm run dev      # http://localhost:5173, mặc định chạy demo không cần backend
+npm run build
+npm run lint
 ```
+
+---
+
+## Cấu trúc repo
+
+```text
+COUNCIL-X/
+├── README.md
+├── docs/
+│   ├── collateral-appraisal-platform-plan.md
+│   └── fe-spec-3-phan-he-tham-dinh-tuong-lai-clear.md
+├── ai/
+│   ├── README.md
+│   ├── docs/
+│   │   ├── ARCHITECTURE.md
+│   │   ├── valuation-methodology.md
+│   │   ├── risk-methodology.md
+│   │   └── contracts/
+│   ├── src/shb/ai/plugins/
+│   │   ├── property_intake/
+│   │   ├── property_lookup/
+│   │   ├── property_valuation/
+│   │   └── property_risk/
+│   └── PAA_Schema_PostgreSQL.sql
+└── apps/frontend/
+    ├── README.md
+    └── src/
+        ├── app/
+        ├── components/
+        ├── features/
+        ├── mocks/
+        ├── services/
+        └── state/
+```
+
+---
 
 ## Tài liệu liên quan
 
-- [Kiến trúc nền tảng đầy đủ (8 module + roadmap)](docs/kien-truc-ai-modular-tham-dinh-tin-dung-sme.md)
-- [README backend](ai/README.md) · [README frontend](apps/frontend/README.md)
-- [Kiến trúc kỹ thuật module hiện tại](ai/docs/ARCHITECTURE.md) · [Schema dữ liệu 23 bảng](ai/PAA_Schema_PostgreSQL.sql)
+- [Implementation plan](docs/collateral-appraisal-platform-plan.md)
+- [Frontend spec cho 3 phân hệ tương lai](docs/fe-spec-3-phan-he-tham-dinh-tuong-lai-clear.md)
+- [Backend README](ai/README.md)
+- [Frontend README](apps/frontend/README.md)
+- [Valuation methodology](ai/docs/valuation-methodology.md)
+- [Risk methodology](ai/docs/risk-methodology.md)
+- [Property intake contract](ai/docs/contracts/property-intake-contract.md)
+- [Property lookup contract](ai/docs/contracts/property-lookup-contract.md)
+- [Property valuation contract](ai/docs/contracts/property-valuation-contract.md)
+- [Property risk contract](ai/docs/contracts/property-risk-contract.md)
