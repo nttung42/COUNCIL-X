@@ -119,11 +119,24 @@ def _col_value(f):
         return float(f.normalized)
     if f.target_field in _INT and isinstance(f.normalized, int):
         return f.normalized
-    if f.target_field == "issue_date" and isinstance(f.normalized, str):
-        try:
-            return dt.date.fromisoformat(f.normalized)
-        except ValueError:
-            return None
+    if f.target_field == "issue_date":
+        # DATE column: only a real date may pass — never the raw string.
+        for cand in (f.normalized, f.value):
+            if not isinstance(cand, str):
+                continue
+            try:
+                return dt.date.fromisoformat(cand)
+            except ValueError:
+                pass
+            m = re.search(
+                r"(\d{1,2})\D+(\d{1,2})\D+(\d{4})", cand
+            )  # 14/03/2019, 14 tháng 03 năm 2019
+            if m:
+                try:
+                    return dt.date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+                except ValueError:
+                    pass
+        return None
     return f.value
 
 
@@ -197,7 +210,14 @@ _FINDINGS = [
     (LookupCategory.LIQUIDITY_STAT, LookupBadge.DA_XAC_THUC, 85, "Thanh khoản"),
     (LookupCategory.STIGMA_REPUTATION, LookupBadge.DA_XAC_THUC, 95, "Dư luận"),
 ]
-_INDEX = [("2024-Q1", 100), ("2024-Q3", 106), ("2025-Q1", 111), ("2025-Q3", 115), ("2026-Q1", 118), ("2026-Q2", 120)]
+_INDEX = [
+    ("2024-Q1", 100),
+    ("2024-Q3", 106),
+    ("2025-Q1", 111),
+    ("2025-Q3", 115),
+    ("2026-Q1", 118),
+    ("2026-Q2", 120),
+]
 
 
 async def _simulate_research(session) -> None:
@@ -303,7 +323,9 @@ async def _persist_risk(session, out4) -> None:
                 description=fl.description,
                 confidence_pct=fl.confidence_pct,
                 verified_status=(
-                    VerificationStatus.DA_XAC_THUC if fl.verified else VerificationStatus.CHUA_XAC_THUC
+                    VerificationStatus.DA_XAC_THUC
+                    if fl.verified
+                    else VerificationStatus.CHUA_XAC_THUC
                 ),
                 linked_risk_group=group_id_by_label.get(fl.title),
                 display_order=i,
@@ -322,6 +344,7 @@ def _http_json(method: str, url: str, body: dict | None = None) -> dict:
 
 
 async def main() -> None:
+    """Run the full F1→F5 chain with per-stage persistence + cross-checks."""
     _rule("SETUP")
     for p in SAMPLES:
         if not Path(p).exists():
@@ -365,17 +388,26 @@ async def main() -> None:
     check("F1 persist property_physical_info", "property_physical_info" in written, str(written))
     async with AsyncSessionLocal() as s:
         phys = await s.get(PropertyPhysicalInfo, CASE_ID)
-        legal = await s.get(PropertyLegalInfo, CASE_ID)
-    check("Màn 1 có địa chỉ + diện tích", phys and phys.address and phys.land_area_sqm,
-          f"{getattr(phys,'address',None)} · {getattr(phys,'land_area_sqm',None)} m²")
+        await s.get(PropertyLegalInfo, CASE_ID)  # warm check only
+    check(
+        "Màn 1 có địa chỉ + diện tích",
+        phys and phys.address and phys.land_area_sqm,
+        f"{getattr(phys, 'address', None)} · {getattr(phys, 'land_area_sqm', None)} m²",
+    )
 
     # ---- Research (simulated) --------------------------------------------- #
     _rule("RESEARCH (mô phỏng — ngoài phạm vi) · ghi Màn 2")
     async with AsyncSessionLocal() as s:
         await _simulate_research(s)
     async with AsyncSessionLocal() as s:
-        nc = await s.scalar(select(func.count()).select_from(MarketComparable).where(MarketComparable.case_id == CASE_ID))
-        nf = await s.scalar(select(func.count()).select_from(LookupFinding).where(LookupFinding.case_id == CASE_ID))
+        nc = await s.scalar(
+            select(func.count())
+            .select_from(MarketComparable)
+            .where(MarketComparable.case_id == CASE_ID)
+        )
+        nf = await s.scalar(
+            select(func.count()).select_from(LookupFinding).where(LookupFinding.case_id == CASE_ID)
+        )
     check("Ghi đủ 5 comparable", nc == len(_COMPS), f"{nc}")
     check("Ghi đủ 7 finding", nf == len(_FINDINGS), f"{nf}")
 
@@ -385,30 +417,49 @@ async def main() -> None:
     _rule("F2 · property_lookup (đọc Màn 2 — đối chiếu)")
     out2 = await PropertyLookupService().run(PropertyLookupInput(case_id=CASE_ID), ctx_db)
     check("F2 đọc đúng số finding", len(out2.findings) == len(_FINDINGS), f"{len(out2.findings)}")
-    check("F2 đọc đúng số comparable", len(out2.market_comparables) == len(_COMPS),
-          f"{len(out2.market_comparables)}")
+    check(
+        "F2 đọc đúng số comparable",
+        len(out2.market_comparables) == len(_COMPS),
+        f"{len(out2.market_comparables)}",
+    )
     env = next((f for f in out2.findings if f.category.value == "environmental_risk"), None)
-    check("F2 giữ đúng badge 'luu_y' của Môi trường", env and env.status_badge.value == "luu_y",
-          getattr(getattr(env, "status_badge", None), "value", None))
+    check(
+        "F2 giữ đúng badge 'luu_y' của Môi trường",
+        env and env.status_badge.value == "luu_y",
+        getattr(getattr(env, "status_badge", None), "value", None),
+    )
 
     # ---- F3 --------------------------------------------------------------- #
     _rule("F3 · property_valuation (tính Màn 1+2 → persist → đối chiếu)")
     out3 = await PropertyValuationService().run(PropertyValuationInput(case_id=CASE_ID), ctx_db)
     v = out3.valuation
-    print(f"    proposed={v.proposed_value_vnd:,} range={v.value_range_low_vnd:,}..{v.value_range_high_vnd:,} conf={v.confidence_pct}%")
-    check("F3 weights = 100", sum(m.weight_pct for m in out3.methods) == 100,
-          str([m.weight_pct for m in out3.methods]))
-    check("F3 proposed nằm trong range",
-          v.value_range_low_vnd <= v.proposed_value_vnd <= v.value_range_high_vnd)
+    print(
+        f"    proposed={v.proposed_value_vnd:,} range={v.value_range_low_vnd:,}..{v.value_range_high_vnd:,} conf={v.confidence_pct}%"
+    )
+    check(
+        "F3 weights = 100",
+        sum(m.weight_pct for m in out3.methods) == 100,
+        str([m.weight_pct for m in out3.methods]),
+    )
+    check(
+        "F3 proposed nằm trong range",
+        v.value_range_low_vnd <= v.proposed_value_vnd <= v.value_range_high_vnd,
+    )
     check("F3 confidence 0..100", 0 <= v.confidence_pct <= 100, f"{v.confidence_pct}")
     check("F3 comparable_count = 5", v.comparable_count == len(_COMPS), f"{v.comparable_count}")
-    check("F3 subjective bounded ±5%", abs(out3.subjective_adjustment.value_pct) <= 5.0,
-          f"{out3.subjective_adjustment.value_pct:+}%")
+    check(
+        "F3 subjective bounded ±5%",
+        abs(out3.subjective_adjustment.value_pct) <= 5.0,
+        f"{out3.subjective_adjustment.value_pct:+}%",
+    )
     async with AsyncSessionLocal() as s:
         await _persist_valuation(s, out3)
         vr = await s.get(ValuationResult, CASE_ID)
-    check("F3 persist == output (proposed_value)", vr.proposed_value_vnd == v.proposed_value_vnd,
-          f"db={vr.proposed_value_vnd:,}")
+    check(
+        "F3 persist == output (proposed_value)",
+        vr.proposed_value_vnd == v.proposed_value_vnd,
+        f"db={vr.proposed_value_vnd:,}",
+    )
 
     # ---- F4 --------------------------------------------------------------- #
     _rule("F4 · property_risk (tính → persist → đối chiếu khung LTV)")
@@ -418,26 +469,42 @@ async def main() -> None:
     check("F4 risk_score 0..100", 0 <= a.risk_score <= 100, f"{a.risk_score}")
     check("F4 nhóm weights = 100", sum(g.weight_pct for g in out4.groups) == 100)
     async with AsyncSessionLocal() as s:
-        bands = list((await s.execute(select(RiskLtvPolicyBand).order_by(RiskLtvPolicyBand.id))).scalars())
-    band = next((b for b in bands if b.min_score <= a.risk_score and (b.max_score is None or a.risk_score <= b.max_score)), None)
-    check("F4 LTV khớp khung chính sách theo điểm", band and a.ltv_proposed_pct == band.max_ltv_pct,
-          f"score {a.risk_score} → band {getattr(band,'min_score',None)}-{getattr(band,'max_score',None)} = {getattr(band,'max_ltv_pct',None)}%")
+        bands = list(
+            (await s.execute(select(RiskLtvPolicyBand).order_by(RiskLtvPolicyBand.id))).scalars()
+        )
+    band = next(
+        (
+            b
+            for b in bands
+            if b.min_score <= a.risk_score and (b.max_score is None or a.risk_score <= b.max_score)
+        ),
+        None,
+    )
+    check(
+        "F4 LTV khớp khung chính sách theo điểm",
+        band and a.ltv_proposed_pct == band.max_ltv_pct,
+        f"score {a.risk_score} → band {getattr(band, 'min_score', None)}-{getattr(band, 'max_score', None)} = {getattr(band, 'max_ltv_pct', None)}%",
+    )
     _labels = {"thap": (0, 20), "trung_binh": (21, 40), "cao": (41, 60), "nghiem_trong": (61, 100)}
     lo, hi = _labels[a.risk_label.value]
     check("F4 label khớp điểm", lo <= a.risk_score <= hi, f"{a.risk_label.value} vs {a.risk_score}")
     async with AsyncSessionLocal() as s:
         await _persist_risk(s, out4)
         rr = await s.get(RiskAssessmentResult, CASE_ID)
-    check("F4 persist == output (risk_score, LTV)",
-          rr.risk_score == a.risk_score and rr.ltv_proposed_pct == a.ltv_proposed_pct,
-          f"db score={rr.risk_score} ltv={rr.ltv_proposed_pct}")
+    check(
+        "F4 persist == output (risk_score, LTV)",
+        rr.risk_score == a.risk_score and rr.ltv_proposed_pct == a.ltv_proposed_pct,
+        f"db score={rr.risk_score} ltv={rr.ltv_proposed_pct}",
+    )
 
     # ---- F5 --------------------------------------------------------------- #
     _rule("F5 · property_dashboard (tổng hợp → đối chiếu chéo F3/F4 + verdict)")
     out5 = await PropertyDashboardService().run(PropertyDashboardInput(case_id=CASE_ID), ctx_db)
     k = out5.kpi
     ver = out5.verdict
-    print(f"    KPI value={k.proposed_value_vnd:,} risk={k.risk_score} {k.risk_label} LTV={k.ltv_proposed_pct}")
+    print(
+        f"    KPI value={k.proposed_value_vnd:,} risk={k.risk_score} {k.risk_label} LTV={k.ltv_proposed_pct}"
+    )
     print(f"    VERDICT={ver.decision} max_loan={ver.max_loan_vnd:,} downgraded={ver.downgraded}")
     check("F5 KPI.proposed_value == F3 persisted", k.proposed_value_vnd == vr.proposed_value_vnd)
     check("F5 KPI.risk_score == F4 persisted", k.risk_score == rr.risk_score)
@@ -460,26 +527,38 @@ async def main() -> None:
             flags=vflags,
         )
     )
-    check("F5 verdict.decision == recompute độc lập", ver.decision == expected.decision,
-          f"{ver.decision} vs {expected.decision}")
-    check("F5 max_loan == round(value×LTV/100)",
-          ver.max_loan_vnd == round(vr.proposed_value_vnd * rr.ltv_proposed_pct / 100),
-          f"{ver.max_loan_vnd:,}")
+    check(
+        "F5 verdict.decision == recompute độc lập",
+        ver.decision == expected.decision,
+        f"{ver.decision} vs {expected.decision}",
+    )
+    check(
+        "F5 max_loan == round(value×LTV/100)",
+        ver.max_loan_vnd == round(vr.proposed_value_vnd * rr.ltv_proposed_pct / 100),
+        f"{ver.max_loan_vnd:,}",
+    )
     check("F5 đủ 4 tóm tắt", len(out5.step_summaries) == 4)
     # narrator must preserve numbers (digit-substring, robust to comma/space reformat)
     joined = _digits(" ".join(s.summary_text for s in out5.step_summaries))
     gen = out5.step_summaries[0].generated_by
-    check(f"F5 narrator giữ nguyên giá trị định giá (by {gen})",
-          _digits(vr.proposed_value_vnd) in joined, "digits preserved")
-    check("F5 narrator giữ nguyên LTV%", _digits(rr.ltv_proposed_pct) in joined,
-          f"LTV {rr.ltv_proposed_pct}% xuất hiện trong tóm tắt")
+    check(
+        f"F5 narrator giữ nguyên giá trị định giá (by {gen})",
+        _digits(vr.proposed_value_vnd) in joined,
+        "digits preserved",
+    )
+    check(
+        "F5 narrator giữ nguyên LTV%",
+        _digits(rr.ltv_proposed_pct) in joined,
+        f"LTV {rr.ltv_proposed_pct}% xuất hiện trong tóm tắt",
+    )
     check("F5 có trace + case_history", len(out5.case_history) > 0)
 
     # ---- HTTP round-trip -------------------------------------------------- #
     _rule("HTTP round-trip · F5 qua API public + poll (đối chiếu HTTP == in-process)")
     try:
-        run = _http_json("POST", f"{API}/services/property_dashboard/run",
-                         {"input": {"case_id": CASE_ID}})
+        run = _http_json(
+            "POST", f"{API}/services/property_dashboard/run", {"input": {"case_id": CASE_ID}}
+        )
         job = run.get("job_id")
         result = None
         for _ in range(40):
@@ -490,10 +569,16 @@ async def main() -> None:
             await asyncio.sleep(1)
         hk = (result or {}).get("kpi") or {}
         hv = (result or {}).get("verdict") or {}
-        check("HTTP F5 KPI.proposed_value == in-process",
-              hk.get("proposed_value_vnd") == k.proposed_value_vnd, f"{hk.get('proposed_value_vnd')}")
-        check("HTTP F5 verdict.decision == in-process", hv.get("decision") == ver.decision,
-              f"{hv.get('decision')}")
+        check(
+            "HTTP F5 KPI.proposed_value == in-process",
+            hk.get("proposed_value_vnd") == k.proposed_value_vnd,
+            f"{hk.get('proposed_value_vnd')}",
+        )
+        check(
+            "HTTP F5 verdict.decision == in-process",
+            hv.get("decision") == ver.decision,
+            f"{hv.get('decision')}",
+        )
         check("HTTP F5 max_loan == in-process", hv.get("max_loan_vnd") == ver.max_loan_vnd)
     except Exception as exc:  # noqa: BLE001
         check("HTTP round-trip reachable", False, str(exc))

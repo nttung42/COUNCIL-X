@@ -1,4 +1,4 @@
-import type { StepNumber } from '../types';
+import type { AppraisalCaseFull, StepNumber } from '../types';
 
 // Kịch bản trò chuyện demo — chuyển thể từ khối <script> trong ai/PAA_Mockup_SHB_8.html.
 // Khi nối API thật, thay các phản hồi tĩnh này bằng response của Advisory/Copilot agent,
@@ -44,8 +44,42 @@ export const APPRAISAL_STEP_MSG: Partial<Record<StepNumber, string>> = {
   5: 'Trace xử lý của hồ sơ đã sẵn sàng.',
 };
 
+const SEVERITY_TEXT: Record<string, string> = {
+  thap: 'Thấp',
+  trung_binh: 'Trung bình',
+  cao: 'Cao',
+  nghiem_trong: 'Nghiêm trọng',
+};
+
+/**
+ * Bản tin theo bước lấy SỐ LIỆU THẬT từ caseData hiện hành (đã map từ API) thay vì
+ * chuỗi tĩnh của mockup — đảm bảo Assistant nói đúng những gì đang hiển thị.
+ * Trả về null khi chưa có dữ liệu tương ứng (fallback dùng APPRAISAL_STEP_MSG).
+ */
+export function buildAppraisalStepMsg(n: StepNumber, c: AppraisalCaseFull): string | null {
+  if (n === 2 && c.lookupFindings.length) {
+    const attention = c.lookupFindings.filter(
+      (f) => f.statusBadge && f.statusBadge !== 'da_xac_thuc',
+    ).length;
+    return (
+      `Hoàn tất tra cứu <b>${c.lookupFindings.length} nguồn</b> khu vực — ` +
+      (attention
+        ? `phát hiện <b>${attention} điểm cần lưu ý</b>. Rà soát trước khi xác nhận.`
+        : 'không có điểm cần lưu ý. Rà soát và xác nhận để tiếp tục.')
+    );
+  }
+  if (n === 3 && c.valuation?.proposedValueLabel) {
+    return `Định giá đề xuất <b>${c.valuation.proposedValueLabel}</b>, độ tin cậy ${c.valuation.confidencePct}%.`;
+  }
+  if (n === 4 && c.risk) {
+    const label = SEVERITY_TEXT[c.risk.riskLabel] ?? c.risk.riskLabel;
+    return `Điểm rủi ro BĐS <b>${c.risk.riskScore}/100 (${label})</b>, LTV đề xuất ${c.risk.ltvProposedPct}%.`;
+  }
+  return null;
+}
+
 export const DEMO_EDIT_REPLIES: Record<DemoEditKey, string> = {
-  area: 'Đã sửa diện tích đất thành <b>65 m²</b> theo phản hồi của bạn — trường này đang <b>chờ xác nhận</b> ở tab <b>Dữ liệu tài sản</b>, bấm Xác nhận khi bạn đồng ý.',
+  area: 'Đã sửa diện tích đất thành <b>200 m²</b> theo phản hồi của bạn — trường này đang <b>chờ xác nhận</b> ở tab <b>Dữ liệu tài sản</b>, bấm Xác nhận khi bạn đồng ý.',
   environment: 'Đã cập nhật lại thông tin môi trường khu vực theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Pháp lý & thị trường</b>.',
   valuation: 'Đã điều chỉnh lại giá trị đề xuất theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Định giá</b>.',
   reputation: 'Đã cập nhật nhóm rủi ro danh tiếng/tâm linh và điểm rủi ro tổng theo phản hồi của bạn — đang <b>chờ xác nhận</b> ở tab <b>Rủi ro & LTV</b>.',
@@ -87,7 +121,7 @@ export const DEMO_FLOWS: Record<ChipFlow, ChatStep[]> = {
     { type: 'user', text: 'Giá thị trường khu vực này hiện nay thế nào?' },
     {
       type: 'agent',
-      text: 'Giá trung bình khu vực hiện khoảng <b>85–98 triệu/m²</b>, dựa trên 5 giao dịch so sánh trong bán kính 1.1km, cập nhật gần nhất 02/2026 — xem chi tiết ở tab <b>Pháp lý & thị trường</b>.',
+      text: 'Giá trung bình khu vực hiện khoảng <b>123–162 triệu/m²</b>, dựa trên 7 giao dịch so sánh trong bán kính 1.8km — xem chi tiết ở tab <b>Pháp lý & thị trường</b>.',
       delay: 1000,
     },
   ],
@@ -108,7 +142,7 @@ export const DEMO_FLOWS: Record<ChipFlow, ChatStep[]> = {
     },
   ],
   'edit-demo': [
-    { type: 'user', text: 'Diện tích đất đã nhập chưa đúng, số thực tế là 65m².' },
+    { type: 'user', text: 'Diện tích đất đã nhập chưa đúng, số thực tế là 200m².' },
     { type: 'agent', text: DEMO_EDIT_REPLIES.area, delay: 900, applyKey: 'area' },
   ],
 };

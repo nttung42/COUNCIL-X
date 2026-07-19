@@ -3,6 +3,7 @@ import type { AppraisalCaseFull, AttachedDocument, ChatMessage, ChatRole, StepNu
 import { fixtureCase, mockUploadPool } from '../mocks/fixtureCase';
 import {
   APPRAISAL_STEP_MSG,
+  buildAppraisalStepMsg,
   ChatStep,
   ChipFlow,
   DEMO_EDIT_REPLIES,
@@ -287,7 +288,7 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
   applyDemoEdit: (key) => {
     switch (key) {
       case 'area':
-        get().editTab1Field('land_area_sqm', '65 m²');
+        get().editTab1Field('land_area_sqm', '200 m²');
         break;
       case 'environment': {
         set((s) => ({
@@ -386,7 +387,9 @@ export const useCaseStore = create<CaseStoreState>()((set, get) => ({
   },
 
   showAppraisalStepThen: async (n) => {
-    const msg = APPRAISAL_STEP_MSG[n];
+    // Ưu tiên bản tin dựng từ SỐ LIỆU THẬT trong caseData (đã map từ API);
+    // chỉ rơi về chuỗi tĩnh mockup khi màn tương ứng chưa có dữ liệu.
+    const msg = buildAppraisalStepMsg(n, get().caseData) ?? APPRAISAL_STEP_MSG[n];
     if (!msg || get().appraisalMsgShown[n]) return;
     set((s) => ({ appraisalMsgShown: { ...s.appraisalMsgShown, [n]: true }, chatStarted: true }));
     await get().runSteps([{ type: 'agent', text: msg, delay: 700 }]);
